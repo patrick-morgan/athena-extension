@@ -36,7 +36,7 @@ const requestPayload = {
       `,
     },
   ],
-  temperature: 0.7,
+  temperature: 0,
 };
 
 // Define the function to call the API
