@@ -88,7 +88,7 @@ export class FoxParser extends BaseParser {
    * Parse the article and return the data
    * @returns The parsed article data
    */
-  async parse(): Promise<ArticleData> {
+  parse(): ArticleData {
     return super.parse();
   }
 }

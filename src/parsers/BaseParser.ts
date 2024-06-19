@@ -1,26 +1,5 @@
 import * as cheerio from "cheerio";
 import { ArticleData } from "../types";
-import { FoxParser } from "./FoxParser";
-
-type ParserMapType = Record<string, typeof BaseParser>;
-
-// Mapping of hostname to parser
-const parsers: ParserMapType = {
-  "www.foxnews.com": FoxParser,
-  // 'siteB.com': parseSiteB
-};
-
-/**
- * Get the parser object for the given URL
- * @param url
- * @param html
- * @returns An instantiated parser object for the given URL
- */
-export const getParser = (url: string, html: string): BaseParser => {
-  const hostname = new URL(url).hostname;
-  const ParserClass = parsers[hostname] || BaseParser;
-  return new ParserClass(url, html);
-};
 
 export class BaseParser {
   protected url: string;
@@ -137,7 +116,7 @@ export class BaseParser {
    * Parse the article and return the data
    * @returns The parsed article data
    */
-  async parse(): Promise<ArticleData> {
+  parse(): ArticleData {
     // Get properties before we clean
     const title = this.getTitle();
     const author = this.getAuthor();

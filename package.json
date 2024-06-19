@@ -12,6 +12,7 @@
     "@types/react-dom": "^18.3.0",
     "axios": "^1.7.2",
     "cheerio": "^1.0.0-rc.12",
+    "dotenv-webpack": "^8.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
@@ -19,11 +20,11 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "test": "react-scripts test",
+    "start": "doppler run -- react-scripts start",
+    "test": "doppler run -- react-scripts test",
     "eject": "react-scripts eject",
-    "build": "webpack --config webpack.config.js",
-    "watch": "webpack -w --config webpack.config.js"
+    "build": "doppler run -- webpack --config webpack.config.js",
+    "watch": "doppler run -- webpack -w --config webpack.config.js"
   },
   "eslintConfig": {
     "extends": [

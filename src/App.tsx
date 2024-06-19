@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
-import * as cheerio from "cheerio";
-import { getParser } from "./parsers/BaseParser";
+import { getParser } from "./parsers/parsers";
+import { generateSummary } from "./api/chatgpt";
 
 type Article = {
   id: number;
@@ -45,9 +45,10 @@ export const App = () => {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
     null
   );
+  const [summary, setSummary] = useState<string>("");
 
   useEffect(() => {
-    const handleMessage = (
+    const handleMessage = async (
       message: MessageType,
       sender: chrome.runtime.MessageSender,
       sendResponse: (response?: any) => void
@@ -63,6 +64,13 @@ export const App = () => {
       const parser = getParser(url, message.content);
       const articleData = parser.parse();
       console.log("articleData", articleData);
+      if (!articleData.content) {
+        console.error("No article data found");
+        return;
+      }
+      const summary = await generateSummary(articleData.content);
+      console.log("the summary", summary);
+      setSummary(summary.summary);
     };
 
     // chrome.runtime.onMessage.addListener(function (
@@ -150,6 +158,12 @@ export const App = () => {
           </div>
         </div>
       ))}
+      {summary && (
+        <div className="my-4">
+          <h2 className="text-2xl font-bold mb-2">Summary</h2>
+          <p>{summary}</p>
+        </div>
+      )}
     </div>
   );
 };
