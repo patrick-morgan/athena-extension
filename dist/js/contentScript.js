@@ -1,0 +1,1 @@
+(()=>{const e=document.documentElement.outerHTML;console.log("the doc",e),console.log("RUNNING CONTENT SCRIPT"),chrome.runtime.sendMessage({action:"articleContent",content:e})})();
