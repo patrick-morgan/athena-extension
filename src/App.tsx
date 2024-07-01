@@ -93,54 +93,6 @@ export const App = () => {
     };
   }, []);
 
-  // useEffect(() => {
-  // const handleMessage = (
-  //   message: any,
-  //   sender: chrome.runtime.MessageSender,
-  //   sendResponse: (response?: any) => void
-  // ) => {
-  //   console.log("receibed messaged!");
-  //   if (message.action === "analyzeArticle") {
-  //     const articleContent = message.content;
-  //     const processedContent = preprocessContent(articleContent);
-  //     analyzeArticle(processedContent).then((result) => {
-  //       setAnalysisResult(result);
-  //       // Send result back to the content script or handle it as needed
-  //       sendResponse({ status: "success", result });
-  //     });
-  //     return true; // Will respond asynchronously
-  //   }
-  // };
-
-  // chrome.runtime.onMessage.addListener(handleMessage);
-
-  // return () => {
-  //   chrome.runtime.onMessage.removeListener(handleMessage);
-  // };
-  // }, []);
-
-  // const preprocessContent = (content: string): string => {
-  //   return content.replace(/\s+/g, " ").trim();
-  // };
-
-  // const analyzeArticle = async (
-  //   content: string
-  // ): Promise<AnalysisResult | null> => {
-  //   try {
-  //     const response = await fetch("https://your-llm-endpoint.com/analyze", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify({ content }),
-  //     });
-  //     return await response.json();
-  //   } catch (error) {
-  //     console.error("Error analyzing article:", error);
-  //     return null;
-  //   }
-  // };
-
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Articles</h1>
@@ -152,7 +104,7 @@ export const App = () => {
         >
           <h2 className="text-xl font-bold mb-2">{article.title}</h2>
           <p className="text-gray-700 mb-2">{article.summary}</p>
-          <div className="flex justify-between">
+          <div className="flex justify-between bg-slate-200 text-lime-600 text-xl">
             <span>Bias Score: {article.biasScore}</span>
             <span>Objectivity Score: {article.objectivityScore}</span>
           </div>
