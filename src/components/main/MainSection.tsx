@@ -72,6 +72,9 @@ export const MainSection = ({
       return;
     }
 
+    // For now just do this!
+    // return;
+
     try {
       // Execute API calls in parallel
       const [summary, politicalBias, objectivityScore] = await Promise.all([
@@ -100,6 +103,10 @@ export const MainSection = ({
     }
   };
 
+  // For when i add displaying of title and date:
+  // Display the date in a readable format with time zone
+  // const formattedDate = formatDate(parsedDate, 'America/New_York');
+
   if (error) {
     return (
       <div className="text-red-500 flex justify-start items-center">
@@ -109,7 +116,7 @@ export const MainSection = ({
   }
   if (analyzing || !summary || !politicalBias || !objectivityBias) {
     return (
-      <div className="w-full h-full flex gap-4 flex-col justify-start items-center">
+      <div className="w-full h-full flex gap-4 flex-col mt-8 justify-start items-center">
         <AnalyzeArticle />
         <AnalyzeButton
           analyzing={analyzing}

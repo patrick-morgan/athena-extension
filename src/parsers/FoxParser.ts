@@ -1,5 +1,6 @@
 import { ArticleData } from "../types";
 import { BaseParser } from "./BaseParser";
+import moment from "moment-timezone";
 
 export class FoxParser extends BaseParser {
   /**
@@ -15,15 +16,39 @@ export class FoxParser extends BaseParser {
   /**
    * @returns The author of the article
    */
-  getAuthor(): string | undefined {
-    return this.$(".author-name").text().trim();
+  getAuthors(): string[] | undefined {
+    const authors: string[] = [];
+    // The authors will be inside the .author-byline class
+    this.$(".author-byline").each((i, author) => {
+      // grab the text out of the <a> tag within the .author-byline div
+      // but don't get <a> tag with a parent <span> with class .article-source
+      const authorText = this.$(author)
+        .find("a")
+        .not(".article-source a")
+        .text()
+        .trim();
+      authors.push(authorText);
+    });
+    return authors;
   }
 
   /**
    * @returns The date the article was published
    */
-  getDate(): string | undefined {
-    return this.$(".publish-date").text().trim();
+  getDate(): Date | undefined {
+    // Get article date from <time> tag inside the span with class .article-date
+    // This date string will be in format: "July 2, 2024 7:04am EDT"
+    const dateString = this.$(".article-date time").text();
+
+    // TODO: HANDLE TIMEZONES ACCORDINGLY
+    // Parse the date string with moment-timezone
+    const date = moment.tz(
+      dateString,
+      "MMMM D, YYYY h:mma",
+      "America/New_York"
+    );
+
+    return date.toDate();
   }
 
   /**
@@ -49,6 +74,19 @@ export class FoxParser extends BaseParser {
    */
   cleanContent(): void {
     super.cleanContent();
+
+    // For now assume the article content is going to be inside article tag
+    // Clean article tags
+    const $articles = this.$("article");
+
+    // Remove id, name, class from article tags
+    $articles.each((i, article) => {
+      const $article = this.$(article);
+      $article.removeClass();
+      $article.removeAttr("id");
+      $article.removeAttr("name");
+      $article.removeAttr("class");
+    });
 
     // Get all anchor tags
     const $anchors = this.$("a");

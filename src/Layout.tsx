@@ -34,7 +34,7 @@ export const Layout = ({ children }: LayoutProps) => {
         </div>
         <div>
           {/** Extension logo */}
-          <img src={logo} alt="Owl Logo" className="text-sm w-9 h-9" />
+          {/* <img src={logo} alt="Owl Logo" className="text-sm w-9 h-9" /> */}
         </div>
       </header>
       <main className="flex-grow overflow-y-auto pt-16 px-6 mb-4 bg-white main-scrollable">

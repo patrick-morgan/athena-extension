@@ -80,10 +80,8 @@ export const App = () => {
   // Request content from the active tab
   const requestContent = async (): Promise<MessageContentType | undefined> => {
     const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    console.log("ze tabs", tabs);
     const activeTab = tabs[0];
     if (activeTab?.id) {
-      console.log("requesting shit from send message");
       const response = await new Promise<MessageContentType>(
         (resolve, reject) => {
           chrome.tabs.sendMessage(

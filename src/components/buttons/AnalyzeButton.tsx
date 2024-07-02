@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import RocketLaunchRoundedIcon from "@mui/icons-material/RocketLaunchRounded";
 import { BeatLoader } from "react-spinners";
 
@@ -8,16 +8,15 @@ type AnalyzeButtonProps = {
 };
 
 export const AnalyzeButton = ({ analyzing, onClick }: AnalyzeButtonProps) => {
-  //   const [analyzing, setAnalyzing] = useState(false);
-
   return (
     <div
-      className={`p-8 w-64 h-6 my-2 flex gap-2 justify-center items-center border border-gray-200 rounded-sm shadow-sm ${
-        analyzing ? "cursor-default" : "cursor-pointer"
+      className={`p-8 w-64 h-6 my-2 flex gap-2 select-none justify-center items-center bg-white border border-gray-200 rounded-sm shadow-sm ${
+        analyzing
+          ? "cursor-default"
+          : "cursor-pointer hover:bg-slate-50 active:bg-slate-100"
       }`}
       onClick={(e) => {
         if (analyzing) return;
-        // setAnalyzing(true);
         onClick();
       }}
     >

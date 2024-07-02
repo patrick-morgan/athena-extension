@@ -1,5 +1,5 @@
 import React from "react";
-import NewspaperRoundedIcon from "@mui/icons-material/NewspaperRounded";
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 
 type AnalyzeArticleProps = {
   onClick?: () => void;
@@ -7,9 +7,9 @@ type AnalyzeArticleProps = {
 
 export const AnalyzeArticle = ({ onClick }: AnalyzeArticleProps) => {
   return (
-    <div className="flex flex-col gap-2 justify-center items-center text-black">
+    <div className="flex mt-4 flex-col gap-2 justify-center items-center text-black">
       <span>
-        <NewspaperRoundedIcon style={{ width: "64px", height: "64px" }} />
+        <DescriptionOutlinedIcon style={{ width: "64px", height: "64px" }} />
       </span>
       <h1 className="text-3xl">Analyze Article </h1>
     </div>

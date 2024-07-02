@@ -11,7 +11,7 @@ export type MessageContentType = {
 
 export type ArticleData = {
   title?: string;
-  author?: string;
-  date?: string;
+  authors?: string[];
+  date?: Date;
   content?: string;
 };

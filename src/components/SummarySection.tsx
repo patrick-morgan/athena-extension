@@ -1,12 +1,15 @@
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { SummaryResponseType } from "../api/prompts";
 import Tooltip from "@mui/material/Tooltip";
+import { parseFootnotes } from "../utils/footnotes";
 
 type SummarySectionProps = {
   summaryResponse: SummaryResponseType;
 };
 
 export const SummarySection = ({ summaryResponse }: SummarySectionProps) => {
+  const { summary, footnotes } = summaryResponse;
+
   return (
     <div className="flex flex-col justify-start gap-2 items-start text-black">
       <div className="flex justify-between items-center">
@@ -22,7 +25,7 @@ export const SummarySection = ({ summaryResponse }: SummarySectionProps) => {
         </div>
         {/** Thumbs up/down feedback buttons here */}
       </div>
-      <p className="text-sm">{summaryResponse.summary}</p>
+      <p className="text-sm">{parseFootnotes(summary, footnotes)}</p>
     </div>
   );
 };

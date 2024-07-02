@@ -5,6 +5,7 @@ import {
   PoliticalBiasResponseType,
 } from "../api/prompts";
 import Tooltip from "@mui/material/Tooltip";
+import { parseFootnotes } from "../utils/footnotes";
 
 type ArticleSectionProps = {
   politicalBias: PoliticalBiasResponseType;
@@ -52,7 +53,9 @@ export const ArticleSection = ({
           />
         </Tooltip>
       </div>
-      <p className="text-sm">{politicalBias.analysis}</p>
+      <p className="text-sm">
+        {parseFootnotes(politicalBias.analysis, politicalBias.footnotes)}
+      </p>
       {/** ObjectivityBiasSection */}
       <div className="flex items-start justify-center gap-4 w-full">
         <NumberLine
@@ -68,8 +71,9 @@ export const ArticleSection = ({
           />
         </Tooltip>
       </div>
-
-      <p className="text-sm">{objectivityBias.analysis}</p>
+      <p className="text-sm">
+        {parseFootnotes(objectivityBias.analysis, objectivityBias.footnotes)}
+      </p>
     </div>
   );
 };

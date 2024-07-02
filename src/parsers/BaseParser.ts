@@ -18,6 +18,7 @@ export class BaseParser {
       // Get the title of the article
       const $title = this.$("title");
       const titleText = $title.contents().first().text();
+      console.log("title", titleText);
       return titleText;
     } catch (e) {
       console.log("Error getting title", e);
@@ -28,7 +29,7 @@ export class BaseParser {
   /**
    * @returns The author of the article
    */
-  getAuthor(): string | undefined {
+  getAuthors(): string[] | undefined {
     // Default implementation, should be overridden
     return undefined;
   }
@@ -36,7 +37,7 @@ export class BaseParser {
   /**
    * @returns The date the article was published
    */
-  getDate(): string | undefined {
+  getDate(): Date | undefined {
     // Default implementation, should be overridden
     return undefined;
   }
@@ -63,26 +64,19 @@ export class BaseParser {
    */
   cleanContent(): void {
     // Clean body so we can process article content
-    const $body = this.$("body");
+    // const $body = this.$("body");
 
     // Remove class from body tag
-    $body.removeClass();
-
-    // For now assume the article content is going to be inside article tag
-    // Clean article tags
-    const $articles = this.$("article");
-
-    // Remove id, name, class from article tags
-    $articles.each((i, article) => {
-      const $article = this.$(article);
-      $article.removeClass();
-      $article.removeAttr("id");
-      $article.removeAttr("name");
-      $article.removeAttr("class");
-    });
+    // $body.removeClass();
 
     // Remove scripts
     this.$("script").remove();
+
+    // Remove meta tags
+    this.$("meta").remove();
+
+    // For now, remove links
+    this.$("link").remove();
 
     // Remove styles
     this.$("style").remove();
@@ -105,6 +99,18 @@ export class BaseParser {
   }
 
   /**
+   * Postprocess the content to remove whitespace and new lines
+   */
+  postProcessContent(content: string | undefined): string | undefined {
+    if (!content) return undefined;
+
+    // Remove excess whitespace and newlines
+    const cleaned = content.replace(/\s\s+/g, " ").trim();
+
+    return cleaned;
+  }
+
+  /**
    * @returns The content of the article
    */
   getContent(): string | undefined {
@@ -119,18 +125,19 @@ export class BaseParser {
   parse(): ArticleData {
     // Get properties before we clean
     const title = this.getTitle();
-    const author = this.getAuthor();
+    const authors = this.getAuthors();
     const date = this.getDate();
 
     // Clean out unwanted content and get article content
     this.cleanContent();
     const content = this.getContent();
+    const cleanedContent = this.postProcessContent(content || "");
 
     return {
       title,
-      author,
+      authors,
       date,
-      content,
+      content: cleanedContent,
     };
   }
 }
