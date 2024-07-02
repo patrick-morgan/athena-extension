@@ -1,0 +1,38 @@
+.number-line {
+  position: relative;
+  height: 2px;
+  background-color: black;
+  display: flex;
+  align-items: center;
+}
+
+.number-line::before,
+.number-line::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.number-line::before {
+  left: 0;
+  border-width: 5px 8px 5px 0;
+  border-color: transparent black transparent transparent;
+}
+
+.number-line::after {
+  right: 0;
+  border-width: 5px 0 5px 8px;
+  border-color: transparent transparent transparent black;
+}
+
+.tick {
+  position: absolute;
+  height: 20px;
+  width: 2px;
+  background-color: blue;
+  top: -9px; /* Adjust as needed to vertically center the tick */
+}

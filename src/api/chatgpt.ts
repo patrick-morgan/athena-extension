@@ -1,55 +1,43 @@
 import axios from "axios";
+import {
+  ObjectivityBiasResponseType,
+  PoliticalBiasResponseType,
+  SummaryResponseType,
+  articleContentReplace,
+  isObjectivityResponse,
+  isPoliticalBiasResponse,
+  isSummaryResponse,
+  objectivityPrompt,
+  politicalBiasPrompt,
+  summaryPrompt,
+} from "./prompts";
 
-// Define the request payload
-const requestPayload = {
-  model: "gpt-4o",
-  messages: [
-    {
-      role: "system",
-      content: `
-        Objective: Generate a concise and accurate summary of the given news article. The summary should highlight the main points, key arguments, and significant evidence presented in the article. Ensure that the summary is factual and provides direct evidence by citing specific parts of the article using footnotes. The output should be in JSON format.
-
-        Article Content:
-        [Insert article content here]
-
-        Guidelines for Summary:
-
-        1. Main Points: Identify and summarize the main points and key arguments presented in the article.
-        2. Key Evidence: Integrate significant evidence and examples directly within the main points using footnotes for references.
-        3. Neutral Tone: Maintain a neutral tone, avoiding any bias or subjective language.
-        4. Conciseness: Keep the summary concise, ideally between 100-150 words.
-        5. Footnotes: Use footnotes to provide direct references or quotes from the article.
-        6. JSON Format: Ensure the output is in the following JSON format:
-
-        {
-          "summary": "The article discusses the impact of climate change on coastal cities, noting that rising sea levels are leading to increased flooding[^1]. It examines the economic implications, highlighting the cost of infrastructure damage[^2]. Additionally, it addresses the challenges faced by local governments in mitigating these effects[^3].",
-          "footnotes": {
-            "^1": "In the past decade, sea levels have risen by an average of 3.3 millimeters per year, causing more frequent and severe coastal flooding.",
-            "^2": "The damage to infrastructure is expected to cost billions of dollars annually by 2050.",
-            "^3": "Local governments are struggling to implement effective measures due to budget constraints and political challenges."
-          }
-        }
-
-        Summary:
-
-        Please generate a summary based on the guidelines and example format provided above.
-      `,
-    },
-  ],
-  temperature: 0,
+type RequestPayloadType = {
+  model: string;
+  messages: {
+    role: string;
+    content: string;
+  }[];
+  temperature: number;
 };
 
-// Define the function to call the API
-export const generateSummary = async (articleContent: string) => {
-  try {
-    // Update the article content in the request payload
-    requestPayload.messages[0].content =
-      requestPayload.messages[0].content.replace(
-        "[Insert article content here]",
-        articleContent
-      );
+const buildRequestPayload = (prompt: string) => {
+  // Define the request payload
+  const requestPayload: RequestPayloadType = {
+    model: "gpt-4o",
+    messages: [
+      {
+        role: "system",
+        content: prompt,
+      },
+    ],
+    temperature: 0,
+  };
+  return requestPayload;
+};
 
-    // Make the API call
+const gptApiCall = async (requestPayload: RequestPayloadType) => {
+  try {
     const response = await axios.post(
       "https://api.openai.com/v1/chat/completions",
       requestPayload,
@@ -60,27 +48,120 @@ export const generateSummary = async (articleContent: string) => {
         },
       }
     );
-
-    // Process the response
-    const responseData = response.data.choices[0].message.content;
-    const jsonResponse = JSON.parse(responseData);
-
-    // Output the summary and footnotes
-    console.log("Summary:", jsonResponse.summary);
-    console.log("Footnotes:", jsonResponse.footnotes);
-
-    return jsonResponse;
+    return response;
   } catch (error) {
-    console.error("Error generating summary:", error);
-    throw error;
+    console.error("Error making API call to OpenAI:", error);
+    throw error; // Re-throw the error to be handled in the calling function
   }
 };
 
-// Example usage
-// const articleContent = `
-//   Climate change is having a profound impact on coastal cities. Over the past decade, sea levels have risen by an average of 3.3 millimeters per year, causing more frequent and severe coastal flooding. This has significant economic implications, with the damage to infrastructure expected to cost billions of dollars annually by 2050. Local governments are struggling to implement effective measures due to budget constraints and political challenges.
-// `;
+export const generateSummary = async (
+  articleContent: string
+): Promise<SummaryResponseType | null> => {
+  const requestPayload = buildRequestPayload(summaryPrompt);
+  try {
+    // Update the article content in the request payload
+    requestPayload.messages[0].content =
+      requestPayload.messages[0].content.replace(
+        articleContentReplace,
+        articleContent
+      );
 
-// generateSummary(articleContent)
-//   .then((response) => console.log("Generated Summary Response:", response))
-//   .catch((error) => console.error("Error:", error));
+    const response = await gptApiCall(requestPayload);
+    const responseData = response.data.choices[0].message.content;
+
+    // Attempt to parse the JSON response
+    let jsonResponse: any;
+    try {
+      jsonResponse = JSON.parse(responseData);
+    } catch (parseError) {
+      console.error("Error parsing summary JSON response:", parseError);
+      return null;
+    }
+
+    // Validate the JSON structure
+    if (isSummaryResponse(jsonResponse)) {
+      return jsonResponse;
+    } else {
+      console.error("Invalid summary JSON structure:", jsonResponse);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error generating summary:", error);
+    return null;
+  }
+};
+
+export const analyzePoliticalBias = async (
+  articleContent: string
+): Promise<PoliticalBiasResponseType | null> => {
+  const requestPayload = buildRequestPayload(politicalBiasPrompt);
+  try {
+    // Update the article content in the request payload
+    requestPayload.messages[0].content =
+      requestPayload.messages[0].content.replace(
+        articleContentReplace,
+        articleContent
+      );
+
+    const response = await gptApiCall(requestPayload);
+    const responseData = response.data.choices[0].message.content;
+
+    // Attempt to parse the JSON response
+    let jsonResponse: any;
+    try {
+      jsonResponse = JSON.parse(responseData);
+    } catch (parseError) {
+      console.error("Error parsing political bias JSON response:", parseError);
+      return null;
+    }
+
+    // Validate the JSON structure
+    if (isPoliticalBiasResponse(jsonResponse)) {
+      return jsonResponse;
+    } else {
+      console.error("Invalid political bias JSON structure:", jsonResponse);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error analyzing political bias:", error);
+    return null;
+  }
+};
+
+export const analyzeObjectivity = async (
+  articleContent: string
+): Promise<ObjectivityBiasResponseType | null> => {
+  const requestPayload = buildRequestPayload(objectivityPrompt);
+  try {
+    // Update the article content in the request payload
+    requestPayload.messages[0].content =
+      requestPayload.messages[0].content.replace(
+        articleContentReplace,
+        articleContent
+      );
+
+    const response = await gptApiCall(requestPayload);
+    const responseData = response.data.choices[0].message.content;
+
+    // Attempt to parse the JSON response
+    let jsonResponse: any;
+    try {
+      jsonResponse = JSON.parse(responseData);
+    } catch (parseError) {
+      console.error("Error parsing objectivity JSON response:", parseError);
+      return null;
+    }
+
+    // Validate the JSON structure
+    if (isObjectivityResponse(jsonResponse)) {
+      return jsonResponse;
+    } else {
+      console.error("Invalid objectivity JSON structure:", jsonResponse);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error analyzing objectivity:", error);
+    return null;
+  }
+};

@@ -1,51 +1,54 @@
 import React, { useEffect, useState } from "react";
 import "./App.css";
 import { getParser } from "./parsers/parsers";
-import { generateSummary } from "./api/chatgpt";
+import {
+  analyzeObjectivity,
+  analyzePoliticalBias,
+  generateSummary,
+} from "./api/chatgpt";
+import { AnalyzeArticle } from "./components/AnalyzeArticle";
+import { AnalyzeButton } from "./components/buttons/AnalyzeButton";
+import { MessageContentType, MessageType } from "./types";
+import {
+  ObjectivityBiasResponseType,
+  PoliticalBiasResponseType,
+  SummaryResponseType,
+} from "./api/prompts";
+import { MainSection } from "./components/main/MainSection";
 
-type Article = {
-  id: number;
-  title: string;
-  content: string;
-  summary: string;
-  biasScore: number;
-  objectivityScore: number;
-};
+// type Article = {
+//   id: number;
+//   title: string;
+//   content: string;
+//   summary: string;
+//   biasScore: number;
+//   objectivityScore: number;
+// };
 
-const articles: Article[] = [
-  {
-    id: 1,
-    title: "Sample Article 1",
-    content: "This is the content of sample article 1.",
-    summary: "This is a summary of sample article 1.",
-    biasScore: 3,
-    objectivityScore: 7,
-  },
-  {
-    id: 2,
-    title: "Sample Article 2",
-    content: "This is the content of sample article 2.",
-    summary: "This is a summary of sample article 2.",
-    biasScore: 5,
-    objectivityScore: 6,
-  },
-];
-
-type AnalysisResult = {
-  biasScore: number;
-  objectivityScore: number;
-};
-
-type MessageType = {
-  action: string;
-  content: string;
-};
+// const articles: Article[] = [
+//   {
+//     id: 1,
+//     title: "Sample Article 1",
+//     content: "This is the content of sample article 1.",
+//     summary: "This is a summary of sample article 1.",
+//     biasScore: 3,
+//     objectivityScore: 7,
+//   },
+//   {
+//     id: 2,
+//     title: "Sample Article 2",
+//     content: "This is the content of sample article 2.",
+//     summary: "This is a summary of sample article 2.",
+//     biasScore: 5,
+//     objectivityScore: 6,
+//   },
+// ];
 
 export const App = () => {
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(
-    null
-  );
-  const [summary, setSummary] = useState<string>("");
+  const [currentUrl, setCurrentUrl] = useState<string | null>(null);
+  const [websiteHTML, setWebsiteHTML] = useState<string | null>(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  // const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleMessage = async (
@@ -54,6 +57,9 @@ export const App = () => {
       sendResponse: (response?: any) => void
     ) => {
       console.log("message", message);
+      // Reset summary and analyzing state
+      // setSummary(null);
+      setAnalyzing(false);
 
       // URL should be defined since this event always comes from content script
       const url = sender?.tab?.url;
@@ -61,43 +67,56 @@ export const App = () => {
         console.error("No URL found in message", message);
         return;
       }
-      const parser = getParser(url, message.content);
-      const articleData = parser.parse();
-      console.log("articleData", articleData);
-      if (!articleData.content) {
-        console.error("No article data found");
-        return;
-      }
-      const summary = await generateSummary(articleData.content);
-      console.log("the summary", summary);
-      setSummary(summary.summary);
+      setCurrentUrl(url);
+      setWebsiteHTML(message.content.html);
     };
 
-    // chrome.runtime.onMessage.addListener(function (
-    //   request,
-    //   sender,
-    //   sendResponse
-    // ) {
-    //   console.log(
-    //     sender.tab
-    //       ? "from a content script:" + sender.tab.url
-    //       : "from the extension"
-    //   );
-    //   if (request.greeting === "hello") sendResponse({ farewell: "goodbye" });
-    // });
-
     chrome.runtime.onMessage.addListener(handleMessage);
-
     return () => {
       chrome.runtime.onMessage.removeListener(handleMessage);
     };
   }, []);
 
+  // Request content from the active tab
+  const requestContent = async (): Promise<MessageContentType | undefined> => {
+    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+    console.log("ze tabs", tabs);
+    const activeTab = tabs[0];
+    if (activeTab?.id) {
+      console.log("requesting shit from send message");
+      const response = await new Promise<MessageContentType>(
+        (resolve, reject) => {
+          chrome.tabs.sendMessage(
+            activeTab.id!,
+            { action: "requestContent" },
+            (response) => {
+              if (chrome.runtime.lastError) {
+                reject(chrome.runtime.lastError);
+              } else {
+                resolve(response as MessageContentType);
+              }
+            }
+          );
+        }
+      );
+      console.log("new htlm FOO!", response);
+      return response;
+      // setWebsiteHTML(response.html);
+    }
+  };
+
   return (
-    <div className="container mx-auto p-6 w-full">
-      <h1 className="text-3xl font-bold mb-6">Articles</h1>
-      <div id="analysisResult"></div>
-      {articles.map((article) => (
+    <div className="container mx-auto p-6 h-full w-full">
+      {/** Body */}
+      <MainSection
+        analyzing={analyzing}
+        setAnalyzing={setAnalyzing}
+        requestContent={requestContent}
+        currentUrl={currentUrl}
+        websiteHTML={websiteHTML}
+      />
+
+      {/* {articles.map((article) => (
         <div
           key={article.id}
           className="bg-white shadow-md rounded-lg p-6 mb-4"
@@ -109,15 +128,7 @@ export const App = () => {
             <span>Objectivity Score: {article.objectivityScore}</span>
           </div>
         </div>
-      ))}
-      {summary && (
-        <div className="my-4">
-          <h2 className="text-2xl font-bold mb-2">Summary</h2>
-          <p>{summary}</p>
-        </div>
-      )}
+      ))} */}
     </div>
   );
 };
-
-// export default App;
