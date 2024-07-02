@@ -33,6 +33,5 @@
   position: absolute;
   height: 20px;
   width: 2px;
-  background-color: blue;
   top: -9px; /* Adjust as needed to vertically center the tick */
 }

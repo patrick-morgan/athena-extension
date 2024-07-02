@@ -106,7 +106,7 @@ export const App = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 h-full w-full">
+    <div className="mx-auto h-full w-full">
       {/** Body */}
       <MainSection
         analyzing={analyzing}

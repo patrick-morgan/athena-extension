@@ -123,7 +123,7 @@ export const MainSection = ({
   }
 
   return (
-    <div className="w-full h-full flex gap-4 flex-col justify-start items-center">
+    <div className="w-full h-full pt-4 flex gap-4 flex-col justify-start items-center">
       <SummarySection summaryResponse={summary} />
       <ArticleSection
         politicalBias={politicalBias}

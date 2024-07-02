@@ -15,6 +15,8 @@ export const ArticleSection = ({
   politicalBias,
   objectivityBias,
 }: ArticleSectionProps) => {
+  //   const [value, setValue] = useState(0);
+
   return (
     <div className="flex flex-col justify-start gap-2 items-start text-black">
       <div className="flex justify-between items-center">
@@ -31,11 +33,17 @@ export const ArticleSection = ({
         {/** Thumbs up/down feedback buttons here */}
       </div>
       {/** PoliticalBiasSection */}
-      <div className="flex items-start w-full">
+      {/* <input
+        type="range"
+        value={value}
+        onChange={(e) => setValue(parseInt(e.target.value))}
+      /> */}
+      <div className="flex items-start justify-center gap-4 w-full">
         <NumberLine
           leftText="Left wing"
           rightText="Right wing"
           tickPosition={politicalBias.bias_score}
+          mode="political"
         />
         <Tooltip title="This section evaluates the political bias of the article, assigning a bias score from 0 to 100. A score of 0 indicates a very left-wing bias, 50 is moderate, and 100 is very right-wing. The analysis identifies language, framing, selection of facts, and sources that indicate political bias, using specific examples from the article.">
           <InfoOutlinedIcon
@@ -46,11 +54,12 @@ export const ArticleSection = ({
       </div>
       <p className="text-sm">{politicalBias.analysis}</p>
       {/** ObjectivityBiasSection */}
-      <div className="flex items-start w-full">
+      <div className="flex items-start justify-center gap-4 w-full">
         <NumberLine
           leftText="Opinion"
           rightText="Factual"
           tickPosition={objectivityBias.rhetoric_score}
+          mode="objectivity"
         />
         <Tooltip title="This section assesses how opinionated or factual the article is, generating a rhetoric score from 0 to 100. A score of 0 means the article is very opinionated and rhetorical (like an op-ed), while a score of 100 means it is very factual and objective. The analysis highlights language, tone, and use of evidence to determine the level of objectivity, with specific references to the article.">
           <InfoOutlinedIcon
