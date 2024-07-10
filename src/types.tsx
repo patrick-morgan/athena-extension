@@ -32,6 +32,16 @@ export type ArticleModel = {
   publication: string;
 };
 
+export type PublicationModel = {
+  id: string;
+  created_at: Date;
+  updated_at: Date;
+  name: string;
+  date_founded: Date;
+  hostname: string;
+  owner: string;
+};
+
 export type SummaryModel = {
   id: string;
   created_at: Date;
@@ -64,41 +74,15 @@ export type JournalistBiasWithNameModel = {
   journalist: string; // journalist_id
 };
 
-type Summary = {
+export type PublicationBiasModel = {
   id: string;
-  article_id: string; // Foreign key to Article
+  created_at: Date;
+  updated_at: Date;
   summary: string;
-  footnotes: { [key: string]: string };
-};
-
-type PolarizationBias = {
-  id: string;
-  article_id: string; // Foreign key to Article
-  analysis: string;
+  publication: string; // publication_id
   bias_score: number;
-  footnotes: { [key: string]: string };
-};
-
-type ObjectivityBias = {
-  id: string;
-  article_id: string; // Foreign key to Article
   rhetoric_score: number;
-  analysis: string;
-  footnotes: { [key: string]: string };
-};
-
-type Journalist = {
-  id: string;
-  name: string;
-  publications: string[]; // Foreign keys to Publication
-};
-
-type Publication = {
-  id: string;
-  name: string;
-  date_founded: Date;
-  url: string;
-  owner: string;
+  num_articles_analyzed: number;
 };
 
 // This should ALWAYS match the output example in the summary prompt (found in be)

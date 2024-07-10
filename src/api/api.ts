@@ -5,6 +5,8 @@ import {
   JournalistBiasWithNameModel,
   ObjectivityBiasResponseType,
   PoliticalBiasResponseType,
+  PublicationBiasModel,
+  PublicationModel,
   SummaryModel,
 } from "../types";
 
@@ -26,6 +28,22 @@ export const analyzeJournalists = async (
   article: ArticleData
 ): Promise<JournalistBiasWithNameModel[]> => {
   const response = await axios.post(`${API_URL}/analyze-journalists`, article);
+  return response.data;
+};
+
+type PublicationBiasPayload = {
+  publicationId: string;
+};
+
+export type PublicationAnalysisResponse = {
+  publication: PublicationModel;
+  analysis: PublicationBiasModel;
+};
+
+export const analyzePublication = async (
+  payload: PublicationBiasPayload
+): Promise<PublicationAnalysisResponse> => {
+  const response = await axios.post(`${API_URL}/analyze-publication`, payload);
   return response.data;
 };
 

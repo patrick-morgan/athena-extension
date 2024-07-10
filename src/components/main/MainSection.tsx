@@ -9,17 +9,22 @@ import {
   MessageContentType,
   ObjectivityBiasResponseType,
   PoliticalBiasResponseType,
+  PublicationBiasModel,
+  SummaryModel,
   SummaryResponseType,
 } from "../../types";
 import {
   ArticlePayload,
+  PublicationAnalysisResponse,
   analyzeJournalists,
   analyzeObjectivity,
   analyzePoliticalBias,
+  analyzePublication,
   createArticle,
   generateSummary,
 } from "../../api/api";
 import { JournalistSection } from "../journalist-section/JournalistSection";
+import { PublicationSection } from "../publication-section/PublicationSection";
 
 type BodySectionProps = {
   analyzing: boolean;
@@ -38,7 +43,7 @@ export const MainSection = ({
 }: BodySectionProps) => {
   // const [currentUrl, setCurrentUrl] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
-  const [summary, setSummary] = useState<SummaryResponseType | null>(null);
+  const [summary, setSummary] = useState<SummaryModel | null>(null);
   const [politicalBias, setPoliticalBias] =
     useState<PoliticalBiasResponseType | null>(null);
   const [objectivityBias, setObjectivityBias] =
@@ -46,8 +51,10 @@ export const MainSection = ({
   const [journalistsAnalysis, setJournalistsAnalysis] = useState<
     JournalistBiasWithNameModel[] | null
   >(null);
+  const [publicationAnalysis, setPublicationAnalysis] =
+    useState<PublicationAnalysisResponse | null>(null);
 
-  const handleAnalsis = async () => {
+  const handleAnalysis = async () => {
     console.log("current url", currentUrl);
     console.log("htnl", websiteHTML);
     let newHTML: string | null | undefined = websiteHTML;
@@ -93,8 +100,8 @@ export const MainSection = ({
         analyzeObjectivity(payload),
       ]);
 
-      console.log("Summary woah:", summary);
-      console.log("Political Bias i:", politicalBias);
+      console.log("Summary:", summary);
+      console.log("Political Bias:", politicalBias);
       console.log("Objectivity Score:", objectivityScore);
 
       if (!summary || !politicalBias || !objectivityScore) {
@@ -111,6 +118,13 @@ export const MainSection = ({
       const journalistAnalysis = await analyzeJournalists(articleData);
       console.log("Journalists Analysis:", journalistAnalysis);
       setJournalistsAnalysis(journalistAnalysis);
+
+      // Analyze publication
+      const pubAnalysis = await analyzePublication({
+        publicationId: article.publication,
+      });
+      console.log("Publication Analysis:", pubAnalysis);
+      setPublicationAnalysis(pubAnalysis);
     } catch (error) {
       console.error("Error executing API calls:", error);
       setError("Error analyzing article");
@@ -138,7 +152,7 @@ export const MainSection = ({
           analyzing={analyzing}
           onClick={() => {
             setAnalyzing(true);
-            handleAnalsis();
+            handleAnalysis();
           }}
         />
       </div>
@@ -154,6 +168,9 @@ export const MainSection = ({
       />
       {journalistsAnalysis && (
         <JournalistSection journalistsBias={journalistsAnalysis} />
+      )}
+      {publicationAnalysis && (
+        <PublicationSection pubResponse={publicationAnalysis} />
       )}
     </div>
   );
