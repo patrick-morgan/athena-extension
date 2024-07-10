@@ -1,20 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
-import { getParser } from "./parsers/parsers";
-import {
-  analyzeObjectivity,
-  analyzePoliticalBias,
-  generateSummary,
-} from "./api/chatgpt";
-import { AnalyzeArticle } from "./components/AnalyzeArticle";
-import { AnalyzeButton } from "./components/buttons/AnalyzeButton";
-import { MessageContentType, MessageType } from "./types";
-import {
-  ObjectivityBiasResponseType,
-  PoliticalBiasResponseType,
-  SummaryResponseType,
-} from "./api/prompts";
 import { MainSection } from "./components/main/MainSection";
+import { MessageContentType, MessageType } from "./types";
 
 // type Article = {
 //   id: number;

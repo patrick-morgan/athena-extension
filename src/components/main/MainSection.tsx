@@ -1,20 +1,16 @@
 import React, { useState } from "react";
-import {
-  ObjectivityBiasResponseType,
-  PoliticalBiasResponseType,
-  SummaryResponseType,
-} from "../../api/prompts";
 import { AnalyzeArticle } from "../AnalyzeArticle";
 import { AnalyzeButton } from "../buttons/AnalyzeButton";
 import { getParser } from "../../parsers/parsers";
-import {
-  analyzeObjectivity,
-  analyzePoliticalBias,
-  generateSummary,
-} from "../../api/chatgpt";
 import { SummarySection } from "../SummarySection";
 import { ArticleSection } from "../ArticleSection";
-import { MessageContentType } from "../../types";
+import {
+  MessageContentType,
+  ObjectivityBiasResponseType,
+  PoliticalBiasResponseType,
+  SummaryResponseType,
+} from "../../types";
+import { generateSummary } from "../../api/api";
 
 type BodySectionProps = {
   analyzing: boolean;
@@ -77,24 +73,29 @@ export const MainSection = ({
 
     try {
       // Execute API calls in parallel
-      const [summary, politicalBias, objectivityScore] = await Promise.all([
-        generateSummary(articleData.content),
-        analyzePoliticalBias(articleData.content),
-        analyzeObjectivity(articleData.content),
-      ]);
+      // const [summary, politicalBias, objectivityScore] = await Promise.all([
+      //   generateSummary(articleData.content),
+      //   analyzePoliticalBias(articleData.content),
+      //   analyzeObjectivity(articleData.content),
+      // ]);
+      const summary = await generateSummary(articleData.content);
 
       console.log("Summary:", summary);
       console.log("Political Bias:", politicalBias);
-      console.log("Objectivity Score:", objectivityScore);
+      // console.log("Objectivity Score:", objectivityScore);
 
-      if (!summary || !politicalBias || !objectivityScore) {
+      if (!summary) {
         setError("Error analyzing article");
         return;
       }
+      // if (!summary || !politicalBias || !objectivityScore) {
+      //   setError("Error analyzing article");
+      //   return;
+      // }
 
       setSummary(summary);
-      setPoliticalBias(politicalBias);
-      setObjectivityBias(objectivityScore);
+      // setPoliticalBias(politicalBias);
+      // setObjectivityBias(objectivityScore);
     } catch (error) {
       console.error("Error executing API calls:", error);
       setError("Error analyzing article");
