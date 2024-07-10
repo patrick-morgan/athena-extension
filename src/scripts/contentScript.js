@@ -1,12 +1,24 @@
 // import Fuse from "fuse.js";
 
 // This sends the article content to the background script
-const doc = document.documentElement.outerHTML;
+// const doc = document.documentElement.outerHTML;
 
-chrome.runtime.sendMessage({
-  action: "articleContent",
-  content: { html: doc, url: window.location.href },
-});
+// chrome.runtime.sendMessage({
+//   action: "articleContent",
+//   content: { html: doc, url: window.location.href },
+// });
+
+// const sendPageContent = () => {
+//   console.log("sending page content FOO");
+//   const doc = document.documentElement.outerHTML;
+//   chrome.runtime.sendMessage({
+//     action: "articleContent",
+//     content: { html: doc, url: window.location.href },
+//   });
+// };
+
+// Send the message when the content script is loaded
+// sendPageContent();
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "requestContent") {

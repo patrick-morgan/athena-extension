@@ -1,18 +1,4 @@
-import React, { useState } from "react";
-import { AnalyzeArticle } from "../AnalyzeArticle";
-import { AnalyzeButton } from "../buttons/AnalyzeButton";
-import { getParser } from "../../parsers/parsers";
-import { SummarySection } from "../summary-section/SummarySection";
-import { ArticleSection } from "../article-section/ArticleSection";
-import {
-  JournalistBiasWithNameModel,
-  MessageContentType,
-  ObjectivityBiasResponseType,
-  PoliticalBiasResponseType,
-  PublicationBiasModel,
-  SummaryModel,
-  SummaryResponseType,
-} from "../../types";
+import { useEffect, useState } from "react";
 import {
   ArticlePayload,
   PublicationAnalysisResponse,
@@ -23,24 +9,28 @@ import {
   createArticle,
   generateSummary,
 } from "../../api/api";
+import { getParser } from "../../parsers/parsers";
+import {
+  AppStateType,
+  JournalistBiasWithNameModel,
+  ObjectivityBiasResponseType,
+  PoliticalBiasResponseType,
+  SummaryModel,
+} from "../../types";
+import { AnalyzeArticle } from "../AnalyzeArticle";
+import { ArticleSection } from "../article-section/ArticleSection";
+import { AnalyzeButton } from "../buttons/AnalyzeButton";
 import { JournalistSection } from "../journalist-section/JournalistSection";
 import { PublicationSection } from "../publication-section/PublicationSection";
+import { SummarySection } from "../summary-section/SummarySection";
+import { requestContent } from "./utils";
 
 type BodySectionProps = {
   analyzing: boolean;
   setAnalyzing: (analyzing: boolean) => void;
-  currentUrl: string | null;
-  websiteHTML: string | null;
-  requestContent: () => Promise<MessageContentType | undefined>;
 };
 
-export const MainSection = ({
-  analyzing,
-  setAnalyzing,
-  currentUrl,
-  websiteHTML,
-  requestContent,
-}: BodySectionProps) => {
+export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
   // const [currentUrl, setCurrentUrl] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<SummaryModel | null>(null);
@@ -54,16 +44,35 @@ export const MainSection = ({
   const [publicationAnalysis, setPublicationAnalysis] =
     useState<PublicationAnalysisResponse | null>(null);
 
-  const handleAnalysis = async () => {
-    console.log("current url", currentUrl);
-    console.log("htnl", websiteHTML);
-    let newHTML: string | null | undefined = websiteHTML;
-    let newURL: string | null | undefined = currentUrl;
-    if (!websiteHTML || !currentUrl) {
+  useEffect(() => {
+    // On mount, restore the previous state, if we are on previous URL
+    const getLocalStorageData = async () => {
+      // Request URL from content script
       const resp = await requestContent();
-      newHTML = resp?.html;
-      newURL = resp?.url;
-    }
+      const newURL = resp?.url;
+      if (!newURL) return;
+      chrome.storage.local.get(["appState"], (result) => {
+        console.log("get app state", result.appState);
+        if (result.appState) {
+          const appState = result.appState as AppStateType;
+          console.log("saved url", appState.currentUrl);
+          if (appState.currentUrl && appState.currentUrl === newURL) {
+            setSummary(appState.summary);
+            setPoliticalBias(appState.politicalBias);
+            setObjectivityBias(appState.objectivityBias);
+            setJournalistsAnalysis(appState.journalistsAnalysis);
+            setPublicationAnalysis(appState.publicationAnalysis);
+          }
+        }
+      });
+    };
+    getLocalStorageData();
+  }, []);
+
+  const handleAnalysis = async () => {
+    const resp = await requestContent();
+    const newHTML = resp?.html;
+    const newURL = resp?.url;
     if (!newHTML) {
       setError("Error fetching website content");
       console.error("Error manually requesting HTML");
@@ -125,6 +134,19 @@ export const MainSection = ({
       });
       console.log("Publication Analysis:", pubAnalysis);
       setPublicationAnalysis(pubAnalysis);
+
+      // Set chrome storage state
+      const appState: AppStateType = {
+        currentUrl: newURL,
+        summary: summary,
+        politicalBias: politicalBias,
+        objectivityBias: objectivityScore,
+        journalistsAnalysis: journalistAnalysis,
+        publicationAnalysis: pubAnalysis,
+      };
+      chrome.storage.local.set({ appState }, () => {
+        console.log("App state is saved.");
+      });
     } catch (error) {
       console.error("Error executing API calls:", error);
       setError("Error analyzing article");

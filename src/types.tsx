@@ -1,3 +1,15 @@
+import { PublicationAnalysisResponse } from "./api/api";
+
+export type AppStateType = {
+  currentUrl: string | null;
+  // websiteHTML: string | null;
+  summary: SummaryModel | null;
+  politicalBias: PoliticalBiasResponseType | null;
+  objectivityBias: ObjectivityBiasResponseType | null;
+  journalistsAnalysis: JournalistBiasWithNameModel[] | null;
+  publicationAnalysis: PublicationAnalysisResponse | null;
+};
+
 export type MessageType = {
   action: string;
   content: MessageContentType;
