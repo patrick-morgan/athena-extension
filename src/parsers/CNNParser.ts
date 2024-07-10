@@ -16,7 +16,7 @@ export class CNNParser extends BaseParser {
   /**
    * @returns The authors of the article
    */
-  getAuthors(): string[] | undefined {
+  getAuthors(): string[] {
     const authors: string[] = [];
     this.$(".byline__name").each((i, author) => {
       authors.push(this.$(author).text().trim());
@@ -27,7 +27,7 @@ export class CNNParser extends BaseParser {
   /**
    * @returns The date the article was published
    */
-  getDate(): Date | undefined {
+  getDate(): Date {
     // Get article date from <div> tag with class .timestamp
     // and parent <div> tag with class .headline__byline-sub-text
     // This date string will be in format: "Updated 8:59 PM EDT, Mon July 1, 2024"
@@ -35,18 +35,23 @@ export class CNNParser extends BaseParser {
       .text()
       .trim();
 
-    // Remove the "Updated" prefix and any leading/trailing whitespace
-    const cleanedDateString = dateString.replace("Updated", "").trim();
+    if (dateString) {
+      // Remove the "Updated" prefix and any leading/trailing whitespace
+      const cleanedDateString = dateString.replace("Updated", "").trim();
 
-    // TODO: HANDLE TIMEZONES ACCORDINGLY
-    // Parse the date string with moment-timezone
-    const date = moment.tz(
-      cleanedDateString,
-      "h:mm A z, ddd MMM D, YYYY",
-      "America/New_York"
-    );
+      // TODO: HANDLE TIMEZONES ACCORDINGLY
+      // Parse the date string with moment-timezone
+      const date = moment.tz(
+        cleanedDateString,
+        "h:mm A z, ddd MMM D, YYYY",
+        "America/New_York"
+      );
 
-    return date.toDate();
+      return date.toDate();
+    }
+
+    // If no date is found, return current date
+    return super.getDate();
   }
 
   /**
@@ -91,9 +96,9 @@ export class CNNParser extends BaseParser {
    * Get article content container specifically for CNN articles
    * @returns The content of the article
    */
-  getContent(): string | undefined {
+  getContent(): string {
     const $articleBody = this.$(".article__content-container");
-    return $articleBody.text();
+    return $articleBody.text() || "";
   }
 
   /**

@@ -1,3 +1,4 @@
+import { getHostname } from "../utils/helpers";
 import { BaseParser } from "./BaseParser";
 import { CNNParser } from "./CNNParser";
 import { FoxParser } from "./FoxParser";
@@ -18,7 +19,7 @@ const parsers: ParserMapType = {
  * @returns An instantiated parser object for the given URL
  */
 export const getParser = (url: string, html: string): BaseParser => {
-  const hostname = new URL(url).hostname;
+  const hostname = getHostname(url);
   const ParserClass = parsers[hostname] || BaseParser;
   return new ParserClass(url, html);
 };

@@ -1,7 +1,10 @@
 import axios from "axios";
 import {
+  ArticleData,
+  ArticleModel,
   ObjectivityBiasResponseType,
   PoliticalBiasResponseType,
+  SummaryModel,
   SummaryResponseType,
 } from "../types";
 
@@ -12,19 +15,27 @@ export const getArticles = async () => {
   return response.data;
 };
 
-export const createArticle = async (article: any) => {
+export const createArticle = async (
+  article: ArticleData
+): Promise<ArticleModel> => {
   const response = await axios.post(`${API_URL}/articles`, article);
   return response.data;
 };
 
+export type ArticlePayload = {
+  id: string;
+  text: string;
+};
+
 // Add other CRUD functions as needed
 export const generateSummary = async (
-  articleContent: string
-): Promise<SummaryResponseType | null> => {
+  articlePayload: ArticlePayload
+): Promise<SummaryModel | null> => {
   try {
-    const response = await axios.post(`${API_URL}/generate-summary`, {
-      articleContent,
-    });
+    const response = await axios.post(
+      `${API_URL}/generate-summary`,
+      articlePayload
+    );
     return response.data;
   } catch (error) {
     console.error("Error generating summary:", error);
@@ -33,12 +44,13 @@ export const generateSummary = async (
 };
 
 export const analyzePoliticalBias = async (
-  articleContent: string
+  articlePayload: ArticlePayload
 ): Promise<PoliticalBiasResponseType | null> => {
   try {
-    const response = await axios.post(`${API_URL}/analyze-political-bias`, {
-      articleContent,
-    });
+    const response = await axios.post(
+      `${API_URL}/analyze-political-bias`,
+      articlePayload
+    );
     return response.data;
   } catch (error) {
     console.error("Error generating political bias:", error);
@@ -47,12 +59,13 @@ export const analyzePoliticalBias = async (
 };
 
 export const analyzeObjectivity = async (
-  articleContent: string
+  articlePayload: ArticlePayload
 ): Promise<ObjectivityBiasResponseType | null> => {
   try {
-    const response = await axios.post(`${API_URL}/analyze-objectivity`, {
-      articleContent,
-    });
+    const response = await axios.post(
+      `${API_URL}/analyze-objectivity`,
+      articlePayload
+    );
     return response.data;
   } catch (error) {
     console.error("Error generating objectivity:", error);

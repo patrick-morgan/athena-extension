@@ -11,8 +11,10 @@ import {
   SummaryResponseType,
 } from "../../types";
 import {
+  ArticlePayload,
   analyzeObjectivity,
   analyzePoliticalBias,
+  createArticle,
   generateSummary,
 } from "../../api/api";
 
@@ -67,17 +69,26 @@ export const MainSection = ({
     const articleData = parser.parse();
 
     console.log("articleData", articleData);
-    if (!articleData.content) {
+    if (!articleData.text) {
       console.error("No article data found");
       return;
     }
 
     try {
+      // Create article
+      const article = await createArticle(articleData);
+
+      const payload: ArticlePayload = {
+        id: article.id,
+        text: articleData.text,
+      };
+
+      console.log("payload to send off", payload);
       // Execute API calls in parallel
       const [summary, politicalBias, objectivityScore] = await Promise.all([
-        generateSummary(articleData.content),
-        analyzePoliticalBias(articleData.content),
-        analyzeObjectivity(articleData.content),
+        generateSummary(payload),
+        analyzePoliticalBias(payload),
+        analyzeObjectivity(payload),
       ]);
 
       console.log("Summary:", summary);
@@ -89,7 +100,10 @@ export const MainSection = ({
         return;
       }
 
-      setSummary(summary);
+      setSummary({
+        summary: summary.summary,
+        footnotes: summary.footnotes,
+      });
       setPoliticalBias(politicalBias);
       setObjectivityBias(objectivityScore);
     } catch (error) {

@@ -10,23 +10,35 @@ export type MessageContentType = {
 };
 
 export type ArticleData = {
-  title?: string;
-  authors?: string[];
-  date?: Date;
-  content?: string;
+  title: string;
+  date: Date;
+  authors: string[];
+  text: string;
+  url: string;
+  hostname: string;
+  subtitle?: string;
 };
 
-type Article = {
+// DB Models
+export type ArticleModel = {
   id: string;
+  created_at: Date;
+  updated_at: Date;
+  url: string;
   title: string;
-  subtitle: string;
+  subtitle: string | null;
   date: Date;
   text: string;
-  authors: string[]; // Foreign keys to Journalist
-  publication: string; // Foreign key to Publication
-  summary: string; // Foreign key to Summary
-  polarizationBias: string; // Foreign key to PolarizationBias
-  objectivityBias: string; // Foreign key to ObjectivityBias
+  publication: string;
+};
+
+export type SummaryModel = {
+  id: string;
+  created_at: Date;
+  updated_at: Date;
+  article_id: string;
+  summary: string;
+  footnotes: { [key: string]: string };
 };
 
 type Summary = {

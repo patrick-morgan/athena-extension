@@ -1,5 +1,6 @@
 import * as cheerio from "cheerio";
 import { ArticleData } from "../types";
+import { getHostname } from "../utils/helpers";
 
 export class BaseParser {
   protected url: string;
@@ -29,17 +30,17 @@ export class BaseParser {
   /**
    * @returns The author of the article
    */
-  getAuthors(): string[] | undefined {
+  getAuthors(): string[] {
     // Default implementation, should be overridden
-    return undefined;
+    return [];
   }
 
   /**
    * @returns The date the article was published
    */
-  getDate(): Date | undefined {
-    // Default implementation, should be overridden
-    return undefined;
+  getDate(): Date {
+    // Default implementation, return current date
+    return new Date();
   }
 
   /**
@@ -101,9 +102,7 @@ export class BaseParser {
   /**
    * Postprocess the content to remove whitespace and new lines
    */
-  postProcessContent(content: string | undefined): string | undefined {
-    if (!content) return undefined;
-
+  postProcessContent(content: string): string {
     // Remove excess whitespace and newlines
     const cleaned = content.replace(/\s\s+/g, " ").trim();
 
@@ -113,9 +112,9 @@ export class BaseParser {
   /**
    * @returns The content of the article
    */
-  getContent(): string | undefined {
+  getContent(): string {
     // Default implementation, should be overridden
-    return undefined;
+    return "";
   }
 
   /**
@@ -127,17 +126,20 @@ export class BaseParser {
     const title = this.getTitle();
     const authors = this.getAuthors();
     const date = this.getDate();
+    const hostname = getHostname(this.url);
 
     // Clean out unwanted content and get article content
     this.cleanContent();
     const content = this.getContent();
-    const cleanedContent = this.postProcessContent(content || "");
+    const cleanedContent = this.postProcessContent(content);
 
     return {
       title,
       authors,
       date,
-      content: cleanedContent,
+      hostname,
+      url: this.url,
+      text: cleanedContent,
     };
   }
 }

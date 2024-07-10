@@ -16,7 +16,7 @@ export class FoxParser extends BaseParser {
   /**
    * @returns The author of the article
    */
-  getAuthors(): string[] | undefined {
+  getAuthors(): string[] {
     const authors: string[] = [];
     // The authors will be inside the .author-byline class
     this.$(".author-byline").each((i, author) => {
@@ -35,20 +35,25 @@ export class FoxParser extends BaseParser {
   /**
    * @returns The date the article was published
    */
-  getDate(): Date | undefined {
+  getDate(): Date {
     // Get article date from <time> tag inside the span with class .article-date
     // This date string will be in format: "July 2, 2024 7:04am EDT"
     const dateString = this.$(".article-date time").text();
 
-    // TODO: HANDLE TIMEZONES ACCORDINGLY
-    // Parse the date string with moment-timezone
-    const date = moment.tz(
-      dateString,
-      "MMMM D, YYYY h:mma",
-      "America/New_York"
-    );
+    if (dateString) {
+      // TODO: HANDLE TIMEZONES ACCORDINGLY
+      // Parse the date string with moment-timezone
+      const date = moment.tz(
+        dateString,
+        "MMMM D, YYYY h:mma",
+        "America/New_York"
+      );
 
-    return date.toDate();
+      return date.toDate();
+    }
+
+    // If no date is found, return current date
+    return super.getDate();
   }
 
   /**
@@ -116,10 +121,10 @@ export class FoxParser extends BaseParser {
    * Get article body content specifically for Fox News articles
    * @returns The content of the article
    */
-  getContent(): string | undefined {
+  getContent(): string {
     // Get article-body to get body of Fox news articles (this will remove out title, author, date, etc.)
     const $articleBody = this.$(".article-body");
-    return $articleBody.text();
+    return $articleBody.text() || "";
   }
 
   /**
