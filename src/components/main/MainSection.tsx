@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { AnalyzeArticle } from "../AnalyzeArticle";
 import { AnalyzeButton } from "../buttons/AnalyzeButton";
 import { getParser } from "../../parsers/parsers";
-import { SummarySection } from "../SummarySection";
-import { ArticleSection } from "../ArticleSection";
+import { SummarySection } from "../summary-section/SummarySection";
+import { ArticleSection } from "../article-section/ArticleSection";
 import {
+  JournalistBiasWithNameModel,
   MessageContentType,
   ObjectivityBiasResponseType,
   PoliticalBiasResponseType,
@@ -12,11 +13,13 @@ import {
 } from "../../types";
 import {
   ArticlePayload,
+  analyzeJournalists,
   analyzeObjectivity,
   analyzePoliticalBias,
   createArticle,
   generateSummary,
 } from "../../api/api";
+import { JournalistSection } from "../journalist-section/JournalistSection";
 
 type BodySectionProps = {
   analyzing: boolean;
@@ -24,10 +27,6 @@ type BodySectionProps = {
   currentUrl: string | null;
   websiteHTML: string | null;
   requestContent: () => Promise<MessageContentType | undefined>;
-  // error: string | null;
-  // summary: SummaryResponseType | null;
-  // politicalBias: PoliticalBiasResponseType | null;
-  // objectivityBias: ObjectivityBiasResponseType | null;
 };
 
 export const MainSection = ({
@@ -44,6 +43,9 @@ export const MainSection = ({
     useState<PoliticalBiasResponseType | null>(null);
   const [objectivityBias, setObjectivityBias] =
     useState<ObjectivityBiasResponseType | null>(null);
+  const [journalistsAnalysis, setJournalistsAnalysis] = useState<
+    JournalistBiasWithNameModel[] | null
+  >(null);
 
   const handleAnalsis = async () => {
     console.log("current url", currentUrl);
@@ -83,7 +85,7 @@ export const MainSection = ({
         text: articleData.text,
       };
 
-      console.log("payload to send off", payload);
+      // Analyze article section
       // Execute API calls in parallel
       const [summary, politicalBias, objectivityScore] = await Promise.all([
         generateSummary(payload),
@@ -91,8 +93,8 @@ export const MainSection = ({
         analyzeObjectivity(payload),
       ]);
 
-      console.log("Summary:", summary);
-      console.log("Political Bias:", politicalBias);
+      console.log("Summary woah:", summary);
+      console.log("Political Bias i:", politicalBias);
       console.log("Objectivity Score:", objectivityScore);
 
       if (!summary || !politicalBias || !objectivityScore) {
@@ -100,12 +102,15 @@ export const MainSection = ({
         return;
       }
 
-      setSummary({
-        summary: summary.summary,
-        footnotes: summary.footnotes,
-      });
+      setSummary(summary);
       setPoliticalBias(politicalBias);
       setObjectivityBias(objectivityScore);
+      setAnalyzing(false);
+
+      // Analyze journalists
+      const journalistAnalysis = await analyzeJournalists(articleData);
+      console.log("Journalists Analysis:", journalistAnalysis);
+      setJournalistsAnalysis(journalistAnalysis);
     } catch (error) {
       console.error("Error executing API calls:", error);
       setError("Error analyzing article");
@@ -147,6 +152,9 @@ export const MainSection = ({
         politicalBias={politicalBias}
         objectivityBias={objectivityBias}
       />
+      {journalistsAnalysis && (
+        <JournalistSection journalistsBias={journalistsAnalysis} />
+      )}
     </div>
   );
 };

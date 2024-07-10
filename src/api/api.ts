@@ -2,10 +2,10 @@ import axios from "axios";
 import {
   ArticleData,
   ArticleModel,
+  JournalistBiasWithNameModel,
   ObjectivityBiasResponseType,
   PoliticalBiasResponseType,
   SummaryModel,
-  SummaryResponseType,
 } from "../types";
 
 const API_URL = "http://localhost:3000"; // Update with server URL
@@ -19,6 +19,13 @@ export const createArticle = async (
   article: ArticleData
 ): Promise<ArticleModel> => {
   const response = await axios.post(`${API_URL}/articles`, article);
+  return response.data;
+};
+
+export const analyzeJournalists = async (
+  article: ArticleData
+): Promise<JournalistBiasWithNameModel[]> => {
+  const response = await axios.post(`${API_URL}/analyze-journalists`, article);
   return response.data;
 };
 

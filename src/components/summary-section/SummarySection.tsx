@@ -1,7 +1,7 @@
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import Tooltip from "@mui/material/Tooltip";
-import { parseFootnotes } from "../utils/footnotes";
-import { SummaryResponseType } from "../types";
+import { parseFootnotes } from "../../utils/footnotes";
+import { SummaryResponseType } from "../../types";
 
 type SummarySectionProps = {
   summaryResponse: SummaryResponseType;

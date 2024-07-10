@@ -41,6 +41,29 @@ export type SummaryModel = {
   footnotes: { [key: string]: string };
 };
 
+export type JournalistBiasModel = {
+  id: string;
+  created_at: Date;
+  updated_at: Date;
+  summary: string;
+  bias_score: number;
+  rhetoric_score: number;
+  num_articles_analyzed: number;
+  journalist: string; // journalist_id
+};
+
+export type JournalistBiasWithNameModel = {
+  id: string;
+  name: string;
+  created_at: Date;
+  updated_at: Date;
+  summary: string;
+  bias_score: number;
+  rhetoric_score: number;
+  num_articles_analyzed: number;
+  journalist: string; // journalist_id
+};
+
 type Summary = {
   id: string;
   article_id: string; // Foreign key to Article

@@ -1,11 +1,11 @@
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { NumberLine } from "./NumberLine";
+import { NumberLine } from "../shared/NumberLine";
 import Tooltip from "@mui/material/Tooltip";
-import { parseFootnotes } from "../utils/footnotes";
+import { parseFootnotes } from "../../utils/footnotes";
 import {
   ObjectivityBiasResponseType,
   PoliticalBiasResponseType,
-} from "../types";
+} from "../../types";
 
 type ArticleSectionProps = {
   politicalBias: PoliticalBiasResponseType;
