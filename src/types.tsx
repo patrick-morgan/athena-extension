@@ -21,16 +21,6 @@ export type MessageContentType = {
   url: string;
 };
 
-export type ArticleData = {
-  title: string;
-  date: Date;
-  authors: string[];
-  text: string;
-  url: string;
-  hostname: string;
-  subtitle?: string;
-};
-
 // DB Models
 export type ArticleModel = {
   id: string;

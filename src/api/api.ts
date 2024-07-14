@@ -1,6 +1,5 @@
 import axios from "axios";
 import {
-  ArticleData,
   ArticleModel,
   JournalistBiasWithNameModel,
   ObjectivityBiasResponseType,
@@ -17,17 +16,29 @@ export const getArticles = async () => {
   return response.data;
 };
 
+type CreateArticlePayload = {
+  url: string;
+  html: string;
+};
+
 export const createArticle = async (
-  article: ArticleData
+  payload: CreateArticlePayload
 ): Promise<ArticleModel> => {
-  const response = await axios.post(`${API_URL}/articles`, article);
+  const response = await axios.post(`${API_URL}/articles`, payload);
   return response.data;
 };
 
+type AnalyzeJournalistsPayload = {
+  articleId: string;
+};
+
 export const analyzeJournalists = async (
-  article: ArticleData
+  articleId: AnalyzeJournalistsPayload
 ): Promise<JournalistBiasWithNameModel[]> => {
-  const response = await axios.post(`${API_URL}/analyze-journalists`, article);
+  const response = await axios.post(
+    `${API_URL}/analyze-journalists`,
+    articleId
+  );
   return response.data;
 };
 

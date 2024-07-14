@@ -9,7 +9,6 @@ import {
   createArticle,
   generateSummary,
 } from "../../api/api";
-import { getParser } from "../../parsers/parsers";
 import {
   AppStateType,
   JournalistBiasWithNameModel,
@@ -24,6 +23,7 @@ import { JournalistSection } from "../journalist-section/JournalistSection";
 import { PublicationSection } from "../publication-section/PublicationSection";
 import { SummarySection } from "../summary-section/SummarySection";
 import { requestContent } from "./utils";
+import { cleanHTML } from "../../parsers/genericParser";
 
 type BodySectionProps = {
   analyzing: boolean;
@@ -71,34 +71,29 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
 
   const handleAnalysis = async () => {
     const resp = await requestContent();
-    const newHTML = resp?.html;
-    const newURL = resp?.url;
-    if (!newHTML) {
+    const html = resp?.html;
+    const url = resp?.url;
+    if (!html) {
       setError("Error fetching website content");
       console.error("Error manually requesting HTML");
       return;
     }
-    if (!newURL) {
+    if (!url) {
       setError("Error fetching website content");
       console.error("Error manually requesting URL");
       return;
     }
-    const parser = getParser(newURL, newHTML);
-    const articleData = parser.parse();
-
-    console.log("articleData", articleData);
-    if (!articleData.text) {
-      console.error("No article data found");
-      return;
-    }
-
     try {
+      console.log("html:");
+      console.log(html);
+      const cleanedHTML = cleanHTML(html);
+
       // Create article
-      const article = await createArticle(articleData);
+      const article = await createArticle({ url, html: cleanedHTML });
 
       const payload: ArticlePayload = {
         id: article.id,
-        text: articleData.text,
+        text: article.text,
       };
 
       // Analyze article section
@@ -124,7 +119,9 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
       setAnalyzing(false);
 
       // Analyze journalists
-      const journalistAnalysis = await analyzeJournalists(articleData);
+      const journalistAnalysis = await analyzeJournalists({
+        articleId: article.id,
+      });
       console.log("Journalists Analysis:", journalistAnalysis);
       setJournalistsAnalysis(journalistAnalysis);
 
@@ -137,7 +134,7 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
 
       // Set chrome storage state
       const appState: AppStateType = {
-        currentUrl: newURL,
+        currentUrl: url,
         summary: summary,
         politicalBias: politicalBias,
         objectivityBias: objectivityScore,
