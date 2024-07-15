@@ -11,9 +11,12 @@ import {
 } from "../../api/api";
 import {
   AppStateType,
+  ArticleModel,
   JournalistBiasWithNameModel,
+  JournalistsModel,
   ObjectivityBiasResponseType,
   PoliticalBiasResponseType,
+  PublicationModel,
   SummaryModel,
 } from "../../types";
 import { AnalyzeArticle } from "../AnalyzeArticle";
@@ -24,6 +27,7 @@ import { PublicationSection } from "../publication-section/PublicationSection";
 import { SummarySection } from "../summary-section/SummarySection";
 import { requestContent } from "./utils";
 import { cleanHTML } from "../../parsers/genericParser";
+import { HeaderSection } from "./HeaderSection";
 
 type BodySectionProps = {
   analyzing: boolean;
@@ -31,8 +35,12 @@ type BodySectionProps = {
 };
 
 export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
-  // const [currentUrl, setCurrentUrl] = useState<string>("");
-  const [error, setError] = useState<string | null>(null);
+  const [article, setArticle] = useState<ArticleModel | null>(null);
+  const [publication, setPublication] = useState<PublicationModel | null>(null);
+  const [journalists, setJournalists] = useState<JournalistsModel[] | null>(
+    null
+  );
+
   const [summary, setSummary] = useState<SummaryModel | null>(null);
   const [politicalBias, setPoliticalBias] =
     useState<PoliticalBiasResponseType | null>(null);
@@ -43,6 +51,8 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
   >(null);
   const [publicationAnalysis, setPublicationAnalysis] =
     useState<PublicationAnalysisResponse | null>(null);
+
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // On mount, restore the previous state, if we are on previous URL
@@ -57,6 +67,9 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
           const appState = result.appState as AppStateType;
           console.log("saved url", appState.currentUrl);
           if (appState.currentUrl && appState.currentUrl === newURL) {
+            setArticle(appState.article);
+            setPublication(appState.publication);
+            setJournalists(appState.journalists);
             setSummary(appState.summary);
             setPoliticalBias(appState.politicalBias);
             setObjectivityBias(appState.objectivityBias);
@@ -87,13 +100,19 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
       console.log("html:");
       console.log(html);
       const cleanedHTML = cleanHTML(html);
+      console.log("cleaned html:");
+      console.log(cleanedHTML);
 
       // Create article
-      const article = await createArticle({ url, html: cleanedHTML });
+      const articleResp = await createArticle({ url, html: cleanedHTML });
+
+      setArticle(articleResp.article);
+      setPublication(articleResp.publication);
+      setJournalists(articleResp.journalists);
 
       const payload: ArticlePayload = {
-        id: article.id,
-        text: article.text,
+        id: articleResp.article.id,
+        text: articleResp.article.text,
       };
 
       // Analyze article section
@@ -120,14 +139,14 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
 
       // Analyze journalists
       const journalistAnalysis = await analyzeJournalists({
-        articleId: article.id,
+        articleId: articleResp.article.id,
       });
       console.log("Journalists Analysis:", journalistAnalysis);
       setJournalistsAnalysis(journalistAnalysis);
 
       // Analyze publication
       const pubAnalysis = await analyzePublication({
-        publicationId: article.publication,
+        publicationId: articleResp.article.publication,
       });
       console.log("Publication Analysis:", pubAnalysis);
       setPublicationAnalysis(pubAnalysis);
@@ -135,6 +154,9 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
       // Set chrome storage state
       const appState: AppStateType = {
         currentUrl: url,
+        article: articleResp.article,
+        publication: articleResp.publication,
+        journalists: articleResp.journalists,
         summary: summary,
         politicalBias: politicalBias,
         objectivityBias: objectivityScore,
@@ -151,10 +173,6 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
       setAnalyzing(false);
     }
   };
-
-  // For when i add displaying of title and date:
-  // Display the date in a readable format with time zone
-  // const formattedDate = formatDate(parsedDate, 'America/New_York');
 
   if (error) {
     return (
@@ -180,6 +198,13 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
 
   return (
     <div className="w-full h-full pt-4 flex gap-4 flex-col justify-start items-center">
+      {article && publication && journalists && (
+        <HeaderSection
+          article={article}
+          publication={publication}
+          journalists={journalists}
+        />
+      )}
       <SummarySection summaryResponse={summary} />
       <ArticleSection
         politicalBias={politicalBias}

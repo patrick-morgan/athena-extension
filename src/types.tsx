@@ -3,6 +3,9 @@ import { PublicationAnalysisResponse } from "./api/api";
 export type AppStateType = {
   currentUrl: string | null;
   // websiteHTML: string | null;
+  article: ArticleModel | null;
+  publication: PublicationModel | null;
+  journalists: JournalistsModel[] | null;
   summary: SummaryModel | null;
   politicalBias: PoliticalBiasResponseType | null;
   objectivityBias: ObjectivityBiasResponseType | null;
@@ -42,6 +45,14 @@ export type PublicationModel = {
   date_founded: Date;
   hostname: string;
   owner: string;
+};
+
+export type JournalistsModel = {
+  id: string;
+  created_at: Date;
+  updated_at: Date;
+  name: string;
+  publication: string; // publication_id
 };
 
 export type SummaryModel = {

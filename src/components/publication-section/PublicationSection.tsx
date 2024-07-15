@@ -3,6 +3,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { NumberLine } from "../shared/NumberLine";
 import { pluralize } from "../../utils/helpers";
 import { PublicationAnalysisResponse } from "../../api/api";
+import { Chip } from "../shared/Chip";
 
 type PublicationSectionProps = {
   pubResponse: PublicationAnalysisResponse;
@@ -18,15 +19,13 @@ export const PublicationSection = ({
       <h2 className="text-xl font-semibold">Publication</h2>
       <div className="flex flex-col justify-start gap-2 items-start text-black">
         <div className="flex justify-start flex-wrap items-center gap-3">
-          <div className="flex justify-center my-1 py-2 px-6 text-base shadow-md bg-slate-100 rounded-sm items-center">
-            {publication.name}
-          </div>
-          <div className="flex justify-center my-1 py-2 px-6 text-base shadow-md bg-slate-100 rounded-sm items-center">
-            {`${analysis.num_articles_analyzed} ${pluralize(
+          <Chip text={publication.name} />
+          <Chip
+            text={`${analysis.num_articles_analyzed} ${pluralize(
               "Article",
               analysis.num_articles_analyzed
             )} analyzed`}
-          </div>
+          />
         </div>
         <div className="flex items-start justify-center gap-4 w-full">
           <NumberLine

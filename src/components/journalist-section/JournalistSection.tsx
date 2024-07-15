@@ -3,6 +3,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { JournalistBiasWithNameModel } from "../../types";
 import { NumberLine } from "../shared/NumberLine";
 import { pluralize } from "../../utils/helpers";
+import { Chip } from "../shared/Chip";
 
 type JournalistSectionProps = {
   journalistsBias: JournalistBiasWithNameModel[];
@@ -26,15 +27,13 @@ export const JournalistSection = ({
           key={index}
         >
           <div className="flex justify-start flex-wrap items-center gap-3">
-            <div className="flex justify-center my-1 py-2 px-6 text-base shadow-md bg-slate-100 rounded-sm items-center">
-              {bias.name}
-            </div>
-            <div className="flex justify-center my-1 py-2 px-6 text-base shadow-md bg-slate-100 rounded-sm items-center">
-              {`${bias.num_articles_analyzed} ${pluralize(
+            <Chip text={bias.name} />
+            <Chip
+              text={`${bias.num_articles_analyzed} ${pluralize(
                 "Article",
                 bias.num_articles_analyzed
               )} analyzed`}
-            </div>
+            />
           </div>
           <div className="flex items-start justify-center gap-4 w-full">
             <NumberLine

@@ -10,7 +10,7 @@ export const cleanHTML = (html: string): string => {
 
   // Remove unnecessary elements
   $(
-    "script, style, noscript, iframe, header, footer, nav, aside, link, img"
+    "script, style, noscript, picture, svg, button, source, iframe, footer, nav, aside, link, img, meta"
   ).remove();
   // Remove all attributes from all elements
   $("*").each(function (idx, elem) {
@@ -20,18 +20,7 @@ export const cleanHTML = (html: string): string => {
     }
   });
 
-  // Remove svgs
-  $("svg").remove();
-  // Remove buttons
-  $("button").remove();
-
-  console.log("html after cleaning:");
-  console.log($.html());
-
-  // const textContent = $("body").text();
-  // Clean up the text content by removing extra spaces and newlines
-  // const cleanedText = textContent.replace(/\s+/g, " ").trim();
-
-  // return cleanedText;
-  return $.html();
+  // Remove new lines and whitespace
+  const cleanedHtml = $.html().replace(/\n/g, "").replace(/\s+/g, " ");
+  return cleanedHtml;
 };

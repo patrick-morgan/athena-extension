@@ -2,6 +2,7 @@ import axios from "axios";
 import {
   ArticleModel,
   JournalistBiasWithNameModel,
+  JournalistsModel,
   ObjectivityBiasResponseType,
   PoliticalBiasResponseType,
   PublicationBiasModel,
@@ -21,9 +22,15 @@ type CreateArticlePayload = {
   html: string;
 };
 
+type CreateArticleResponse = {
+  article: ArticleModel;
+  publication: PublicationModel;
+  journalists: JournalistsModel[];
+};
+
 export const createArticle = async (
   payload: CreateArticlePayload
-): Promise<ArticleModel> => {
+): Promise<CreateArticleResponse> => {
   const response = await axios.post(`${API_URL}/articles`, payload);
   return response.data;
 };
