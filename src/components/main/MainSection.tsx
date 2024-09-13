@@ -28,6 +28,7 @@ import { SummarySection } from "../summary-section/SummarySection";
 import { requestContent } from "./utils";
 import { cleanHTML } from "../../parsers/genericParser";
 import { HeaderSection } from "./HeaderSection";
+import { useAuth } from "../../AuthContext";
 
 type BodySectionProps = {
   analyzing: boolean;
@@ -40,6 +41,7 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
   const [journalists, setJournalists] = useState<JournalistsModel[] | null>(
     null
   );
+  const { user } = useAuth();
 
   const [summary, setSummary] = useState<SummaryModel | null>(null);
   const [politicalBias, setPoliticalBias] =
@@ -173,6 +175,14 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
       setAnalyzing(false);
     }
   };
+
+  if (!user) {
+    return (
+      <div className="w-full h-full flex gap-4 flex-col mt-8 justify-start items-center">
+        <h2 className="text-2xl">Please sign in to use Athena</h2>
+      </div>
+    );
+  }
 
   if (error) {
     return (
