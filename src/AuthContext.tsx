@@ -12,6 +12,7 @@ import { checkSubscription } from "./api/stripe";
 interface AuthContextType {
   user: User | null;
   isSubscribed: boolean;
+  isLoading: boolean;
   signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   checkSubscriptionStatus: (user: User | null) => Promise<void>;
@@ -24,17 +25,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const checkSubscriptionStatus = useCallback(async (user: User | null) => {
+    if (user) {
+      setIsLoading(true);
+      const subscribed = await checkSubscription();
+      setIsSubscribed(subscribed);
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setUser(user);
       if (user) {
-        checkSubscription();
+        checkSubscriptionStatus(user);
+      } else {
+        setIsLoading(false);
       }
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [checkSubscriptionStatus]);
 
   const signIn = async () => {
     try {
@@ -46,20 +59,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const signOut = () => auth.signOut();
 
-  const checkSubscriptionStatus = useCallback(async (user: User | null) => {
-    if (user) {
-      const subscribed = await checkSubscription();
-      setIsSubscribed(subscribed);
-    }
-  }, []);
-
-  useEffect(() => {
-    checkSubscriptionStatus(user);
-  }, [user, checkSubscriptionStatus]);
-
   return (
     <AuthContext.Provider
-      value={{ user, isSubscribed, signIn, signOut, checkSubscriptionStatus }}
+      value={{
+        user,
+        isSubscribed,
+        isLoading,
+        signIn,
+        signOut,
+        checkSubscriptionStatus,
+      }}
     >
       {children}
     </AuthContext.Provider>
