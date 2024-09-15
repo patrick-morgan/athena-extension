@@ -3,7 +3,7 @@ import { useAuth } from "../AuthContext";
 import { initiateSubscription } from "../api/stripe";
 
 export const SubscriptionPage: React.FC = () => {
-  const { user, checkSubscriptionStatus } = useAuth();
+  const { user } = useAuth();
 
   const handleSubscribe = async () => {
     if (user) {
@@ -13,12 +13,6 @@ export const SubscriptionPage: React.FC = () => {
       } catch (error) {
         console.error("Error initiating subscription:", error);
       }
-    }
-  };
-
-  const checkSubscription = async () => {
-    if (user) {
-      await checkSubscriptionStatus();
     }
   };
 
@@ -33,12 +27,6 @@ export const SubscriptionPage: React.FC = () => {
         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
       >
         Subscribe Now
-      </button>
-      <button
-        onClick={checkSubscription}
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-      >
-        I'm already subbed
       </button>
     </div>
   );

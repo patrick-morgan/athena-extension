@@ -85,11 +85,6 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
     getLocalStorageData();
   }, []);
 
-  useEffect(() => {
-    // On mount, check subscription status
-    checkSubscriptionStatus();
-  }, []);
-
   const handleAnalysis = async () => {
     const resp = await requestContent();
     const html = resp?.html;
