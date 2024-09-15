@@ -7,7 +7,8 @@ const webpack = require("webpack");
 module.exports = {
   entry: {
     index: "./src/index.tsx",
-    contentScript: "./src/scripts/contentScript.js", // Add your content script here
+    contentScript: "./src/scripts/contentScript.js",
+    background: "./src/scripts/background.js",
   },
   mode: "production",
   module: {

@@ -7,7 +7,7 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children }: LayoutProps) => {
-  const { user, signIn, signOut } = useAuth();
+  const { user, isSubscribed, signIn, signOut } = useAuth();
 
   return (
     <div className="flex flex-col h-[800px] w-[500px] main-scrollable">
@@ -18,9 +18,12 @@ export const Layout = ({ children }: LayoutProps) => {
         </div>
         <div>
           {user ? (
-            <button onClick={signOut} className="text-sm text-blue-600">
-              Sign Out
-            </button>
+            <div className="flex items-center gap-2">
+              {isSubscribed && <span className="text-green-500">Premium</span>}
+              <button onClick={signOut} className="text-sm text-blue-600">
+                Sign Out
+              </button>
+            </div>
           ) : (
             <button onClick={signIn} className="text-sm text-blue-600">
               Sign In

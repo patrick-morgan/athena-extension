@@ -41,7 +41,7 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
   const [journalists, setJournalists] = useState<JournalistsModel[] | null>(
     null
   );
-  const { user } = useAuth();
+  const { user, checkSubscriptionStatus } = useAuth();
 
   const [summary, setSummary] = useState<SummaryModel | null>(null);
   const [politicalBias, setPoliticalBias] =
@@ -57,6 +57,7 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("we mount");
     // On mount, restore the previous state, if we are on previous URL
     const getLocalStorageData = async () => {
       // Request URL from content script
@@ -82,6 +83,11 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
       });
     };
     getLocalStorageData();
+  }, []);
+
+  useEffect(() => {
+    // On mount, check subscription status
+    checkSubscriptionStatus();
   }, []);
 
   const handleAnalysis = async () => {

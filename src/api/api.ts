@@ -1,4 +1,3 @@
-import axios from "axios";
 import {
   ArticleModel,
   JournalistBiasWithNameModel,
@@ -9,11 +8,10 @@ import {
   PublicationModel,
   SummaryModel,
 } from "../types";
-
-const API_URL = "http://localhost:3000"; // Update with server URL
+import axiosInstance from "./axiosInstance";
 
 export const getArticles = async () => {
-  const response = await axios.get(`${API_URL}/articles`);
+  const response = await axiosInstance.get(`/articles`);
   return response.data;
 };
 
@@ -31,7 +29,7 @@ type CreateArticleResponse = {
 export const createArticle = async (
   payload: CreateArticlePayload
 ): Promise<CreateArticleResponse> => {
-  const response = await axios.post(`${API_URL}/articles`, payload);
+  const response = await axiosInstance.post(`/articles`, payload);
   return response.data;
 };
 
@@ -42,10 +40,7 @@ type AnalyzeJournalistsPayload = {
 export const analyzeJournalists = async (
   articleId: AnalyzeJournalistsPayload
 ): Promise<JournalistBiasWithNameModel[]> => {
-  const response = await axios.post(
-    `${API_URL}/analyze-journalists`,
-    articleId
-  );
+  const response = await axiosInstance.post(`/analyze-journalists`, articleId);
   return response.data;
 };
 
@@ -61,7 +56,7 @@ export type PublicationAnalysisResponse = {
 export const analyzePublication = async (
   payload: PublicationBiasPayload
 ): Promise<PublicationAnalysisResponse> => {
-  const response = await axios.post(`${API_URL}/analyze-publication`, payload);
+  const response = await axiosInstance.post(`/analyze-publication`, payload);
   return response.data;
 };
 
@@ -75,8 +70,8 @@ export const generateSummary = async (
   articlePayload: ArticlePayload
 ): Promise<SummaryModel | null> => {
   try {
-    const response = await axios.post(
-      `${API_URL}/generate-summary`,
+    const response = await axiosInstance.post(
+      `/generate-summary`,
       articlePayload
     );
     return response.data;
@@ -90,8 +85,8 @@ export const analyzePoliticalBias = async (
   articlePayload: ArticlePayload
 ): Promise<PoliticalBiasResponseType | null> => {
   try {
-    const response = await axios.post(
-      `${API_URL}/analyze-political-bias`,
+    const response = await axiosInstance.post(
+      `/analyze-political-bias`,
       articlePayload
     );
     return response.data;
@@ -105,8 +100,8 @@ export const analyzeObjectivity = async (
   articlePayload: ArticlePayload
 ): Promise<ObjectivityBiasResponseType | null> => {
   try {
-    const response = await axios.post(
-      `${API_URL}/analyze-objectivity`,
+    const response = await axiosInstance.post(
+      `/analyze-objectivity`,
       articlePayload
     );
     return response.data;

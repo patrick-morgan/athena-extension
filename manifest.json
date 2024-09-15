@@ -3,7 +3,7 @@
   "manifest_version": 3,
   "name": "Athena AI Extension",
   "description": "Find the truth",
-  "key": "jofbailocnoaakmplpmifackkpcpckpp",
+  "key": "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuKsBAyURSW8kciTjhTsJAeN35ie2G6DDBBa5sNdwbYASqIrReIUGOmYGr7SVSsEzociuUySv5n5X4kKr7NprVc0MRJrBsg6wpTU/mb1f1xR5q5Cd6AL6Q2adEEPJK1GmyBjHY487yKR92I24vSRQst2mCuh7qLwWrr6ZjQ+JdhlAkuOzNlXJIjmTGBsWunco3glKfeq1H9jezdAjMI1RDslM8GTygWAAM1oZhIAaU2Ty3nsKKrFi/1FuGKeSaRlbizlFxPEjAuxxU9HWPH4Xyt/AsVt5epRB7LTG5kjJjj6o4oLpoc0Ppw2tkfmles/UNXzR2ZTlochnkyRE05vOYQIDAQAB-----END PUBLIC KEY-----",
   "action": {
     "default_popup": "js/index.html",
     "default_icon": {
@@ -13,7 +13,20 @@
     },
     "default_title": "Athena AI"
   },
-  "permissions": ["scripting", "activeTab", "storage", "tabs", "identity"],
+  "permissions": [
+    "scripting",
+    "activeTab",
+    "storage",
+    "tabs",
+    "identity",
+    "https://peoplespress.news/*"
+  ],
+  "background": {
+    "service_worker": "js/background.js"
+  },
+  "externally_connectable": {
+    "matches": ["https://peoplespress.news/*"]
+  },
   "host_permissions": ["https://*.firebaseapp.com/*"],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
