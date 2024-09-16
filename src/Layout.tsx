@@ -1,13 +1,14 @@
 import React, { ReactNode } from "react";
-import logo from "./assets/owl-logo-png.png";
 import { useAuth } from "./AuthContext";
+import { UserMenu } from "./components/UserMenu";
+import { Button } from "@/components/ui/button";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 export const Layout = ({ children }: LayoutProps) => {
-  const { user, isSubscribed, signIn, signOut } = useAuth();
+  const { user, isSubscribed, signIn } = useAuth();
 
   return (
     <div className="flex flex-col h-[800px] w-[500px] main-scrollable">
@@ -18,16 +19,11 @@ export const Layout = ({ children }: LayoutProps) => {
         </div>
         <div>
           {user ? (
-            <div className="flex items-center gap-2">
-              {isSubscribed && <span className="text-green-500">Premium</span>}
-              <button onClick={signOut} className="text-sm text-blue-600">
-                Sign Out
-              </button>
-            </div>
+            <UserMenu user={user} isSubscribed={isSubscribed} />
           ) : (
-            <button onClick={signIn} className="text-sm text-blue-600">
+            <Button onClick={signIn} variant="outline" size="sm">
               Sign In
-            </button>
+            </Button>
           )}
         </div>
       </header>

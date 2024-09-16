@@ -26,9 +26,19 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
-        exclude: /node_modules/,
         test: /\.css$/i,
-        use: ["style-loader", "css-loader", "postcss-loader"],
+        use: [
+          "style-loader",
+          "css-loader",
+          {
+            loader: "postcss-loader",
+            options: {
+              postcssOptions: {
+                plugins: [require("tailwindcss"), require("autoprefixer")],
+              },
+            },
+          },
+        ],
       },
       {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
@@ -38,15 +48,15 @@ module.exports = {
   },
   plugins: [
     new Dotenv({
-      path: "./.env", // Path to your .env file
-      safe: true, // Load '.env.example' to verify the '.env' variables are all set. Can also be a string to a different file.
+      path: "./.env",
+      safe: true,
     }),
     new webpack.DefinePlugin({
       "process.env": JSON.stringify(process.env),
     }),
     new CopyPlugin({
       patterns: [
-        { from: "public", to: "../" }, // Copy everything from public/ to dist/
+        { from: "public", to: "../" },
         { from: "manifest.json", to: "../manifest.json" },
       ],
     }),
@@ -54,6 +64,9 @@ module.exports = {
   ],
   resolve: {
     extensions: [".tsx", ".ts", ".js"],
+    alias: {
+      "@": path.resolve(__dirname, "src"),
+    },
   },
   output: {
     path: path.join(__dirname, "dist/js"),
