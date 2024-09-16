@@ -4,6 +4,7 @@ import { MainSection } from "./components/main/MainSection";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { Layout } from "./Layout";
 import { SubscriptionPage } from "./components/SubscriptionPage";
+import { SignInPrompt } from "./components/SignInPrompt"; // Import the new component
 import { Spinner } from "./components/spinner";
 
 const AppContent = () => {
@@ -19,7 +20,7 @@ const AppContent = () => {
   }
 
   if (!user) {
-    return <div>Please sign in to use Athena</div>;
+    return <SignInPrompt />; // Use the new SignInPrompt component
   }
 
   if (!isSubscribed) {
