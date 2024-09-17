@@ -5,7 +5,7 @@ export const SignInPrompt: React.FC = () => {
   const { signIn } = useAuth();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex flex-col items-center justify-center min-h-screen">
       <div className="p-8 bg-white shadow-lg rounded-lg text-center">
         <h2 className="text-2xl font-bold mb-4 text-gray-800">
           Welcome to Athena

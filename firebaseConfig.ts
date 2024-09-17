@@ -1,9 +1,5 @@
 import { initializeApp } from "firebase/app";
-import {
-  getAuth,
-  signInWithCredential,
-  GoogleAuthProvider,
-} from "firebase/auth";
+import { getAuth, User } from "firebase/auth";
 import config from "./config";
 
 const firebaseConfig = config;
@@ -14,42 +10,61 @@ const app = initializeApp(firebaseConfig);
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
 
-export const signInWithChrome = (): Promise<void> => {
+export const signInWithChrome = (): Promise<User> => {
   return new Promise((resolve, reject) => {
-    const manifest = chrome.runtime.getManifest();
-    const clientId = manifest?.oauth2?.client_id ?? "";
-    const scopes = manifest?.oauth2?.scopes ?? [];
-    const redirectUri = chrome.identity.getRedirectURL();
+    chrome.runtime.sendMessage({ action: "signIn" }, (response) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else if (response.error) {
+        reject(new Error(response.error));
+      } else {
+        resolve(response.user);
+      }
+    });
+  });
+};
 
-    const authUrl = new URL("https://accounts.google.com/o/oauth2/auth");
-    authUrl.searchParams.append("client_id", clientId);
-    authUrl.searchParams.append("response_type", "token");
-    authUrl.searchParams.append("redirect_uri", redirectUri);
-    authUrl.searchParams.append("scope", scopes.join(" "));
+export const getCurrentUser = (): Promise<User | null> => {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(["user"], (result) => {
+      if (result.user) {
+        resolve(JSON.parse(result.user));
+      } else {
+        resolve(null);
+      }
+    });
+  });
+};
 
-    chrome.identity.launchWebAuthFlow(
-      { url: authUrl.toString(), interactive: true },
-      (responseUrl) => {
+export const getIdToken = async (): Promise<string | null> => {
+  const user = await getCurrentUser();
+  if (user) {
+    return new Promise((resolve, reject) => {
+      chrome.runtime.sendMessage({ action: "getIdToken" }, (response) => {
         if (chrome.runtime.lastError) {
           reject(chrome.runtime.lastError);
-          return;
+        } else if (response.error) {
+          reject(new Error(response.error));
+        } else {
+          resolve(response.token);
         }
+      });
+    });
+  }
+  return null;
+};
 
-        const url = new URL(responseUrl!);
-        const params = new URLSearchParams(url.hash.slice(1));
-        const accessToken = params.get("access_token");
-
-        if (!accessToken) {
-          reject(new Error("Failed to get access token"));
-          return;
-        }
-
-        const credential = GoogleAuthProvider.credential(null, accessToken);
-        signInWithCredential(auth, credential)
-          .then(() => resolve())
-          .catch(reject);
+export const signOut = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({ action: "signOut" }, (response) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else if (response.error) {
+        reject(new Error(response.error));
+      } else {
+        resolve();
       }
-    );
+    });
   });
 };
 

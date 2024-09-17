@@ -1,12 +1,6 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "firebase/auth";
-import { auth, signInWithChrome } from "../firebaseConfig";
+import { signInWithChrome, getCurrentUser, signOut } from "../firebaseConfig";
 import { checkSubscription } from "./api/stripe";
 
 interface AuthContextType {
@@ -27,37 +21,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const checkSubscriptionStatus = useCallback(async (user: User | null) => {
+  useEffect(() => {
+    const initAuth = async () => {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+      if (currentUser) {
+        await checkSubscriptionStatus(currentUser);
+      }
+      setIsLoading(false);
+    };
+
+    initAuth();
+  }, []);
+
+  const checkSubscriptionStatus = async (user: User | null) => {
     if (user) {
       setIsLoading(true);
       const subscribed = await checkSubscription();
       setIsSubscribed(subscribed);
       setIsLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
-      if (user) {
-        checkSubscriptionStatus(user);
-      } else {
-        setIsLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [checkSubscriptionStatus]);
+  };
 
   const signIn = async () => {
     try {
-      await signInWithChrome();
+      const user = await signInWithChrome();
+      setUser(user);
+      await checkSubscriptionStatus(user);
     } catch (error) {
-      console.error("Error signing in with Chrome Identity API", error);
+      console.error("Error signing in:", error);
     }
   };
 
-  const signOut = () => auth.signOut();
+  const handleSignOut = async () => {
+    await signOut();
+    setUser(null);
+    setIsSubscribed(false);
+  };
 
   return (
     <AuthContext.Provider
@@ -66,7 +66,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         isSubscribed,
         isLoading,
         signIn,
-        signOut,
+        signOut: handleSignOut,
         checkSubscriptionStatus,
       }}
     >

@@ -1,6 +1,5 @@
-// src/api/axiosInstance.ts
 import axios, { AxiosInstance } from "axios";
-import { getAuth } from "firebase/auth";
+import { getCurrentUser, getIdToken } from "../../firebaseConfig";
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -9,20 +8,15 @@ const API_URL =
 
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: API_URL,
-  withCredentials: true, // If you need to send cookies with your requests
+  withCredentials: true,
 });
 
-// Add a request interceptor
 axiosInstance.interceptors.request.use(
   async (config) => {
-    const auth = getAuth();
-    const user = auth.currentUser;
-
-    if (user) {
-      const token = await user.getIdToken();
+    const token = await getIdToken();
+    if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   },
   (error) => {
@@ -30,23 +24,17 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Optionally, add a response interceptor to handle token expiration
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // If the error is due to an invalid token (401 status) and we haven't retried yet
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      const auth = getAuth();
-      const user = auth.currentUser;
-
-      if (user) {
-        // Force refresh the token
-        await user.getIdToken(true);
-        // Retry the original request with the new token
+      const token = await getIdToken();
+      if (token) {
+        originalRequest.headers.Authorization = `Bearer ${token}`;
         return axiosInstance(originalRequest);
       }
     }
