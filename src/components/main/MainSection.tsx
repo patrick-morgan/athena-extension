@@ -9,6 +9,8 @@ import {
   createArticle,
   generateSummary,
 } from "../../api/api";
+import { useAuth } from "../../AuthContext";
+import { cleanHTML } from "../../parsers/genericParser";
 import {
   AppStateType,
   ArticleModel,
@@ -24,11 +26,10 @@ import { ArticleSection } from "../article-section/ArticleSection";
 import { AnalyzeButton } from "../buttons/AnalyzeButton";
 import { JournalistSection } from "../journalist-section/JournalistSection";
 import { PublicationSection } from "../publication-section/PublicationSection";
+import { SubscriptionPage } from "../SubscriptionPage";
 import { SummarySection } from "../summary-section/SummarySection";
-import { requestContent } from "./utils";
-import { cleanHTML } from "../../parsers/genericParser";
 import { HeaderSection } from "./HeaderSection";
-import { useAuth } from "../../AuthContext";
+import { requestContent } from "./utils";
 
 type BodySectionProps = {
   analyzing: boolean;
@@ -41,7 +42,7 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
   const [journalists, setJournalists] = useState<JournalistsModel[] | null>(
     null
   );
-  const { user, checkSubscriptionStatus } = useAuth();
+  const { user, checkSubscriptionStatus, isSubscribed } = useAuth();
 
   const [summary, setSummary] = useState<SummaryModel | null>(null);
   const [politicalBias, setPoliticalBias] =
@@ -57,7 +58,6 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("we mount");
     // On mount, restore the previous state, if we are on previous URL
     const getLocalStorageData = async () => {
       // Request URL from content script
@@ -166,6 +166,7 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
         journalistsAnalysis: journalistAnalysis,
         publicationAnalysis: pubAnalysis,
       };
+      console.log("settign app state", appState);
       chrome.storage.local.set({ appState }, () => {
         console.log("App state is saved.");
       });
@@ -183,6 +184,10 @@ export const MainSection = ({ analyzing, setAnalyzing }: BodySectionProps) => {
         <h2 className="text-2xl">Please sign in to use Athena</h2>
       </div>
     );
+  }
+
+  if (!isSubscribed) {
+    return <SubscriptionPage />;
   }
 
   if (error) {

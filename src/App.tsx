@@ -1,15 +1,21 @@
 import { useState } from "react";
+import {
+  Navigate,
+  Route,
+  BrowserRouter as Router,
+  Routes,
+} from "react-router-dom";
 import "./App.css";
-import { MainSection } from "./components/main/MainSection";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { Layout } from "./Layout";
-import { SubscriptionPage } from "./components/SubscriptionPage";
-import { SignInPrompt } from "./components/SignInPrompt"; // Import the new component
+import { SettingsPage } from "./components/SettingsPage";
+import { SignInPrompt } from "./components/SignInPrompt";
+import { MainSection } from "./components/main/MainSection";
 import { Spinner } from "./components/spinner";
 
 const AppContent = () => {
   const [analyzing, setAnalyzing] = useState(false);
-  const { user, isSubscribed, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -20,24 +26,33 @@ const AppContent = () => {
   }
 
   if (!user) {
-    return <SignInPrompt />; // Use the new SignInPrompt component
+    return <SignInPrompt />;
   }
 
-  if (!isSubscribed) {
-    return <SubscriptionPage />;
-  }
-
-  return <MainSection analyzing={analyzing} setAnalyzing={setAnalyzing} />;
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <MainSection analyzing={analyzing} setAnalyzing={setAnalyzing} />
+        }
+      />
+      <Route path="/settings" element={<SettingsPage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 };
 
 export const App = () => {
   return (
     <AuthProvider>
-      <Layout>
-        <div className="mx-auto h-full w-full">
-          <AppContent />
-        </div>
-      </Layout>
+      <Router>
+        <Layout>
+          <div className="mx-auto h-full w-full">
+            <AppContent />
+          </div>
+        </Layout>
+      </Router>
     </AuthProvider>
   );
 };

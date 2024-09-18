@@ -1,5 +1,5 @@
 import axios, { AxiosInstance } from "axios";
-import { getCurrentUser, getIdToken } from "../../firebaseConfig";
+import { getIdToken } from "../../firebaseConfig";
 
 const API_URL =
   process.env.NODE_ENV === "production"
@@ -20,25 +20,6 @@ axiosInstance.interceptors.request.use(
     return config;
   },
   (error) => {
-    return Promise.reject(error);
-  }
-);
-
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (error.response.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      const token = await getIdToken();
-      if (token) {
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        return axiosInstance(originalRequest);
-      }
-    }
-
     return Promise.reject(error);
   }
 );

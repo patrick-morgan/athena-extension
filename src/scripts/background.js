@@ -96,9 +96,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           const credential = GoogleAuthProvider.credential(null, accessToken);
           const userCredential = await signInWithCredential(auth, credential);
           const user = userCredential.user;
-          chrome.storage.local.set({ user: JSON.stringify(user) }, () => {
-            sendResponse({ user });
-          });
+          console.info("Signed in user");
+          sendResponse({ user });
         } catch (error) {
           sendResponse({ error: error.message });
         }
@@ -109,21 +108,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     auth
       .signOut()
       .then(() => {
-        chrome.storage.local.remove("user", () => {
-          sendResponse({ success: true });
-        });
+        console.info("Signing out removing user");
       })
       .catch((error) => {
         sendResponse({ error: error.message });
       });
     return true; // Indicates that the response is sent asynchronously
-  }
-});
-
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    chrome.storage.local.set({ user: JSON.stringify(user) });
-  } else {
-    chrome.storage.local.remove("user");
   }
 });

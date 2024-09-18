@@ -10,7 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, UserCircle } from "lucide-react";
+import { LogOut, Settings } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface UserMenuProps {
   user: User;
@@ -19,6 +20,7 @@ interface UserMenuProps {
 
 export const UserMenu: React.FC<UserMenuProps> = ({ user, isSubscribed }) => {
   const { signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <DropdownMenu>
@@ -45,13 +47,9 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user, isSubscribed }) => {
             Premium
           </DropdownMenuLabel>
         )}
-        <DropdownMenuItem
-          onClick={() => {
-            /* Implement dashboard navigation */
-          }}
-        >
-          <UserCircle className="mr-2 h-4 w-4" />
-          <span>Dashboard</span>
+        <DropdownMenuItem onClick={() => navigate("/settings")}>
+          <Settings className="mr-2 h-4 w-4" />
+          <span>Settings</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={signOut}>
           <LogOut className="mr-2 h-4 w-4" />
