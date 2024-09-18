@@ -1,6 +1,6 @@
 import { ArticleModel, JournalistsModel, PublicationModel } from "../../types";
 import { formatDate } from "../../utils/date";
-import { Chip } from "../shared/Chip";
+import { Badge } from "@/components/ui/badge";
 
 type HeaderSectionProps = {
   article: ArticleModel;
@@ -13,18 +13,18 @@ export const HeaderSection = ({
   publication,
   journalists,
 }: HeaderSectionProps) => {
-  // For when i add displaying of title and date:
-  // Display the date in a readable format with time zone
   const formattedDate = formatDate(article.date, "America/New_York");
 
   return (
-    <div className="flex flex-col gap-2">
-      <span className="text-xl font-medium m-2"> {article.title}</span>
-      <div className="flex justify-start flex-wrap items-center gap-3">
-        <Chip text={formattedDate} />
-        <Chip text={publication.name} />
+    <div className="space-y-2 w-full">
+      <h1 className="text-2xl font-bold">{article.title}</h1>
+      <div className="flex flex-wrap items-center gap-2">
+        <Badge variant="secondary">{formattedDate}</Badge>
+        <Badge variant="secondary">{publication.name}</Badge>
         {journalists.map((journalist, index) => (
-          <Chip text={journalist.name} key={index} />
+          <Badge key={index} variant="outline">
+            {journalist.name}
+          </Badge>
         ))}
       </div>
     </div>

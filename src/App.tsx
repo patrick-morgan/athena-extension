@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Navigate,
   Route,
@@ -14,7 +13,7 @@ import { MainSection } from "./components/main/MainSection";
 import { Spinner } from "./components/spinner";
 
 const AppContent = () => {
-  const [analyzing, setAnalyzing] = useState(false);
+  // const [analyzing, setAnalyzing] = useState(false);
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
@@ -31,12 +30,7 @@ const AppContent = () => {
 
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          <MainSection analyzing={analyzing} setAnalyzing={setAnalyzing} />
-        }
-      />
+      <Route path="/" element={<MainSection />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
