@@ -7,7 +7,6 @@ interface NumberLineProps {
   tickPosition: number; // Value between 0 and 100 representing the percentage position of the tick
   mode: "political" | "objectivity"; // Mode to determine the color scheme
 }
-
 export const NumberLine: React.FC<NumberLineProps> = ({
   leftText,
   rightText,
@@ -16,37 +15,25 @@ export const NumberLine: React.FC<NumberLineProps> = ({
 }) => {
   const calculateTickColor = (position: number) => {
     if (mode === "political") {
+      // Gradient from purple (left) to green (center) to orange (right)
       if (position < 50) {
-        // From lighter blue to light gray
+        // Purple to green
         const ratio = position / 50;
-        const red = Math.floor(211 * ratio);
-        const green = Math.floor(211 * ratio);
-        const blue = Math.floor(230 + (211 - 230) * ratio);
-        return `rgb(${red}, ${green}, ${blue})`;
+        return `rgb(${144 + 11 * ratio}, ${19 + 215 * ratio}, ${
+          254 - 166 * ratio
+        })`;
       } else {
-        // From light gray to red
+        // Green to orange
         const ratio = (position - 50) / 50;
-        const red = Math.floor(211 + (255 - 211) * ratio);
-        const green = Math.floor(211 * (1 - ratio));
-        const blue = Math.floor(211 * (1 - ratio));
-        return `rgb(${red}, ${green}, ${blue})`;
+        return `rgb(${155 + 100 * ratio}, ${234 - 92 * ratio}, ${
+          88 + 0 * ratio
+        })`;
       }
     } else if (mode === "objectivity") {
-      if (position < 50) {
-        // From yellow to light gray
-        const ratio = position / 50;
-        const red = Math.floor(255 + (211 - 255) * ratio);
-        const green = Math.floor(255 + (211 - 255) * ratio);
-        const blue = Math.floor(0 + (211 - 0) * ratio);
-        return `rgb(${red}, ${green}, ${blue})`;
-      } else {
-        // From light gray to darker green
-        const ratio = (position - 50) / 50;
-        const red = Math.floor(211 * (1 - ratio));
-        const green = Math.floor(211 + (139 - 211) * ratio);
-        const blue = Math.floor(211 + (34 - 211) * ratio);
-        return `rgb(${red}, ${green}, ${blue})`;
-      }
+      // Gradient from orange (opinion) to teal (factual)
+      return `rgb(${255 - 0 * (position / 100)}, ${
+        142 + 56 * (position / 100)
+      }, ${88 + 141 * (position / 100)})`;
     }
   };
 
@@ -65,8 +52,18 @@ export const NumberLine: React.FC<NumberLineProps> = ({
         </div>
       </div>
       <div className="flex justify-between mt-2">
-        <span className="text-lg mx-2 text-blue-500">{leftText}</span>
-        <span className="text-lg mx-2 text-red-500">{rightText}</span>
+        <span
+          className="text-sm font-medium"
+          style={{ color: mode === "political" ? "#9013FE" : "#FF8E58" }}
+        >
+          {leftText}
+        </span>
+        <span
+          className="text-sm font-medium"
+          style={{ color: mode === "political" ? "#FF9B58" : "#00E5E5" }}
+        >
+          {rightText}
+        </span>
       </div>
     </div>
   );

@@ -48,7 +48,7 @@ export const MainSection = () => {
 
   if (!user) {
     return (
-      <div className="w-full h-full flex justify-center items-center">
+      <div className="h-full flex justify-center items-center">
         <h2 className="text-2xl font-semibold">Please sign in to use Athena</h2>
       </div>
     );
@@ -70,7 +70,7 @@ export const MainSection = () => {
 
   if (analyzing) {
     return (
-      <div className="w-full space-y-6">
+      <div className="space-y-6">
         <Skeleton className="w-full h-12" />
         <Skeleton className="w-full h-48" />
         <Skeleton className="w-full h-64" />
@@ -82,7 +82,7 @@ export const MainSection = () => {
 
   if (!appState) {
     return (
-      <div className="w-full h-full flex flex-col gap-6 justify-center items-center">
+      <div className="h-full flex flex-col gap-6 justify-center items-center">
         <AnalyzeArticle />
         <AnalyzeButton analyzing={false} onClick={onAnalyze} />
       </div>
@@ -90,7 +90,7 @@ export const MainSection = () => {
   }
 
   return (
-    <div className="w-full space-y-6">
+    <div className="space-y-6">
       <HeaderSection
         article={appState.article}
         publication={appState.publication}

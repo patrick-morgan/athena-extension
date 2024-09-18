@@ -32,7 +32,7 @@ export const JournalistSection = ({
               <TooltipTrigger>
                 <Info className="h-4 w-4 text-muted-foreground" />
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="max-w-xs">
                 <p>
                   Analysis of individual journalists' bias and objectivity based
                   on their articles.
@@ -52,18 +52,51 @@ export const JournalistSection = ({
                 {pluralize("Article", bias.num_articles_analyzed)} analyzed
               </Badge>
             </div>
-            <NumberLine
-              leftText="Left wing"
-              rightText="Right wing"
-              tickPosition={bias.bias_score}
-              mode="political"
-            />
-            <NumberLine
-              leftText="Opinion"
-              rightText="Factual"
-              tickPosition={bias.rhetoric_score}
-              mode="objectivity"
-            />
+            <div className="flex items-center justify-between">
+              <NumberLine
+                leftText="Left wing"
+                rightText="Right wing"
+                tickPosition={bias.bias_score}
+                mode="political"
+              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground ml-2" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>
+                      Political bias ranges from purple (left-wing) through
+                      green (center) to orange (right-wing). A score of 0
+                      indicates strong left bias, 50 is center, and 100 is
+                      strong right bias.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <div className="flex items-center justify-between">
+              <NumberLine
+                leftText="Opinion"
+                rightText="Factual"
+                tickPosition={bias.rhetoric_score}
+                mode="objectivity"
+              />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground ml-2" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>
+                      Objectivity ranges from orange (opinionated) to teal
+                      (factual). A score of 0 means highly opinionated, while
+                      100 means very factual and objective.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
             <p className="text-sm text-muted-foreground">{bias.summary}</p>
           </div>
         ))}
