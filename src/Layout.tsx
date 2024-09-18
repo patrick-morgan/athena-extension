@@ -11,13 +11,11 @@ export const Layout = ({ children }: LayoutProps) => {
   const { user, isSubscribed, signIn } = useAuth();
 
   return (
-    <div className="flex flex-col h-[600px] w-[500px]">
-      {" "}
-      {/* Adjust height and width as needed */}
-      <header className="p-4 border-b border-slate-200 flex items-center justify-between bg-white">
+    <div className="flex flex-col h-[600px] w-[400px] bg-background">
+      <header className="w-full p-4 bg-[hsl(var(--header-background))] border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h1 className="text-black text-2xl">Athena</h1>
-          <h3 className="text-primary text-sm mt-1.5">Find the truth</h3>
+          <h1 className="text-primary text-2xl font-bold">Athena</h1>
+          <h3 className="text-accent text-sm">Find the truth</h3>
         </div>
         <div>
           {user ? (

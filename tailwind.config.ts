@@ -1,9 +1,3 @@
-// theme: {
-// textColor: {
-//   primaryGreen: "#2BEE7F",
-//   secondary: "#ffed4a",
-//   danger: "#e3342f",
-// },
 const { fontFamily } = require("tailwindcss/defaultTheme");
 
 /** @type {import('tailwindcss').Config} */
@@ -11,13 +5,6 @@ module.exports = {
   darkMode: ["class"],
   content: ["./src/**/*.{js,jsx,ts,tsx}", "./public/index.html"],
   theme: {
-    container: {
-      center: true,
-      padding: "2rem",
-      screens: {
-        "2xl": "1400px",
-      },
-    },
     extend: {
       colors: {
         border: "hsl(var(--border))",
