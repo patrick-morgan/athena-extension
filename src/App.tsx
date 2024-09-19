@@ -9,7 +9,7 @@ import { AuthProvider, useAuth } from "./AuthContext";
 import { Layout } from "./Layout";
 import { SettingsPage } from "./components/SettingsPage";
 import { SignInPrompt } from "./components/SignInPrompt";
-import { MainSection } from "./components/main/MainSection";
+import { MainSection } from "./components/MainSection";
 import { Spinner } from "./components/spinner";
 
 const AppContent = () => {

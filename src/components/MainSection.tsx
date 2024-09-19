@@ -2,18 +2,18 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useAuth } from "../../AuthContext";
-import { AnalyzeArticle } from "../AnalyzeArticle";
-import { ArticleSection } from "../article-section/ArticleSection";
-import { AnalyzeButton } from "../buttons/AnalyzeButton";
-import { JournalistSection } from "../journalist-section/JournalistSection";
-import { PublicationSection } from "../publication-section/PublicationSection";
-import { Spinner } from "../spinner";
-import { SubscriptionPage } from "../SubscriptionPage";
-import { SummarySection } from "../summary-section/SummarySection";
+import { useAuth } from "../AuthContext";
+import { AnalyzeArticle } from "./AnalyzeArticle";
+import { AnalyzeButton } from "./AnalyzeButton";
+import { Spinner } from "./spinner";
+import { SubscriptionPage } from "./SubscriptionPage";
 import { AppStateType, handleAnalysis } from "./analysisHandler";
 import { HeaderSection } from "./HeaderSection";
 import { requestContent } from "./utils";
+import { ArticleSection } from "./ArticleSection";
+import { JournalistSection } from "./JournalistSection";
+import { PublicationSection } from "./PublicationSection";
+import { SummarySection } from "./SummarySection";
 
 export const MainSection = () => {
   const [analyzing, setAnalyzing] = useState(false);
