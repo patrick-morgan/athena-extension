@@ -1,22 +1,25 @@
-import { useState, useEffect } from "react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../AuthContext";
-import { requestContent } from "./utils";
 import { AnalyzeArticle } from "../AnalyzeArticle";
-import { AnalyzeButton } from "../buttons/AnalyzeButton";
-import { HeaderSection } from "./HeaderSection";
-import { SummarySection } from "../summary-section/SummarySection";
 import { ArticleSection } from "../article-section/ArticleSection";
+import { AnalyzeButton } from "../buttons/AnalyzeButton";
 import { JournalistSection } from "../journalist-section/JournalistSection";
 import { PublicationSection } from "../publication-section/PublicationSection";
+import { Spinner } from "../spinner";
 import { SubscriptionPage } from "../SubscriptionPage";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { handleAnalysis, AppStateType } from "./analysisHandler";
+import { SummarySection } from "../summary-section/SummarySection";
+import { AppStateType, handleAnalysis } from "./analysisHandler";
+import { HeaderSection } from "./HeaderSection";
+import { requestContent } from "./utils";
 
 export const MainSection = () => {
   const [analyzing, setAnalyzing] = useState(false);
-  const [appState, setAppState] = useState<AppStateType | null>(null);
+  const [appState, setAppState] = useState<AppStateType | null | undefined>(
+    undefined
+  );
   const [error, setError] = useState<string | null>(null);
   const { user, isSubscribed } = useAuth();
 
@@ -80,9 +83,17 @@ export const MainSection = () => {
     );
   }
 
+  if (appState === undefined) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spinner />
+      </div>
+    );
+  }
+
   if (!appState) {
     return (
-      <div className="h-full flex flex-col gap-6 justify-center items-center">
+      <div className="h-full flex flex-col gap-6 justify-center items-center mt-14">
         <AnalyzeArticle />
         <AnalyzeButton analyzing={false} onClick={onAnalyze} />
       </div>

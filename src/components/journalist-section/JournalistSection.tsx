@@ -42,7 +42,7 @@ export const JournalistSection: React.FC<JournalistSectionProps> = ({
       </CardHeader>
       <CardContent className="space-y-6 pt-4">
         {journalistsBias.map((bias, index) => (
-          <div key={index} className="space-y-4 p-4 bg-muted rounded-md">
+          <div key={index} className="space-y-4 p-4 rounded-md">
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="secondary" className="text-sm font-medium">
                 {bias.name}

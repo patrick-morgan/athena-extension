@@ -1,5 +1,5 @@
-import React from "react";
 import { FileText } from "lucide-react";
+import React from "react";
 
 export const AnalyzeArticle: React.FC = () => {
   return (

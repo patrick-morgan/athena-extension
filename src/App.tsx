@@ -13,7 +13,6 @@ import { MainSection } from "./components/main/MainSection";
 import { Spinner } from "./components/spinner";
 
 const AppContent = () => {
-  // const [analyzing, setAnalyzing] = useState(false);
   const { user, isLoading } = useAuth();
 
   if (isLoading) {

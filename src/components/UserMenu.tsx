@@ -1,6 +1,4 @@
-import React from "react";
-import { User } from "firebase/auth";
-import { useAuth } from "../AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,9 +7,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User } from "firebase/auth";
 import { LogOut, Settings } from "lucide-react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../AuthContext";
 
 interface UserMenuProps {
   user: User;
