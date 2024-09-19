@@ -1,9 +1,9 @@
 import React from "react";
-import { NumberLine } from "../shared/NumberLine";
-import { PublicationAnalysisResponse } from "../../api/api";
 import { Badge } from "@/components/ui/badge";
-import { CollapsibleCard } from "../CollapsibleCard";
 import { pluralize } from "@/utils/helpers";
+import { PublicationAnalysisResponse } from "@/api/api";
+import { CollapsibleCard } from "./CollapsibleCard";
+import { NumberLine } from "./NumberLine";
 
 type PublicationSectionProps = {
   pubResponse: PublicationAnalysisResponse;

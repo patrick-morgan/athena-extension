@@ -1,7 +1,5 @@
 import React from "react";
 import { Info } from "lucide-react";
-import { parseFootnotes } from "../../utils/footnotes";
-import { SummaryResponseType } from "../../types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Tooltip,
@@ -9,6 +7,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { SummaryResponseType } from "@/types";
+import { parseFootnotes } from "@/utils/footnotes";
 
 type SummarySectionProps = {
   summaryResponse: SummaryResponseType;

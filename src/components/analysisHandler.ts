@@ -1,14 +1,13 @@
 import {
-  ArticlePayload,
-  PublicationAnalysisResponse,
   analyzeJournalists,
   analyzeObjectivity,
   analyzePoliticalBias,
   analyzePublication,
+  ArticlePayload,
   createArticle,
   generateSummary,
-} from "../../api/api";
-import { cleanHTML } from "../../parsers/genericParser";
+  PublicationAnalysisResponse,
+} from "@/api/api";
 import {
   ArticleModel,
   JournalistBiasWithNameModel,
@@ -17,8 +16,9 @@ import {
   PoliticalBiasResponseType,
   PublicationModel,
   SummaryModel,
-} from "../../types";
+} from "@/types";
 import { requestContent } from "./utils";
+import { cleanHTML } from "@/parsers/genericParser";
 
 export type AppStateType = {
   currentUrl: string;

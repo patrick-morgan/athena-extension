@@ -1,6 +1,6 @@
-import { ArticleModel, JournalistsModel, PublicationModel } from "../../types";
-import { formatDate } from "../../utils/date";
 import { Badge } from "@/components/ui/badge";
+import { ArticleModel, JournalistsModel, PublicationModel } from "@/types";
+import { formatDate } from "@/utils/date";
 
 type HeaderSectionProps = {
   article: ArticleModel;

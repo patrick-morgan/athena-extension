@@ -1,9 +1,8 @@
-import React from "react";
-import { NumberLine } from "../shared/NumberLine";
-import { pluralize } from "../../utils/helpers";
-import { JournalistBiasWithNameModel } from "../../types";
-import { Badge } from "@/components/ui/badge";
-import { CollapsibleCard } from "../CollapsibleCard";
+import { JournalistBiasWithNameModel } from "@/types";
+import { CollapsibleCard } from "./CollapsibleCard";
+import { pluralize } from "@/utils/helpers";
+import { Badge } from "./ui/badge";
+import { NumberLine } from "./NumberLine";
 
 type JournalistSectionProps = {
   journalistsBias: JournalistBiasWithNameModel[];

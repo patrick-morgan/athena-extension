@@ -1,11 +1,11 @@
 import React from "react";
-import { NumberLine } from "../shared/NumberLine";
-import { parseFootnotes } from "../../utils/footnotes";
+import { CollapsibleCard } from "./CollapsibleCard";
 import {
   ObjectivityBiasResponseType,
   PoliticalBiasResponseType,
-} from "../../types";
-import { CollapsibleCard } from "../CollapsibleCard";
+} from "@/types";
+import { parseFootnotes } from "@/utils/footnotes";
+import { NumberLine } from "./NumberLine";
 
 type ArticleSectionProps = {
   politicalBias: PoliticalBiasResponseType;
@@ -33,7 +33,7 @@ export const ArticleSection: React.FC<ArticleSectionProps> = ({
         </>
       }
     >
-      <div className="space-y-2 flex flex-col items-center">
+      <div className="flex flex-col items-center">
         <div className="w-full">
           {/* <h3 className="text-xs font-medium text-secondary">Political Bias</h3> */}
           <NumberLine
