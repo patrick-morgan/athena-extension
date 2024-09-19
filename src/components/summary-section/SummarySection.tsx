@@ -1,3 +1,4 @@
+import React from "react";
 import { Info } from "lucide-react";
 import { parseFootnotes } from "../../utils/footnotes";
 import { SummaryResponseType } from "../../types";
@@ -13,32 +14,30 @@ type SummarySectionProps = {
   summaryResponse: SummaryResponseType;
 };
 
-export const SummarySection = ({ summaryResponse }: SummarySectionProps) => {
+export const SummarySection: React.FC<SummarySectionProps> = ({
+  summaryResponse,
+}) => {
   const { summary, footnotes } = summaryResponse;
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <Card className="w-full bg-card shadow-sm">
+      <CardHeader className="border-b border-border">
+        <CardTitle className="text-primary flex items-center gap-2">
           Summary
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
                 <Info className="h-4 w-4 text-muted-foreground" />
               </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  This section provides a concise summary of the article,
-                  highlighting its main points, key arguments, and significant
-                  evidence.
-                </p>
+              <TooltipContent className="max-w-xs bg-popover text-popover-foreground">
+                <p>A quick overview of the article's main points.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">
+      <CardContent className="pt-4">
+        <p className="text-foreground text-sm leading-relaxed">
           {parseFootnotes(summary, footnotes)}
         </p>
       </CardContent>

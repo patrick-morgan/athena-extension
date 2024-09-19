@@ -1,8 +1,8 @@
+import React from "react";
 import { Info } from "lucide-react";
-import { JournalistBiasWithNameModel } from "../../types";
 import { NumberLine } from "../shared/NumberLine";
 import { pluralize } from "../../utils/helpers";
-import { Badge } from "@/components/ui/badge";
+import { JournalistBiasWithNameModel } from "../../types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Tooltip,
@@ -10,6 +10,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 
 type JournalistSectionProps = {
   journalistsBias: JournalistBiasWithNameModel[];
@@ -23,20 +24,17 @@ export const JournalistSection: React.FC<JournalistSectionProps> = ({
   }
 
   return (
-    <Card className="w-full bg-white border border-secondary">
-      <CardHeader className="border-b border-secondary">
+    <Card className="w-full bg-card shadow-sm">
+      <CardHeader className="border-b border-border">
         <CardTitle className="text-primary flex items-center gap-2">
           {pluralize("Journalist", journalistsBias.length)}
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <Info className="h-4 w-4 text-muted" />
+                <Info className="h-4 w-4 text-muted-foreground" />
               </TooltipTrigger>
-              <TooltipContent className="max-w-xs bg-white text-text">
-                <p>
-                  Analysis of individual journalists' bias and objectivity based
-                  on their articles.
-                </p>
+              <TooltipContent className="max-w-xs bg-popover text-popover-foreground">
+                <p>Analysis of individual journalists' bias and objectivity.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -44,35 +42,23 @@ export const JournalistSection: React.FC<JournalistSectionProps> = ({
       </CardHeader>
       <CardContent className="space-y-6 pt-4">
         {journalistsBias.map((bias, index) => (
-          <div key={index} className="space-y-4">
+          <div key={index} className="space-y-4 p-4 bg-muted rounded-md">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary" className="bg-secondary text-white">
+              <Badge variant="secondary" className="text-sm font-medium">
                 {bias.name}
               </Badge>
-              <Badge variant="outline" className="text-muted">
+              <Badge
+                variant="outline"
+                className="text-xs text-muted-foreground"
+              >
                 {bias.num_articles_analyzed}{" "}
                 {pluralize("Article", bias.num_articles_analyzed)} analyzed
               </Badge>
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-primary">
-                  Political Bias
-                </h3>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-4 w-4 text-muted" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs bg-white text-text">
-                      <p>
-                        Political bias score ranges from 0 (left-wing) to 100
-                        (right-wing), with 50 representing a centrist position.
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+              <h3 className="text-sm font-medium text-secondary">
+                Political Bias
+              </h3>
               <NumberLine
                 leftText="Left wing"
                 rightText="Right wing"
@@ -80,31 +66,16 @@ export const JournalistSection: React.FC<JournalistSectionProps> = ({
               />
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-primary">
-                  Objectivity
-                </h3>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-4 w-4 text-muted" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs bg-white text-text">
-                      <p>
-                        Objectivity score ranges from 0 (highly opinionated) to
-                        100 (very factual and objective).
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+              <h3 className="text-sm font-medium text-secondary">
+                Objectivity
+              </h3>
               <NumberLine
                 leftText="Opinion"
                 rightText="Factual"
                 tickPosition={bias.rhetoric_score}
               />
             </div>
-            <p className="text-sm text-muted">{bias.summary}</p>
+            <p className="text-muted-foreground text-sm">{bias.summary}</p>
           </div>
         ))}
       </CardContent>
