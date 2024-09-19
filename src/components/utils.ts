@@ -1,4 +1,4 @@
-import { MessageContentType } from "../../types";
+import { MessageContentType } from "@/types";
 
 // Request content from the active tab
 export const requestContent = async (): Promise<
