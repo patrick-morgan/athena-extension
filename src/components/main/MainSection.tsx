@@ -27,10 +27,15 @@ export const MainSection = () => {
     const getLocalStorageData = async () => {
       const resp = await requestContent();
       const newURL = resp?.url;
-      if (!newURL) return;
+      if (!newURL) {
+        setAppState(null);
+        return;
+      }
       chrome.storage.local.get(["appState"], (result) => {
         if (result.appState && result.appState.currentUrl === newURL) {
           setAppState(result.appState as AppStateType);
+        } else {
+          setAppState(null);
         }
       });
     };
@@ -107,7 +112,6 @@ export const MainSection = () => {
         publication={appState.publication}
         journalists={appState.journalists}
       />
-      <SummarySection summaryResponse={appState.summary} />
       <ArticleSection
         politicalBias={appState.politicalBias}
         objectivityBias={appState.objectivityBias}
@@ -118,6 +122,7 @@ export const MainSection = () => {
       {appState.publicationAnalysis && (
         <PublicationSection pubResponse={appState.publicationAnalysis} />
       )}
+      <SummarySection summaryResponse={appState.summary} />
     </div>
   );
 };

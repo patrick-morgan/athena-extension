@@ -1,5 +1,5 @@
-import React from "react";
-import { useAuth } from "../AuthContext";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,14 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { CreditCard, AlertCircle } from "lucide-react";
-import {
-  cancelSubscription,
-  initiateSubscription,
-  updatePaymentMethod,
-} from "../api/stripe";
+import { CreditCard } from "lucide-react";
+import React from "react";
+import { cancelSubscription, initiateSubscription } from "../api/stripe";
+import { useAuth } from "../AuthContext";
 
 export const SettingsPage: React.FC = () => {
   const { user, isSubscribed, checkSubscriptionStatus } = useAuth();
