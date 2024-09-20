@@ -42,6 +42,7 @@ export const handleAnalysis = async (): Promise<AppStateType> => {
   }
 
   const cleanedHTML = cleanHTML(html);
+  console.log("Cleaned HTML", cleanedHTML);
 
   // Create article
   const articleResp = await createArticle({ url, html: cleanedHTML });

@@ -14,6 +14,7 @@ import { ArticleSection } from "./ArticleSection";
 import { JournalistSection } from "./JournalistSection";
 import { PublicationSection } from "./PublicationSection";
 import { SummarySection } from "./SummarySection";
+import { cleanHTML } from "@/parsers/genericParser";
 
 export const MainSection = () => {
   const [analyzing, setAnalyzing] = useState(false);
@@ -46,6 +47,7 @@ export const MainSection = () => {
     setAnalyzing(true);
     try {
       const newAppState = await handleAnalysis();
+      console.log("new app state", newAppState);
       setAppState(newAppState);
     } catch (err) {
       setError((err as Error).message);

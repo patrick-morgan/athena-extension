@@ -1,54 +1,85 @@
+// import React from "react";
+
+// export const parseFootnotes = (
+//   text: string,
+//   footnotes: Record<string, string>
+// ) => {
+//   const regex = /\[\^(\d+)\]/g;
+//   return text.split(regex).map((part, index) => {
+//     if (index % 2 === 0) {
+//       return part;
+//     }
+//     return (
+//       <button
+//         key={index}
+//         className="ml-1 text-blue-400 cursor-pointer bg-transparent border-none p-0 font-normal text-sm"
+//         onClick={() => handleFootnoteClick(part, footnotes[part])}
+//       >
+//         [{part}]
+//       </button>
+//     );
+//   });
+// };
+
+// const handleFootnoteClick = async (
+//   footnoteId: string,
+//   footnoteText: string
+// ) => {
+//   const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+//   const activeTab = tabs[0];
+//   if (activeTab?.id) {
+//     try {
+//       await chrome.tabs.sendMessage(activeTab.id, {
+//         action: "scrollToFootnote",
+//         footnoteText,
+//       });
+//     } catch (error) {
+//       console.error("Error scrolling to footnote:", error);
+//     }
+//   }
+// };
+
+import React from "react";
+
 export const parseFootnotes = (
   text: string,
   footnotes: Record<string, string>
-) => {
+): (string | JSX.Element)[] => {
   const regex = /\[\^(\d+)\]/g;
-  return text.split(regex).map((part, index) => {
+  const parts = text.split(regex);
+
+  return parts.map((part, index) => {
     if (index % 2 === 0) {
       return part;
     }
+    const footnoteId = part;
     return (
-      <a
+      <button
         key={index}
-        href="#"
-        className="ml-1 text-blue-500 cursor-pointer"
-        onClick={(e) => handleFootnoteClick(e, part, footnotes)}
+        className="ml-1 text-blue-400 cursor-pointer bg-transparent border-none p-0 font-normal text-sm"
+        onClick={() => handleFootnoteClick(footnoteId, footnotes[footnoteId])}
       >
-        [{part}]
-      </a>
+        [{footnoteId}]
+      </button>
     );
   });
 };
 
-export const handleFootnoteClick = async (
-  e: React.MouseEvent,
+const handleFootnoteClick = async (
   footnoteId: string,
-  footnotes: Record<string, string>
+  footnoteText: string
 ) => {
-  e.preventDefault();
-  const footnoteText = footnotes[`^${footnoteId}`];
-  if (footnoteText) {
-    const tabs = await chrome.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-    const activeTab = tabs[0];
-    if (activeTab?.id) {
-      const response = await new Promise<{ success: boolean }>(
-        (resolve, reject) => {
-          chrome.tabs.sendMessage(
-            activeTab.id!,
-            { action: "scrollToFootnote", footnoteText },
-            (response) => {
-              if (chrome.runtime.lastError) {
-                reject(chrome.runtime.lastError);
-              } else {
-                resolve(response as { success: boolean });
-              }
-            }
-          );
-        }
-      );
+  console.log("scrolling to footnote", footnoteId, footnoteText);
+  const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+  const activeTab = tabs[0];
+  if (activeTab?.id) {
+    try {
+      await chrome.tabs.sendMessage(activeTab.id, {
+        action: "scrollToFootnote",
+        footnoteText,
+      });
+    } catch (error) {
+      console.error("Error scrolling to footnote:", error);
     }
   }
 };

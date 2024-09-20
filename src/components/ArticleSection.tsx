@@ -16,6 +16,8 @@ export const ArticleSection: React.FC<ArticleSectionProps> = ({
   politicalBias,
   objectivityBias,
 }) => {
+  console.log("political", politicalBias);
+  console.log("objectivity", objectivityBias);
   return (
     <CollapsibleCard
       title="Article"
