@@ -3,6 +3,7 @@ const HTMLPlugin = require("html-webpack-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
 const Dotenv = require("dotenv-webpack");
 const webpack = require("webpack");
+const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = {
   entry: {
@@ -46,6 +47,10 @@ module.exports = {
       },
     ],
   },
+  optimization: {
+    usedExports: true,
+    minimizer: [new TerserPlugin()],
+  },
   plugins: [
     new Dotenv({
       path: "./.env",
@@ -68,6 +73,7 @@ module.exports = {
       "@": path.resolve(__dirname, "src"),
     },
   },
+
   output: {
     path: path.join(__dirname, "dist/js"),
     filename: "[name].js",
