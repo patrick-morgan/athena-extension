@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User } from "firebase/auth";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, HelpCircle } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../AuthContext";
@@ -45,6 +45,10 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user, isSubscribed }) => {
         <DropdownMenuItem onClick={() => navigate("/settings")}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate("/support")}>
+          <HelpCircle className="mr-2 h-4 w-4" />
+          <span>Support</span>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={signOut}>
           <LogOut className="mr-2 h-4 w-4" />

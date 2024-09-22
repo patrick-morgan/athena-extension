@@ -14,6 +14,23 @@ import { Spinner } from "./spinner";
 import { SubscriptionPage } from "./SubscriptionPage";
 import { SummarySection } from "./SummarySection";
 import { requestContent } from "./utils";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card";
+
+const isUnsupportedPage = (url: string): boolean => {
+  const unsupportedDomains = [
+    "chrome://",
+    "chrome-extension://",
+    "https://chrome.google.com",
+    "https://www.google.com/search",
+  ];
+  return unsupportedDomains.some((domain) => url.startsWith(domain));
+};
 
 export const MainSection = () => {
   const [analyzing, setAnalyzing] = useState(false);
@@ -29,7 +46,7 @@ export const MainSection = () => {
       try {
         const resp = await requestContent();
         console.log("Received resp", resp);
-        if (!resp) {
+        if (!resp || isUnsupportedPage(resp.url)) {
           setIsExtensionPage(true);
           setAppState(null);
           return;
@@ -83,8 +100,7 @@ export const MainSection = () => {
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>{error}</AlertDescription>
         <AlertDescription>
-          If problems persist please email pmo@peoplespress.news or text
-          616-337-9949 for support
+          If problems persist please email pmo@peoplespress.news for support
         </AlertDescription>
       </Alert>
     );
@@ -104,11 +120,24 @@ export const MainSection = () => {
 
   if (isExtensionPage) {
     return (
-      <div className="h-full flex justify-center items-center">
-        <h2 className="text-2xl font-semibold">
-          This extension can't be used on this page. Please navigate to a web
-          page to analyze.
-        </h2>
+      <div className="h-full flex justify-center items-center p-6">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-primary">
+              <AlertCircle className="h-5 w-5" />
+              Extension Notice
+            </CardTitle>
+            <CardDescription>
+              This extension can't be used on this page.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              Please navigate to a web page to analyze content using Athena.
+              Contact support at pmo@peoplespress.news if problems persist.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }

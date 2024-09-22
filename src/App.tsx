@@ -8,6 +8,7 @@ import "./App.css";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { Layout } from "./Layout";
 import { SettingsPage } from "./components/SettingsPage";
+import { SupportPage } from "./components/SupportPage";
 import { SignInPrompt } from "./components/SignInPrompt";
 import { MainSection } from "./components/MainSection";
 import { Spinner } from "./components/spinner";
@@ -31,6 +32,7 @@ const AppContent = () => {
     <Routes>
       <Route path="/" element={<MainSection />} />
       <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/support" element={<SupportPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
