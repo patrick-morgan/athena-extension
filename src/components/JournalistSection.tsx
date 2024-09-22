@@ -1,3 +1,5 @@
+import React from "react";
+import ReactMarkdown from "react-markdown";
 import { JournalistBiasWithNameModel } from "@/types";
 import { CollapsibleCard } from "./CollapsibleCard";
 import { pluralize } from "@/utils/helpers";
@@ -15,18 +17,23 @@ export const JournalistSection: React.FC<JournalistSectionProps> = ({
     return null;
   }
 
-  const renderBulletPoints = (summary: string) => {
-    const bulletPoints = summary
-      .split("\n")
-      .filter((point) => point.trim() !== "");
+  const renderMarkdown = (content: string) => {
     return (
-      <ul className="list-disc pl-5 space-y-2">
-        {bulletPoints.map((point, index) => (
-          <li key={index} className="text-muted-foreground text-xs">
-            {point.replace(/^-\s*/, "")}
-          </li>
-        ))}
-      </ul>
+      <ReactMarkdown
+        components={{
+          p: ({ node, ...props }) => (
+            <p className="text-muted-foreground text-xs" {...props} />
+          ),
+          li: ({ node, ...props }) => (
+            <li className="text-muted-foreground text-xs" {...props} />
+          ),
+          ul: ({ node, ...props }) => (
+            <ul className="list-disc pl-5 space-y-2" {...props} />
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
     );
   };
 
@@ -49,7 +56,7 @@ export const JournalistSection: React.FC<JournalistSectionProps> = ({
                 {bias.num_articles_analyzed}{" "}
                 {pluralize("Article", bias.num_articles_analyzed)} analyzed
               </Badge>
-              {renderBulletPoints(bias.summary)}
+              {renderMarkdown(bias.summary)}
             </div>
           ))}
         </div>

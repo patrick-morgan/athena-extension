@@ -1,4 +1,5 @@
 import React from "react";
+import ReactMarkdown from "react-markdown";
 import { CollapsibleCard } from "./CollapsibleCard";
 import {
   ObjectivityBiasResponseType,
@@ -16,22 +17,53 @@ export const ArticleSection: React.FC<ArticleSectionProps> = ({
   politicalBias,
   objectivityBias,
 }) => {
-  const renderBulletPoints = (
-    analysis: string,
+  // const handleFootnoteClick = (footnoteId: string, footnoteText: string) => {
+  //   // Implement your footnote click handling logic here
+  //   console.log(`Footnote ${footnoteId}: ${footnoteText}`);
+  // };
+
+  const renderContent = (
+    content: string,
     footnotes: Record<string, string>
   ) => {
-    const bulletPoints = analysis
-      .split("\n")
-      .filter((point) => point.trim() !== "");
-    return (
-      <ul className="list-disc pl-5 space-y-2">
-        {bulletPoints.map((point, index) => (
-          <li key={index} className="text-muted-foreground text-xs">
-            {parseFootnotes(point.replace(/^-\s*/, ""), footnotes)}
-          </li>
-        ))}
-      </ul>
-    );
+    const parsedContent = parseFootnotes(content, footnotes);
+    return parsedContent.map((part: string | JSX.Element, index: number) => {
+      if (typeof part === "string") {
+        return (
+          <ReactMarkdown
+            key={index}
+            components={{
+              p: ({ node, ...props }) => (
+                <span className="text-muted-foreground text-xs" {...props} />
+              ),
+              li: ({ node, ...props }) => (
+                <li className="text-muted-foreground text-xs" {...props} />
+              ),
+              ul: ({ node, ...props }) => (
+                <ul className="list-disc pl-5 space-y-2" {...props} />
+              ),
+            }}
+          >
+            {part}
+          </ReactMarkdown>
+        );
+      } else {
+        // This is a footnote
+        return <></>;
+        // const footnoteId = part.props.children[1];
+        // return (
+        //   <button
+        //     key={index}
+        //     className="ml-1 text-blue-400 cursor-pointer bg-transparent border-none p-0 font-normal text-xs"
+        //     onClick={() =>
+        //       handleFootnoteClick(footnoteId, footnotes[footnoteId])
+        //     }
+        //   >
+        //     [{footnoteId}]
+        //   </button>
+        // );
+      }
+    });
   };
 
   return (
@@ -40,14 +72,15 @@ export const ArticleSection: React.FC<ArticleSectionProps> = ({
       expandedContent={
         <>
           <h4 className="text-sm font-medium mb-2">Political Bias Analysis</h4>
-          {renderBulletPoints(politicalBias.analysis, politicalBias.footnotes)}
+          <div className="space-y-2">
+            {renderContent(politicalBias.analysis, politicalBias.footnotes)}
+          </div>
           <h4 className="text-sm font-medium mt-4 mb-2">
             Objectivity Analysis
           </h4>
-          {renderBulletPoints(
-            objectivityBias.analysis,
-            objectivityBias.footnotes
-          )}
+          <div className="space-y-2">
+            {renderContent(objectivityBias.analysis, objectivityBias.footnotes)}
+          </div>
         </>
       }
     >

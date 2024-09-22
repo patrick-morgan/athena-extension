@@ -1,4 +1,5 @@
 import React from "react";
+import ReactMarkdown from "react-markdown";
 import { Badge } from "@/components/ui/badge";
 import { pluralize } from "@/utils/helpers";
 import { PublicationAnalysisResponse } from "@/api/api";
@@ -14,18 +15,23 @@ export const PublicationSection: React.FC<PublicationSectionProps> = ({
 }) => {
   const { publication, analysis } = pubResponse;
 
-  const renderBulletPoints = (summary: string) => {
-    const bulletPoints = summary
-      .split("\n")
-      .filter((point) => point.trim() !== "");
+  const renderMarkdown = (content: string) => {
     return (
-      <ul className="list-disc pl-5 space-y-2">
-        {bulletPoints.map((point, index) => (
-          <li key={index} className="text-muted-foreground text-xs">
-            {point.replace(/^-\s*/, "")}
-          </li>
-        ))}
-      </ul>
+      <ReactMarkdown
+        components={{
+          p: ({ node, ...props }) => (
+            <p className="text-muted-foreground text-xs" {...props} />
+          ),
+          li: ({ node, ...props }) => (
+            <li className="text-muted-foreground text-xs" {...props} />
+          ),
+          ul: ({ node, ...props }) => (
+            <ul className="list-disc pl-5 space-y-2" {...props} />
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
     );
   };
 
@@ -34,7 +40,7 @@ export const PublicationSection: React.FC<PublicationSectionProps> = ({
       title="Publication"
       tooltipText={`Scores are aggregated from all articles Athena has processed
                   from ${publication.name ?? publication.hostname}`}
-      expandedContent={<>{renderBulletPoints(analysis.summary)}</>}
+      expandedContent={renderMarkdown(analysis.summary)}
     >
       <div className="space-y-3 space-x-1">
         <Badge variant="secondary" className="text-xs font-medium">
@@ -62,59 +68,3 @@ export const PublicationSection: React.FC<PublicationSectionProps> = ({
     </CollapsibleCard>
   );
 };
-
-// import React from "react";
-// import { Badge } from "@/components/ui/badge";
-// import { pluralize } from "@/utils/helpers";
-// import { PublicationAnalysisResponse } from "@/api/api";
-// import { CollapsibleCard } from "./CollapsibleCard";
-// import { NumberLine } from "./NumberLine";
-
-// type PublicationSectionProps = {
-//   pubResponse: PublicationAnalysisResponse;
-// };
-
-// export const PublicationSection: React.FC<PublicationSectionProps> = ({
-//   pubResponse,
-// }) => {
-//   const { publication, analysis } = pubResponse;
-
-//   return (
-//     <CollapsibleCard
-//       title="Publication"
-//       expandedContent={
-//         <p className="text-muted-foreground text-xs">{analysis.summary}</p>
-//       }
-//     >
-//       <div className="space-y-3 space-x-1">
-//         <Badge variant="secondary" className="text-xs font-medium">
-//           {publication.name}
-//         </Badge>
-//         <Badge variant="outline" className="text-xs text-muted-foreground">
-//           {analysis.num_articles_analyzed}{" "}
-//           {pluralize("Article", analysis.num_articles_analyzed)} analyzed
-//         </Badge>
-//         <div>
-//           {/* <h3 className="text-xs font-medium text-secondary mb-1">
-//             Political Bias
-//           </h3> */}
-//           <NumberLine
-//             leftText="Left wing"
-//             rightText="Right wing"
-//             tickPosition={analysis.bias_score}
-//           />
-//         </div>
-//         <div>
-//           {/* <h3 className="text-xs font-medium text-secondary mb-1">
-//             Objectivity
-//           </h3> */}
-//           <NumberLine
-//             leftText="Opinion"
-//             rightText="Factual"
-//             tickPosition={analysis.rhetoric_score}
-//           />
-//         </div>
-//       </div>
-//     </CollapsibleCard>
-//   );
-// };

@@ -53,15 +53,16 @@ export const parseFootnotes = (
       return part;
     }
     const footnoteId = part;
-    return (
-      <button
-        key={index}
-        className="ml-1 text-blue-400 cursor-pointer bg-transparent border-none p-0 font-normal text-sm"
-        onClick={() => handleFootnoteClick(footnoteId, footnotes[footnoteId])}
-      >
-        [{footnoteId}]
-      </button>
-    );
+    return <></>;
+    // return (
+    //   <button
+    //     key={index}
+    //     className="ml-1 text-blue-400 cursor-pointer bg-transparent border-none p-0 font-normal text-sm"
+    //     onClick={() => handleFootnoteClick(footnoteId, footnotes[footnoteId])}
+    //   >
+    //     [{footnoteId}]
+    //   </button>
+    // );
   });
 };
 
