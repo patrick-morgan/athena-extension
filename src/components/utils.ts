@@ -22,7 +22,7 @@ export const requestContent = async (): Promise<
         );
       }
     );
-    console.log("new htlm FOO!", response);
+    console.log("HTML FOO!", response);
     return response;
   }
 };

@@ -42,7 +42,7 @@ export const handleAnalysis = async (): Promise<AppStateType> => {
   }
 
   const cleanedHTML = cleanHTML(html);
-  console.log("Cleaned HTML", cleanedHTML);
+  // console.log("Cleaned HTML", cleanedHTML);
 
   // Create article
   const articleResp = await createArticle({ url, html: cleanedHTML });
@@ -89,7 +89,7 @@ export const handleAnalysis = async (): Promise<AppStateType> => {
 
   // Save the app state to chrome storage
   chrome.storage.local.set({ appState }, () => {
-    console.log("App state is saved.");
+    console.info("App state is saved.");
   });
 
   return appState;
