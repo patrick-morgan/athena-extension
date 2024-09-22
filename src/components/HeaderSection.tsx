@@ -20,7 +20,9 @@ export const HeaderSection = ({
       <h1 className="text-2xl font-bold">{article.title}</h1>
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="secondary">{formattedDate}</Badge>
-        <Badge variant="secondary">{publication.name}</Badge>
+        <Badge variant="secondary">
+          {publication.name ?? publication.hostname}
+        </Badge>
         {journalists.map((journalist, index) => (
           <Badge key={index} variant="outline">
             {journalist.name}
