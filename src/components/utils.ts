@@ -14,9 +14,13 @@ export const requestContent = async (): Promise<
           { action: "requestContent" },
           (response) => {
             if (chrome.runtime.lastError) {
-              reject(chrome.runtime.lastError);
-            } else {
+              console.error("Chrome runtime error:", chrome.runtime.lastError);
+              reject();
+            } else if (response) {
               resolve(response as MessageContentType);
+            } else {
+              console.error("No response received");
+              reject();
             }
           }
         );
@@ -26,3 +30,22 @@ export const requestContent = async (): Promise<
     return response;
   }
 };
+
+// export const requestContent = (): Promise<{
+//   html: string;
+//   url: string;
+// } | null> => {
+//   return new Promise((resolve) => {
+//     chrome.runtime.sendMessage({ action: "requestContent" }, (response) => {
+//       if (chrome.runtime.lastError) {
+//         console.error("Chrome runtime error:", chrome.runtime.lastError);
+//         resolve(null);
+//       } else if (response) {
+//         resolve(response);
+//       } else {
+//         console.error("No response received");
+//         resolve(null);
+//       }
+//     });
+//   });
+// };

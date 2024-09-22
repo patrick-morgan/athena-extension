@@ -13,6 +13,11 @@
     },
     "default_title": "Athena AI"
   },
+  "icons": {
+    "16": "node-logo.png",
+    "48": "node-logo.png",
+    "128": "node-logo.png"
+  },
   "permissions": [
     "scripting",
     "activeTab",

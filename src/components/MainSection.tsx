@@ -3,18 +3,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "../AuthContext";
+import { AppStateType, handleAnalysis } from "./analysisHandler";
 import { AnalyzeArticle } from "./AnalyzeArticle";
 import { AnalyzeButton } from "./AnalyzeButton";
-import { Spinner } from "./spinner";
-import { SubscriptionPage } from "./SubscriptionPage";
-import { AppStateType, handleAnalysis } from "./analysisHandler";
-import { HeaderSection } from "./HeaderSection";
-import { requestContent } from "./utils";
 import { ArticleSection } from "./ArticleSection";
+import { HeaderSection } from "./HeaderSection";
 import { JournalistSection } from "./JournalistSection";
 import { PublicationSection } from "./PublicationSection";
+import { Spinner } from "./spinner";
+import { SubscriptionPage } from "./SubscriptionPage";
 import { SummarySection } from "./SummarySection";
-import { cleanHTML } from "@/parsers/genericParser";
+import { requestContent } from "./utils";
 
 export const MainSection = () => {
   const [analyzing, setAnalyzing] = useState(false);
@@ -22,23 +21,32 @@ export const MainSection = () => {
     undefined
   );
   const [error, setError] = useState<string | null>(null);
+  const [isExtensionPage, setIsExtensionPage] = useState(false);
   const { user, isSubscribed } = useAuth();
 
   useEffect(() => {
     const getLocalStorageData = async () => {
-      const resp = await requestContent();
-      const newURL = resp?.url;
-      if (!newURL) {
+      try {
+        const resp = await requestContent();
+        console.log("Received resp", resp);
+        if (!resp) {
+          setIsExtensionPage(true);
+          setAppState(null);
+          return;
+        }
+        const newURL = resp.url;
+        chrome.storage.local.get(["appState"], (result) => {
+          if (result.appState && result.appState.currentUrl === newURL) {
+            setAppState(result.appState as AppStateType);
+          } else {
+            setAppState(null);
+          }
+        });
+      } catch (err) {
+        setIsExtensionPage(true);
         setAppState(null);
         return;
       }
-      chrome.storage.local.get(["appState"], (result) => {
-        if (result.appState && result.appState.currentUrl === newURL) {
-          setAppState(result.appState as AppStateType);
-        } else {
-          setAppState(null);
-        }
-      });
     };
     getLocalStorageData();
   }, []);
@@ -74,6 +82,10 @@ export const MainSection = () => {
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>{error}</AlertDescription>
+        <AlertDescription>
+          If problems persist please email pmo@peoplespress.news or text
+          616-337-9949 for support
+        </AlertDescription>
       </Alert>
     );
   }
@@ -86,6 +98,17 @@ export const MainSection = () => {
         <Skeleton className="w-full h-64" />
         <Skeleton className="w-full h-64" />
         <Skeleton className="w-full h-64" />
+      </div>
+    );
+  }
+
+  if (isExtensionPage) {
+    return (
+      <div className="h-full flex justify-center items-center">
+        <h2 className="text-2xl font-semibold">
+          This extension can't be used on this page. Please navigate to a web
+          page to analyze.
+        </h2>
       </div>
     );
   }

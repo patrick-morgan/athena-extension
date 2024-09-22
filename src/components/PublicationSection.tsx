@@ -33,12 +33,12 @@ export const PublicationSection: React.FC<PublicationSectionProps> = ({
     <CollapsibleCard
       title="Publication"
       tooltipText={`Scores are aggregated from all articles Athena has processed
-                  from ${publication.name}`}
+                  from ${publication.name ?? publication.hostname}`}
       expandedContent={<>{renderBulletPoints(analysis.summary)}</>}
     >
       <div className="space-y-3 space-x-1">
         <Badge variant="secondary" className="text-xs font-medium">
-          {publication.name}
+          {publication.name ?? publication.hostname}
         </Badge>
         <Badge variant="outline" className="text-xs text-muted-foreground">
           {analysis.num_articles_analyzed}{" "}
