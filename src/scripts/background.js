@@ -109,6 +109,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .signOut()
       .then(() => {
         console.info("Signing out removing user");
+        sendResponse({ success: true });
       })
       .catch((error) => {
         sendResponse({ error: error.message });

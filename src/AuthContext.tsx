@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
 import { User } from "firebase/auth";
-import { signInWithChrome, getCurrentUser, signOut } from "../firebaseConfig";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { getCurrentUser, signInWithChrome, signOut } from "../firebaseConfig";
 import { checkSubscription } from "./api/stripe";
 
 interface AuthContextType {
@@ -54,9 +54,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    setUser(null);
-    setIsSubscribed(false);
+    try {
+      await signOut();
+      setUser(null);
+      setIsSubscribed(false);
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   return (
@@ -68,7 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         signIn,
         signOut: handleSignOut,
         checkSubscriptionStatus,
-        // setIsSubscribed,
       }}
     >
       {children}

@@ -7,9 +7,9 @@
   "action": {
     "default_popup": "js/index.html",
     "default_icon": {
-      "16": "owl-logo-png.png",
-      "48": "owl-logo-png.png",
-      "128": "owl-logo-png.png"
+      "16": "node-logo.png",
+      "48": "node-logo.png",
+      "128": "node-logo.png"
     },
     "default_title": "Athena AI"
   },

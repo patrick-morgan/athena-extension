@@ -42,11 +42,6 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user, isSubscribed }) => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {isSubscribed && (
-          <DropdownMenuLabel className="font-normal text-green-500">
-            Premium
-          </DropdownMenuLabel>
-        )}
         <DropdownMenuItem onClick={() => navigate("/settings")}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>
