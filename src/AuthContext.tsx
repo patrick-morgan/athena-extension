@@ -1,6 +1,11 @@
 import { User } from "firebase/auth";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { getCurrentUser, signInWithChrome, signOut } from "../firebaseConfig";
+import {
+  getCurrentUser,
+  logAnalyticsEvent,
+  signInWithChrome,
+  signOut,
+} from "../firebaseConfig";
 import { checkSubscription } from "./api/stripe";
 
 interface AuthContextType {
@@ -48,8 +53,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const user = await signInWithChrome();
       setUser(user);
       await checkSubscriptionStatus(user);
+      logAnalyticsEvent("user_signed_in", { userId: user.uid });
     } catch (error) {
       console.error("Error signing in:", error);
+      logAnalyticsEvent("sign_in_error", { error: (error as Error).message });
     }
   };
 
@@ -58,8 +65,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       await signOut();
       setUser(null);
       setIsSubscribed(false);
+      logAnalyticsEvent("user_signed_out");
     } catch (error) {
       console.error("Error signing out:", error);
+      logAnalyticsEvent("sign_out_error", { error: (error as Error).message });
     }
   };
 

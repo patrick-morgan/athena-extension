@@ -1,3 +1,5 @@
+import { logAnalyticsEvent } from "../../firebaseConfig";
+
 import {
   ArticleModel,
   JournalistBiasWithNameModel,
@@ -74,9 +76,11 @@ export const generateSummary = async (
       `/generate-summary`,
       articlePayload
     );
+    logAnalyticsEvent("summary_generated", { summary: response.data });
     return response.data;
   } catch (error) {
     console.error("Error generating summary:", error);
+    logAnalyticsEvent("summary_error", { error: error });
     return null;
   }
 };
@@ -89,9 +93,13 @@ export const analyzePoliticalBias = async (
       `/analyze-political-bias`,
       articlePayload
     );
+    logAnalyticsEvent("political_bias_generated", {
+      political_bias: response.data,
+    });
     return response.data;
   } catch (error) {
     console.error("Error generating political bias:", error);
+    logAnalyticsEvent("political_bias_error", { error: error });
     return null;
   }
 };
@@ -104,9 +112,11 @@ export const analyzeObjectivity = async (
       `/analyze-objectivity`,
       articlePayload
     );
+    logAnalyticsEvent("objectivity_generated", { objectivity: response.data });
     return response.data;
   } catch (error) {
     console.error("Error generating objectivity:", error);
+    logAnalyticsEvent("objectivity_error", { error: error });
     return null;
   }
 };

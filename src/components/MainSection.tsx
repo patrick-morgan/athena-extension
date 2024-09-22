@@ -21,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
+import { logAnalyticsEvent } from "../../firebaseConfig";
 
 const isUnsupportedPage = (url: string): boolean => {
   const unsupportedDomains = [
@@ -70,14 +71,17 @@ export const MainSection = () => {
 
   const onAnalyze = async () => {
     setAnalyzing(true);
+    logAnalyticsEvent("analysis_started");
     try {
       const newAppState = await handleAnalysis();
       // console.info("New app state", newAppState);
       setAppState(newAppState);
     } catch (err) {
       setError((err as Error).message);
+      logAnalyticsEvent("analysis_error", { error: (err as Error).message });
     } finally {
       setAnalyzing(false);
+      logAnalyticsEvent("analysis_finished");
     }
   };
 
