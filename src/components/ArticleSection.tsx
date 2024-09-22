@@ -16,28 +16,43 @@ export const ArticleSection: React.FC<ArticleSectionProps> = ({
   politicalBias,
   objectivityBias,
 }) => {
-  console.log("political", politicalBias);
-  console.log("objectivity", objectivityBias);
+  const renderBulletPoints = (
+    analysis: string,
+    footnotes: Record<string, string>
+  ) => {
+    const bulletPoints = analysis
+      .split("\n")
+      .filter((point) => point.trim() !== "");
+    return (
+      <ul className="list-disc pl-5 space-y-2">
+        {bulletPoints.map((point, index) => (
+          <li key={index} className="text-muted-foreground text-xs">
+            {parseFootnotes(point.replace(/^-\s*/, ""), footnotes)}
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
   return (
     <CollapsibleCard
       title="Article"
       expandedContent={
         <>
-          <p className="text-muted-foreground text-xs">
-            {parseFootnotes(politicalBias.analysis, politicalBias.footnotes)}
-          </p>
-          <p className="text-muted-foreground text-xs mt-2">
-            {parseFootnotes(
-              objectivityBias.analysis,
-              objectivityBias.footnotes
-            )}
-          </p>
+          <h4 className="text-sm font-medium mb-2">Political Bias Analysis</h4>
+          {renderBulletPoints(politicalBias.analysis, politicalBias.footnotes)}
+          <h4 className="text-sm font-medium mt-4 mb-2">
+            Objectivity Analysis
+          </h4>
+          {renderBulletPoints(
+            objectivityBias.analysis,
+            objectivityBias.footnotes
+          )}
         </>
       }
     >
       <div className="flex flex-col items-center">
         <div className="w-full">
-          {/* <h3 className="text-xs font-medium text-secondary">Political Bias</h3> */}
           <NumberLine
             leftText="Left wing"
             rightText="Right wing"
@@ -45,7 +60,6 @@ export const ArticleSection: React.FC<ArticleSectionProps> = ({
           />
         </div>
         <div className="w-full">
-          {/* <h3 className="text-xs font-medium text-secondary">Objectivity</h3> */}
           <NumberLine
             leftText="Opinion"
             rightText="Factual"

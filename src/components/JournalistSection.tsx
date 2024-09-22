@@ -15,11 +15,28 @@ export const JournalistSection: React.FC<JournalistSectionProps> = ({
     return null;
   }
 
+  const renderBulletPoints = (summary: string) => {
+    const bulletPoints = summary
+      .split("\n")
+      .filter((point) => point.trim() !== "");
+    return (
+      <ul className="list-disc pl-5 space-y-2">
+        {bulletPoints.map((point, index) => (
+          <li key={index} className="text-muted-foreground text-xs">
+            {point.replace(/^-\s*/, "")}
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
   return (
     <CollapsibleCard
       title={`${pluralize("Journalist", journalistsBias.length)}`}
+      tooltipText={`Scores are aggregated from all articles Athena has processed
+        from each journalist`}
       expandedContent={
-        <div className="space-y-2">
+        <div className="space-y-4">
           {journalistsBias.map((bias, index) => (
             <div key={index} className="p-2 bg-muted rounded-md">
               <Badge variant="secondary" className="text-xs font-medium mb-1">
@@ -27,14 +44,12 @@ export const JournalistSection: React.FC<JournalistSectionProps> = ({
               </Badge>
               <Badge
                 variant="outline"
-                className="text-xs text-muted-foreground space-x-1"
+                className="text-xs text-muted-foreground space-x-1 ml-2"
               >
                 {bias.num_articles_analyzed}{" "}
                 {pluralize("Article", bias.num_articles_analyzed)} analyzed
               </Badge>
-              <p className="text-muted-foreground text-xs mt-1">
-                {bias.summary}
-              </p>
+              {renderBulletPoints(bias.summary)}
             </div>
           ))}
         </div>
