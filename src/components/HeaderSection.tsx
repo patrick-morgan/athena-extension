@@ -13,7 +13,7 @@ export const HeaderSection = ({
   publication,
   journalists,
 }: HeaderSectionProps) => {
-  const formattedDate = formatDate(article.date, "America/New_York");
+  const formattedDate = formatDate(article.date);
 
   return (
     <div className="space-y-2 w-full">
