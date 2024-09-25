@@ -18,14 +18,7 @@
     "48": "node-logo.png",
     "128": "node-logo.png"
   },
-  "permissions": [
-    "scripting",
-    "activeTab",
-    "storage",
-    "tabs",
-    "identity",
-    "https://peoplespress.news/*"
-  ],
+  "permissions": ["scripting", "activeTab", "storage", "tabs", "identity"],
   "background": {
     "service_worker": "js/background.js"
   },
