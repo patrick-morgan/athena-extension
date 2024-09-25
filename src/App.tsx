@@ -8,10 +8,11 @@ import "./App.css";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { Layout } from "./Layout";
 import { SettingsPage } from "./components/SettingsPage";
-import { SupportPage } from "./components/SupportPage";
 import { SignInPrompt } from "./components/SignInPrompt";
 import { MainSection } from "./components/MainSection";
 import { Spinner } from "./components/spinner";
+import { AboutPage } from "./components/AboutPage";
+import { SupportPage } from "./components/SupportPage";
 
 const AppContent = () => {
   const { user, isLoading } = useAuth();
@@ -33,6 +34,7 @@ const AppContent = () => {
       <Route path="/" element={<MainSection />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/support" element={<SupportPage />} />
+      <Route path="/about" element={<AboutPage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
