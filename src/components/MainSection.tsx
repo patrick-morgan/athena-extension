@@ -29,8 +29,28 @@ const isUnsupportedPage = (url: string): boolean => {
     "chrome-extension://",
     "https://chrome.google.com",
     "https://www.google.com/search",
+    // Add more unsupported domains as needed
   ];
-  return unsupportedDomains.some((domain) => url.startsWith(domain));
+
+  // Check against unsupported domains
+  if (unsupportedDomains.some((domain) => url.startsWith(domain))) {
+    return true;
+  }
+
+  try {
+    const urlObj = new URL(url);
+
+    // Check if it's a root page (no path segments and no query parameters)
+    if (urlObj.pathname === "/" && urlObj.search === "") {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    // If URL parsing fails, consider it unsupported
+    console.error("Error parsing URL:", error);
+    return true;
+  }
 };
 
 export const MainSection = () => {
