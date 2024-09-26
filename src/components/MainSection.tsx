@@ -62,6 +62,15 @@ export const MainSection = () => {
   const [isExtensionPage, setIsExtensionPage] = useState(false);
   const { user, isSubscribed } = useAuth();
 
+  // New loading states for each section
+  const [loadingStates, setLoadingStates] = useState({
+    summary: false,
+    politicalBias: false,
+    objectivityBias: false,
+    journalistsAnalysis: false,
+    publicationAnalysis: false,
+  });
+
   useEffect(() => {
     logPageView("/home");
 
@@ -93,15 +102,19 @@ export const MainSection = () => {
 
   const onAnalyze = async () => {
     setAnalyzing(true);
+    setAppState(null); // Reset appState to null when starting a new analysis
     logEvent("analysis_started", { section: "MainSection" });
     try {
-      const newAppState = await handleAnalysis();
-      setAppState(newAppState);
-      logEvent("analysis_completed", {
-        section: "MainSection",
-        success: true,
-        newAppState,
+      await handleAnalysis((partialState) => {
+        setAppState(
+          (prevState) =>
+            ({
+              ...prevState,
+              ...partialState,
+            } as AppStateType)
+        );
       });
+      logEvent("analysis_completed", { section: "MainSection", success: true });
     } catch (err) {
       setError((err as Error).message);
       logEvent("analysis_error", { error_message: (err as Error).message });
@@ -110,6 +123,8 @@ export const MainSection = () => {
     }
   };
 
+  console.log("app state", appState);
+  // ... (keep the conditional renders for user, isSubscribed, error, isExtensionPage as is)
   if (!user) {
     return (
       <div className="h-full flex justify-center items-center">
@@ -133,18 +148,6 @@ export const MainSection = () => {
           support
         </AlertDescription>
       </Alert>
-    );
-  }
-
-  if (analyzing) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="w-full h-12" />
-        <Skeleton className="w-full h-48" />
-        <Skeleton className="w-full h-64" />
-        <Skeleton className="w-full h-64" />
-        <Skeleton className="w-full h-64" />
-      </div>
     );
   }
 
@@ -184,29 +187,49 @@ export const MainSection = () => {
     return (
       <div className="h-full flex flex-col gap-6 justify-center items-center mt-14">
         <AnalyzeArticle />
-        <AnalyzeButton analyzing={false} onClick={onAnalyze} />
+        <AnalyzeButton analyzing={analyzing} onClick={onAnalyze} />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <HeaderSection
-        article={appState.article}
-        publication={appState.publication}
-        journalists={appState.journalists}
-      />
-      <ArticleSection
-        politicalBias={appState.politicalBias}
-        objectivityBias={appState.objectivityBias}
-      />
-      {appState.journalistsAnalysis && (
+      {appState.article && appState.publication && appState.journalists ? (
+        <HeaderSection
+          article={appState.article}
+          publication={appState.publication}
+          journalists={appState.journalists}
+        />
+      ) : (
+        <Skeleton className="w-full h-24" />
+      )}
+
+      {appState.politicalBias && appState.objectivityBias ? (
+        <ArticleSection
+          politicalBias={appState.politicalBias}
+          objectivityBias={appState.objectivityBias}
+        />
+      ) : (
+        <Skeleton className="w-full h-64" />
+      )}
+
+      {appState.journalistsAnalysis ? (
         <JournalistSection journalistsBias={appState.journalistsAnalysis} />
+      ) : (
+        <Skeleton className="w-full h-64" />
       )}
-      {appState.publicationAnalysis && (
+
+      {appState.publicationAnalysis ? (
         <PublicationSection pubResponse={appState.publicationAnalysis} />
+      ) : (
+        <Skeleton className="w-full h-64" />
       )}
-      <SummarySection summaryResponse={appState.summary} />
+
+      {appState.summary ? (
+        <SummarySection summaryResponse={appState.summary} />
+      ) : (
+        <Skeleton className="w-full h-64" />
+      )}
     </div>
   );
 };
