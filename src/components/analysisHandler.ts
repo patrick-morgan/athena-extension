@@ -31,98 +31,97 @@ export type AppStateType = {
   objectivityBias: ObjectivityBiasResponseType | null;
   journalistsAnalysis: JournalistBiasWithNameModel[] | null;
   publicationAnalysis: PublicationAnalysisResponse | null;
+  error: string | null;
 };
 
 export const handleAnalysis = async (
   updateCallback: (partialState: Partial<AppStateType>) => void
 ): Promise<void> => {
-  const resp = await requestContent();
-  const html = resp?.html;
-  const url = resp?.url;
+  let currentState: Partial<AppStateType> = {};
 
-  if (!html || !url) {
-    throw new Error("Error fetching website content");
-  }
-
-  const cleanedHTML = cleanHTML(html);
-  console.log("Cleaned HTML", cleanedHTML);
-  logEvent("cleaned_html", { cleanedHTML });
-
-  // Create article
-  const articleResp = await createArticle({ url, html: cleanedHTML });
-
-  if (!articleResp) {
-    throw new Error("Error reading article");
-  }
-
-  // Update with initial article info
-  updateCallback({
-    currentUrl: url,
-    article: articleResp.article,
-    publication: articleResp.publication,
-    journalists: articleResp.journalists,
-  });
-
-  const payload: ArticlePayload = {
-    id: articleResp.article.id,
-    text: articleResp.article.text,
+  const updateState = (partialState: Partial<AppStateType>) => {
+    currentState = { ...currentState, ...partialState };
+    updateCallback(partialState);
+    chrome.storage.local.set({ appState: currentState }, () => {
+      console.info("App state updated and saved.");
+    });
   };
 
-  // Analyze article section
-  // Execute API calls in parallel and update as they complete
-  Promise.all([
-    generateSummary(payload).then((summary) => {
-      console.log("Summary", summary);
-      updateCallback({ summary });
-      return summary;
-    }),
-    analyzePoliticalBias(payload).then((politicalBias) => {
-      console.log("Political Bias", politicalBias);
-      updateCallback({ politicalBias });
-      return politicalBias;
-    }),
-    analyzeObjectivity(payload).then((objectivityBias) => {
-      console.log("Objectivity Bias", objectivityBias);
-      updateCallback({ objectivityBias });
-      return objectivityBias;
-    }),
-  ]).catch((error) => {
-    console.error("Error analyzing article:", error);
-  });
+  try {
+    const resp = await requestContent();
+    const html = resp?.html;
+    const url = resp?.url;
 
-  // Analyze journalists
-  analyzeJournalists({ articleId: articleResp.article.id })
-    .then((journalistsAnalysis) => {
-      console.log("Journalists Analysis", journalistsAnalysis);
-      updateCallback({ journalistsAnalysis });
-      logEvent("journalists_analyzed", { journalists: journalistsAnalysis });
-    })
-    .catch((error) => {
-      console.error("Error analyzing journalists:", error);
+    if (!html || !url) {
+      throw new Error("Error fetching website content");
+    }
+
+    const cleanedHTML = cleanHTML(html);
+    console.log("Cleaned HTML", cleanedHTML);
+    logEvent("cleaned_html", { cleanedHTML });
+
+    // Create article
+    const articleResp = await createArticle({ url, html: cleanedHTML });
+
+    if (!articleResp) {
+      throw new Error("Error reading article");
+    }
+
+    // Update with initial article info
+    updateState({
+      currentUrl: url,
+      article: articleResp.article,
+      publication: articleResp.publication,
+      journalists: articleResp.journalists,
     });
 
-  // Analyze publication
-  analyzePublication({ publicationId: articleResp.article.publication })
-    .then((publicationAnalysis) => {
-      console.log("Publication Analysis", publicationAnalysis);
-      updateCallback({ publicationAnalysis });
-      logEvent("publication_analyzed", { publication: publicationAnalysis });
-    })
-    .catch((error) => {
-      console.error("Error analyzing publication:", error);
-    });
+    const payload: ArticlePayload = {
+      id: articleResp.article.id,
+      text: articleResp.article.text,
+    };
 
-  // Save the final app state to chrome storage
-  chrome.storage.local.set({ appState: await getFullAppState() }, () => {
-    console.info("App state is saved.");
-  });
-};
+    // Analyze article section
+    // Execute API calls in parallel and update as they complete
+    await Promise.all([
+      generateSummary(payload).then((summary) => {
+        console.log("Summary", summary);
+        logEvent("summary_analyzed", { summary });
+        updateState({ summary });
+        return summary;
+      }),
+      analyzePoliticalBias(payload).then((politicalBias) => {
+        console.log("Political Bias", politicalBias);
+        logEvent("political_analyzed", { politicalBias });
+        updateState({ politicalBias });
+        return politicalBias;
+      }),
+      analyzeObjectivity(payload).then((objectivityBias) => {
+        console.log("Objectivity Bias", objectivityBias);
+        logEvent("objectivity_analyzed", { objectivity: objectivityBias });
+        updateState({ objectivityBias });
+        return objectivityBias;
+      }),
+    ]);
 
-// Helper function to get the full app state
-const getFullAppState = async (): Promise<AppStateType> => {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(["appState"], (result) => {
-      resolve(result.appState as AppStateType);
+    // Analyze journalists
+    const journalistsAnalysis = await analyzeJournalists({
+      articleId: articleResp.article.id,
     });
-  });
+    console.log("Journalists Analysis", journalistsAnalysis);
+    updateState({ journalistsAnalysis });
+    logEvent("journalists_analyzed", { journalists: journalistsAnalysis });
+
+    // Analyze publication
+    const publicationAnalysis = await analyzePublication({
+      publicationId: articleResp.article.publication,
+    });
+    console.log("Publication Analysis", publicationAnalysis);
+    updateState({ publicationAnalysis });
+    logEvent("publication_analyzed", { publication: publicationAnalysis });
+
+    console.log("Final app state:", currentState);
+  } catch (error) {
+    console.error("Error during analysis:", error);
+    updateState({ error: (error as Error).message });
+  }
 };

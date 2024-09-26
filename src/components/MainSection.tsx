@@ -62,30 +62,19 @@ export const MainSection = () => {
   const [isExtensionPage, setIsExtensionPage] = useState(false);
   const { user, isSubscribed } = useAuth();
 
-  // New loading states for each section
-  const [loadingStates, setLoadingStates] = useState({
-    summary: false,
-    politicalBias: false,
-    objectivityBias: false,
-    journalistsAnalysis: false,
-    publicationAnalysis: false,
-  });
-
   useEffect(() => {
     logPageView("/home");
 
-    const getLocalStorageData = async () => {
+    const initializeState = async () => {
       try {
         const resp = await requestContent();
-        console.log("Received resp", resp);
         if (!resp || isUnsupportedPage(resp.url)) {
           setIsExtensionPage(true);
-          setAppState(null);
           return;
         }
-        const newURL = resp.url;
+
         chrome.storage.local.get(["appState"], (result) => {
-          if (result.appState && result.appState.currentUrl === newURL) {
+          if (result.appState && result.appState.currentUrl === resp.url) {
             setAppState(result.appState as AppStateType);
           } else {
             setAppState(null);
@@ -94,10 +83,10 @@ export const MainSection = () => {
       } catch (err) {
         setIsExtensionPage(true);
         setAppState(null);
-        return;
       }
     };
-    getLocalStorageData();
+
+    initializeState();
   }, []);
 
   const onAnalyze = async () => {
@@ -105,6 +94,15 @@ export const MainSection = () => {
     setAppState(null); // Reset appState to null when starting a new analysis
     logEvent("analysis_started", { section: "MainSection" });
     try {
+      // await handleAnalysis((partialState) => {
+      //   setAppState(
+      //     (prevState) =>
+      //       ({
+      //         ...prevState,
+      //         ...partialState,
+      //       } as AppStateType)
+      //   );
+      // });
       await handleAnalysis((partialState) => {
         setAppState(
           (prevState) =>
@@ -113,6 +111,10 @@ export const MainSection = () => {
               ...partialState,
             } as AppStateType)
         );
+
+        if (partialState.error) {
+          setError(partialState.error);
+        }
       });
       logEvent("analysis_completed", { section: "MainSection", success: true });
     } catch (err) {
@@ -124,7 +126,7 @@ export const MainSection = () => {
   };
 
   console.log("app state", appState);
-  // ... (keep the conditional renders for user, isSubscribed, error, isExtensionPage as is)
+
   if (!user) {
     return (
       <div className="h-full flex justify-center items-center">
@@ -135,6 +137,20 @@ export const MainSection = () => {
 
   if (!isSubscribed) {
     return <SubscriptionPage />;
+  }
+
+  if (appState?.error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{appState.error}</AlertDescription>
+        <AlertDescription>
+          Please try again. If problems persist, email pmo@peoplespress.news for
+          support
+        </AlertDescription>
+      </Alert>
+    );
   }
 
   if (error) {

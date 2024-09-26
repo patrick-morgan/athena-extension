@@ -13,6 +13,7 @@ type JournalistSectionProps = {
 export const JournalistSection: React.FC<JournalistSectionProps> = ({
   journalistsBias,
 }) => {
+  console.log("journalist bias", journalistsBias);
   if (journalistsBias.length === 0) {
     return null;
   }

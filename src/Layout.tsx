@@ -14,7 +14,7 @@ export const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="flex flex-col h-full min-h-[500px] w-[500px] bg-background">
-      <header className="w-full p-4 bg-primary text-primary-foreground border-b border-accent/10 flex items-center justify-between">
+      <header className="w-full px-6 p-4 bg-primary text-primary-foreground border-b border-accent/10 flex items-center justify-between">
         <div
           className="flex items-center gap-2 cursor-pointer"
           onClick={() => navigate("/")}
