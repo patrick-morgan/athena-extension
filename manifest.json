@@ -25,10 +25,21 @@
   "externally_connectable": {
     "matches": ["https://peoplespress.news/*"]
   },
-  "host_permissions": ["https://*.firebaseapp.com/*"],
+  "host_permissions": [
+    "https://*.firebaseapp.com/*",
+    "https://www.googletagmanager.com/",
+    "https://www.google-analytics.com/",
+    "https://express-backend-production-7ccd.up.railway.app/*"
+  ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://www.google-analytics.com https://*.googleapis.com https://*.firebaseapp.com https://*.firebase.com https://express-backend-production-7ccd.up.railway.app"
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["js/analytics.js"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "oauth2": {
     "client_id": "981341455175-uaf4bg5bl7voulhnmsvbp312d2bot18i.apps.googleusercontent.com",
     "scopes": [

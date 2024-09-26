@@ -19,7 +19,7 @@ import {
 } from "@/types";
 import { requestContent } from "./utils";
 import { cleanHTML } from "@/parsers/genericParser";
-import { logAnalyticsEvent } from "../../firebaseConfig";
+import { logEvent } from "../../analytics";
 
 export type AppStateType = {
   currentUrl: string;
@@ -44,11 +44,14 @@ export const handleAnalysis = async (): Promise<AppStateType> => {
 
   const cleanedHTML = cleanHTML(html);
   console.log("Cleaned HTML", cleanedHTML);
-  logAnalyticsEvent("cleaned_html");
+  logEvent("cleaned_html", { cleanedHTML });
 
   // Create article
   const articleResp = await createArticle({ url, html: cleanedHTML });
-  logAnalyticsEvent("article_created", { article: articleResp.article });
+
+  if (!articleResp) {
+    throw new Error("Error reading article");
+  }
 
   const payload: ArticlePayload = {
     id: articleResp.article.id,
@@ -71,7 +74,7 @@ export const handleAnalysis = async (): Promise<AppStateType> => {
   const journalistAnalysis = await analyzeJournalists({
     articleId: articleResp.article.id,
   });
-  logAnalyticsEvent("journalists_analyzed", {
+  logEvent("journalists_analyzed", {
     journalists: journalistAnalysis,
   });
 
@@ -79,7 +82,7 @@ export const handleAnalysis = async (): Promise<AppStateType> => {
   const pubAnalysis = await analyzePublication({
     publicationId: articleResp.article.publication,
   });
-  logAnalyticsEvent("publication_analyzed", { publication: pubAnalysis });
+  logEvent("publication_analyzed", { publication: pubAnalysis });
 
   // Construct and return the app state
   const appState: AppStateType = {

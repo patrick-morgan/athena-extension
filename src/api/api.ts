@@ -1,5 +1,3 @@
-import { logAnalyticsEvent } from "../../firebaseConfig";
-
 import {
   ArticleModel,
   JournalistBiasWithNameModel,
@@ -11,6 +9,7 @@ import {
   SummaryModel,
 } from "../types";
 import axiosInstance from "./axiosInstance";
+import { logEvent } from "../../analytics";
 
 export const getArticles = async () => {
   const response = await axiosInstance.get(`/articles`);
@@ -30,9 +29,16 @@ type CreateArticleResponse = {
 
 export const createArticle = async (
   payload: CreateArticlePayload
-): Promise<CreateArticleResponse> => {
-  const response = await axiosInstance.post(`/articles`, payload);
-  return response.data;
+): Promise<CreateArticleResponse | null> => {
+  try {
+    const response = await axiosInstance.post(`/articles`, payload);
+    logEvent("article_created", { article: response.data });
+    return response.data;
+  } catch (error) {
+    console.error("Error creating article:", error);
+    logEvent("article_error", { error: error });
+    return null;
+  }
 };
 
 type AnalyzeJournalistsPayload = {
@@ -42,8 +48,18 @@ type AnalyzeJournalistsPayload = {
 export const analyzeJournalists = async (
   articleId: AnalyzeJournalistsPayload
 ): Promise<JournalistBiasWithNameModel[]> => {
-  const response = await axiosInstance.post(`/analyze-journalists`, articleId);
-  return response.data;
+  try {
+    const response = await axiosInstance.post(
+      `/analyze-journalists`,
+      articleId
+    );
+    logEvent("journalists_analyzed", { journalists: response.data });
+    return response.data;
+  } catch (error) {
+    console.error("Error analyzing journalists:", error);
+    logEvent("journalists_error", { error: error });
+    return [];
+  }
 };
 
 type PublicationBiasPayload = {
@@ -76,11 +92,11 @@ export const generateSummary = async (
       `/generate-summary`,
       articlePayload
     );
-    logAnalyticsEvent("summary_generated", { summary: response.data });
+    logEvent("summary_generated", { summary: response.data });
     return response.data;
   } catch (error) {
     console.error("Error generating summary:", error);
-    logAnalyticsEvent("summary_error", { error: error });
+    logEvent("summary_error", { error: error });
     return null;
   }
 };
@@ -93,13 +109,13 @@ export const analyzePoliticalBias = async (
       `/analyze-political-bias`,
       articlePayload
     );
-    logAnalyticsEvent("political_bias_generated", {
+    logEvent("political_bias_generated", {
       political_bias: response.data,
     });
     return response.data;
   } catch (error) {
     console.error("Error generating political bias:", error);
-    logAnalyticsEvent("political_bias_error", { error: error });
+    logEvent("political_bias_error", { error: error });
     return null;
   }
 };
@@ -112,11 +128,11 @@ export const analyzeObjectivity = async (
       `/analyze-objectivity`,
       articlePayload
     );
-    logAnalyticsEvent("objectivity_generated", { objectivity: response.data });
+    logEvent("objectivity_generated", { objectivity: response.data });
     return response.data;
   } catch (error) {
     console.error("Error generating objectivity:", error);
-    logAnalyticsEvent("objectivity_error", { error: error });
+    logEvent("objectivity_error", { error: error });
     return null;
   }
 };

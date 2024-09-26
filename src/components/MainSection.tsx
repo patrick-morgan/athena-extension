@@ -21,7 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { logAnalyticsEvent } from "../../firebaseConfig";
+import { logPageView, logEvent } from "../../analytics";
 
 const isUnsupportedPage = (url: string): boolean => {
   const unsupportedDomains = [
@@ -63,6 +63,8 @@ export const MainSection = () => {
   const { user, isSubscribed } = useAuth();
 
   useEffect(() => {
+    logPageView("/home");
+
     const getLocalStorageData = async () => {
       try {
         const resp = await requestContent();
@@ -91,17 +93,20 @@ export const MainSection = () => {
 
   const onAnalyze = async () => {
     setAnalyzing(true);
-    logAnalyticsEvent("analysis_started");
+    logEvent("analysis_started", { section: "MainSection" });
     try {
       const newAppState = await handleAnalysis();
-      // console.info("New app state", newAppState);
       setAppState(newAppState);
+      logEvent("analysis_completed", {
+        section: "MainSection",
+        success: true,
+        newAppState,
+      });
     } catch (err) {
       setError((err as Error).message);
-      logAnalyticsEvent("analysis_error", { error: (err as Error).message });
+      logEvent("analysis_error", { error_message: (err as Error).message });
     } finally {
       setAnalyzing(false);
-      logAnalyticsEvent("analysis_finished");
     }
   };
 
@@ -124,7 +129,8 @@ export const MainSection = () => {
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>{error}</AlertDescription>
         <AlertDescription>
-          If problems persist please email pmo@peoplespress.news for support
+          Please try again. If problems persist, email pmo@peoplespress.news for
+          support
         </AlertDescription>
       </Alert>
     );

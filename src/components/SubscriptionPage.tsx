@@ -1,7 +1,7 @@
 import React from "react";
 import { useAuth } from "../AuthContext";
 import { initiateSubscription } from "../api/stripe";
-import { logAnalyticsEvent } from "../../firebaseConfig";
+import { logEvent } from "../../analytics";
 
 export const SubscriptionPage: React.FC = () => {
   const { user } = useAuth();
@@ -11,10 +11,10 @@ export const SubscriptionPage: React.FC = () => {
       try {
         const checkoutUrl = await initiateSubscription();
         window.open(checkoutUrl, "_blank");
-        logAnalyticsEvent("subscription_initiated", { userId: user.uid });
+        logEvent("subscription_initiated", { userId: user.uid });
       } catch (error) {
         console.error("Error initiating subscription:", error);
-        logAnalyticsEvent("subscription_error", {
+        logEvent("subscription_error", {
           error: (error as Error).message,
         });
       }

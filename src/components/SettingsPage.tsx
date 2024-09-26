@@ -11,7 +11,7 @@ import { CreditCard } from "lucide-react";
 import React from "react";
 import { initiateSubscription } from "../api/stripe";
 import { useAuth } from "../AuthContext";
-import { logAnalyticsEvent } from "../../firebaseConfig";
+import { logEvent } from "../../analytics";
 
 export const SettingsPage: React.FC = () => {
   const { user, isSubscribed } = useAuth();
@@ -20,10 +20,10 @@ export const SettingsPage: React.FC = () => {
     try {
       const checkoutUrl = await initiateSubscription();
       window.open(checkoutUrl, "_blank");
-      logAnalyticsEvent("subscription_initiated", { userId: user?.uid });
+      logEvent("subscription_initiated", { userId: user?.uid });
     } catch (error) {
       console.error("Error initiating subscription:", error);
-      logAnalyticsEvent("subscription_error", {
+      logEvent("subscription_error", {
         error: (error as Error).message,
       });
     }
@@ -34,12 +34,12 @@ export const SettingsPage: React.FC = () => {
       // const updateUrl = await updatePaymentMethod();
       const updateUrl = "https://billing.stripe.com/p/login/eVa2bl3Rd4MK05GeUU";
       chrome.tabs.create({ url: updateUrl });
-      logAnalyticsEvent("payment_method_update_initiated", {
+      logEvent("payment_method_update_initiated", {
         userId: user?.uid,
       });
     } catch (error: any) {
       console.error("Error updating payment method:", error);
-      logAnalyticsEvent("payment_method_update_error", {
+      logEvent("payment_method_update_error", {
         error: error.message,
       });
       if (

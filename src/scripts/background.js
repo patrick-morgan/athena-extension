@@ -3,7 +3,6 @@ import { initializeApp } from "firebase/app";
 import {
   GoogleAuthProvider,
   getAuth,
-  onAuthStateChanged,
   signInWithCredential,
 } from "firebase/auth";
 import config from "../../config";
