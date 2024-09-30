@@ -32,9 +32,12 @@ export type ArticleModel = {
   url: string;
   title: string;
   subtitle: string | null;
-  date: Date;
+  date_published: Date;
+  date_updated: Date | null;
   text: string;
   publication: string;
+  publicationObject: PublicationModel;
+  article_authors: JournalistsModel[];
 };
 
 export type PublicationModel = {

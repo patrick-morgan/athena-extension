@@ -3,11 +3,12 @@ import {
   analyzeObjectivity,
   analyzePoliticalBias,
   analyzePublication,
-  ArticlePayload,
-  createArticle,
+  fullParseArticle,
   generateSummary,
   PublicationAnalysisResponse,
+  quickParseArticle,
 } from "@/api/api";
+import { cleanHTML } from "@/parsers/genericParser";
 import {
   ArticleModel,
   JournalistBiasWithNameModel,
@@ -17,9 +18,8 @@ import {
   PublicationModel,
   SummaryModel,
 } from "@/types";
-import { requestContent } from "./utils";
-import { cleanHTML } from "@/parsers/genericParser";
 import { logEvent } from "../../analytics";
+import { requestContent } from "./utils";
 
 export type AppStateType = {
   currentUrl: string;
@@ -55,57 +55,126 @@ export const handleAnalysis = async (
     if (!html || !url) {
       throw new Error("Error fetching website content");
     }
+    const hostname = new URL(url).hostname;
 
     const cleanedHTML = cleanHTML(html);
     console.log("Cleaned HTML", cleanedHTML);
     logEvent("cleaned_html", { cleanedHTML });
 
-    // Create article
-    const articleResp = await createArticle({ url, html: cleanedHTML });
+    // Quick parse
+    const quickParseResp = await quickParseArticle({
+      url,
+      hostname,
+      htmlSubset: cleanedHTML.substring(0, 1000), // Adjust the length as needed
+    });
 
-    if (!articleResp) {
-      throw new Error("Error reading article");
+    console.log("quick Parse Resp", quickParseResp);
+    if (!quickParseResp) {
+      throw new Error("Error quick parsing article");
     }
 
     // Update with initial article info
     updateState({
       currentUrl: url,
-      article: articleResp.article,
-      publication: articleResp.publication,
-      journalists: articleResp.journalists,
+      article: quickParseResp.article,
+      journalists: quickParseResp.journalists,
+      publication: quickParseResp.publication,
     });
 
-    const payload: ArticlePayload = {
-      id: articleResp.article.id,
-      text: articleResp.article.text,
-    };
+    // Fetch publication metadata
+    // const hostname = new URL(url).hostname;
+    // const publicationMetadata = await fetchPublicationMetadata({ hostname });
+    // console.log("Publication Metadata", publicationMetadata);
+    // Update state with publication metadata
+    // if (publicationMetadata) {
+    //   updateState({
+    //     publication: publicationMetadata,
+    //   });
+    // }
+
+    // Full parse (in parallel with other operations)
+    const fullParse = await fullParseArticle({ url, html: cleanedHTML });
+
+    // const fullParse = await fullParseArticle({ url, html: cleanedHTML });
+    console.log("Full Parse", fullParse);
+
+    if (!fullParse) {
+      console.error("Error full parsing article");
+      throw new Error("Error full parsing article, please try again");
+    }
+
+    console.log("full response", fullParse);
+    updateState({
+      article: fullParse.article,
+      publication: fullParse.publication,
+      journalists: fullParse.journalists,
+    });
 
     // Analyze article section
     // Execute API calls in parallel and update as they complete
-    await Promise.all([
-      generateSummary(payload).then((summary) => {
-        console.log("Summary", summary);
-        logEvent("summary_analyzed", { summary });
-        updateState({ summary });
-        return summary;
+    const { id, text, title } = fullParse.article;
+
+    console.log("full parse txt", text);
+
+    // await Promise.all([
+    // generateSummary({
+    //   id,
+    //   text: text || "",
+    // }).then((summary) => {
+    //   console.log("Summary", summary);
+    //   logEvent("summary_analyzed", { summary });
+    //   updateState({ summary });
+    // }),
+
+    //   analyzePoliticalBias({
+    //     id,
+    //     text: text || "",
+    //   }).then((politicalBias) => {
+    //     console.log("Political Bias", politicalBias);
+    //     logEvent("political_analyzed", { politicalBias });
+    //     updateState({ politicalBias });
+    //   }),
+
+    //   analyzeObjectivity({
+    //     id,
+    //     text: text || "",
+    //   }).then((objectivityBias) => {
+    //     console.log("Objectivity Bias", objectivityBias);
+    //     logEvent("objectivity_analyzed", { objectivity: objectivityBias });
+    //     updateState({ objectivityBias });
+    //   }),
+    // ]);
+
+    const [summary, politicalBias, objectivityBias] = await Promise.all([
+      generateSummary({
+        id,
+        text: text || "",
       }),
-      analyzePoliticalBias(payload).then((politicalBias) => {
-        console.log("Political Bias", politicalBias);
-        logEvent("political_analyzed", { politicalBias });
-        updateState({ politicalBias });
-        return politicalBias;
+      analyzePoliticalBias({
+        id,
+        text: text || "",
       }),
-      analyzeObjectivity(payload).then((objectivityBias) => {
-        console.log("Objectivity Bias", objectivityBias);
-        logEvent("objectivity_analyzed", { objectivity: objectivityBias });
-        updateState({ objectivityBias });
-        return objectivityBias;
+      analyzeObjectivity({
+        id,
+        text: text || "",
       }),
     ]);
 
+    console.log("Summary", summary);
+    logEvent("summary_analyzed", { summary });
+    updateState({ summary });
+
+    console.log("Political Bias", politicalBias);
+    logEvent("political_analyzed", { politicalBias });
+    updateState({ politicalBias });
+
+    console.log("Objectivity Bias", objectivityBias);
+    logEvent("objectivity_analyzed", { objectivity: objectivityBias });
+    updateState({ objectivityBias });
+
     // Analyze journalists
     const journalistsAnalysis = await analyzeJournalists({
-      articleId: articleResp.article.id,
+      articleId: id,
     });
     console.log("Journalists Analysis", journalistsAnalysis);
     updateState({ journalistsAnalysis });
@@ -113,7 +182,10 @@ export const handleAnalysis = async (
 
     // Analyze publication
     const publicationAnalysis = await analyzePublication({
-      publicationId: articleResp.article.publication,
+      publicationId: fullParse.publication.id,
+      // publicationId: fullParseResp
+      //   ? fullParseResp.article.publication
+      //   : quickParseResp.publication,
     });
     console.log("Publication Analysis", publicationAnalysis);
     updateState({ publicationAnalysis });

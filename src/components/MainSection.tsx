@@ -210,7 +210,7 @@ export const MainSection = () => {
 
   return (
     <div className="space-y-6">
-      {appState.article && appState.publication && appState.journalists ? (
+      {appState.article ? (
         <HeaderSection
           article={appState.article}
           publication={appState.publication}
