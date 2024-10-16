@@ -47,6 +47,7 @@ function handleStripeRedirect(status) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log("message", message);
   if (message.action === "getIdToken") {
     const user = auth.currentUser;
     if (user) {

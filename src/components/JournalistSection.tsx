@@ -46,7 +46,7 @@ export const JournalistSection: React.FC<JournalistSectionProps> = ({
       expandedContent={
         <div className="space-y-4">
           {journalistsBias.map((bias, index) => (
-            <div key={index} className="p-2 bg-muted rounded-md">
+            <div key={index} className="p-2 border border-zinc-50 rounded-md">
               <Badge variant="secondary" className="text-xs font-medium mb-1">
                 {bias.name}
               </Badge>

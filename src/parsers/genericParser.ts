@@ -1,6 +1,12 @@
 import * as cheerio from "cheerio";
 
-export const cleanHTML = (html: string): string => {
+type CleanHTMLResponse = {
+  head: string;
+  body: string;
+  html: string;
+};
+
+export const cleanHTML = (html: string): CleanHTMLResponse => {
   const $ = cheerio.load(html);
 
   // Remove comments
@@ -57,6 +63,22 @@ export const cleanHTML = (html: string): string => {
 
   // Remove new lines and excess whitespace
   const cleanedHtml = $.html().replace(/\n/g, "").replace(/\s+/g, " ").trim();
+  // console.log("cleanedHtml:");
+  // console.log(cleanedHtml);
 
-  return cleanedHtml;
+  const text = $("body").text();
+  // Remove extra whitespace and trim
+  const gigaCleanedText = text.replace(/\s+/g, " ").trim();
+
+  const head = $("head").text();
+  // console.log("giga cleaned body:");
+  // console.log(gigaCleanedText);
+  // console.log("giga cleaned head:");
+  // console.log(head);
+
+  return {
+    head,
+    body: gigaCleanedText,
+    html: cleanedHtml,
+  };
 };

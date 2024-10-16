@@ -1,10 +1,7 @@
 import {
   analyzeJournalists,
-  analyzeObjectivity,
-  analyzePoliticalBias,
   analyzePublication,
-  fullParseArticle,
-  generateSummary,
+  checkDateUpdated,
   PublicationAnalysisResponse,
   quickParseArticle,
 } from "@/api/api";
@@ -13,10 +10,9 @@ import {
   ArticleModel,
   JournalistBiasWithNameModel,
   JournalistsModel,
-  ObjectivityBiasResponseType,
-  PoliticalBiasResponseType,
+  // ObjectivityBiasResponseType,
+  // PoliticalBiasResponseType,
   PublicationModel,
-  SummaryModel,
 } from "@/types";
 import { logEvent } from "../../analytics";
 import { requestContent } from "./utils";
@@ -26,9 +22,12 @@ export type AppStateType = {
   article: ArticleModel | null;
   publication: PublicationModel | null;
   journalists: JournalistsModel[] | null;
-  summary: SummaryModel | null;
-  politicalBias: PoliticalBiasResponseType | null;
-  objectivityBias: ObjectivityBiasResponseType | null;
+  // summary: SummaryModel | null;
+  summary: string | null;
+  politicalBiasScore: number | null;
+  objectivityBiasScore: number | null;
+  // politicalBias: PoliticalBiasResponseType | null;
+  // objectivityBias: ObjectivityBiasResponseType | null;
   journalistsAnalysis: JournalistBiasWithNameModel[] | null;
   publicationAnalysis: PublicationAnalysisResponse | null;
   error: string | null;
@@ -57,15 +56,65 @@ export const handleAnalysis = async (
     }
     const hostname = new URL(url).hostname;
 
-    const cleanedHTML = cleanHTML(html);
-    console.log("Cleaned HTML", cleanedHTML);
-    logEvent("cleaned_html", { cleanedHTML });
+    const { head, body, html: cleanedHtml } = cleanHTML(html);
+    console.log("Cleaned Body", body);
+    console.log("Cleaned Head", head);
+    console.log("Cleaned Html", cleanedHtml);
+    logEvent("cleaned_html", { body, head, cleanedHtml });
 
-    // Quick parse
+    // Check if the article needs updating
+    const dateUpdatedResp = await checkDateUpdated({
+      url,
+      head,
+      body,
+    });
+
+    console.log("Date Updated Resp", dateUpdatedResp);
+
+    if (
+      dateUpdatedResp &&
+      dateUpdatedResp.article &&
+      !dateUpdatedResp.needsUpdate
+    ) {
+      // Article exists and doesn't need updating
+      console.log("Article exists and doesn't need updating");
+      updateState({
+        currentUrl: url,
+        article: dateUpdatedResp.article,
+        journalists: dateUpdatedResp.journalists,
+        publication: dateUpdatedResp.article.publicationObject,
+        summary: dateUpdatedResp.summary,
+        politicalBiasScore: dateUpdatedResp.political_bias_score,
+        objectivityBiasScore: dateUpdatedResp.objectivity_score,
+      });
+
+      // Fetch journalists
+      const journalistsAnalysis = await analyzeJournalists({
+        articleId: dateUpdatedResp.article.id,
+      });
+      console.log("Journalists Analysis", journalistsAnalysis);
+      updateState({ journalistsAnalysis });
+      logEvent("journalists_analyzed", { journalists: journalistsAnalysis });
+
+      // Fetch publication
+      const publicationAnalysis = await analyzePublication({
+        publicationId: dateUpdatedResp.article.publicationObject.id,
+      });
+      console.log("Publication Analysis", publicationAnalysis);
+      updateState({ publicationAnalysis });
+      logEvent("publication_analyzed", { publication: publicationAnalysis });
+
+      return; // Exit early as we don't need to re-parse
+    }
+
+    console.log("Article needs updating");
+    // If we reach here, we either need to create a new article or update an existing one
     const quickParseResp = await quickParseArticle({
       url,
       hostname,
-      htmlSubset: cleanedHTML.substring(0, 1000), // Adjust the length as needed
+      head,
+      body,
+      // htmlSubset: cleanedHTML.substring(0, 1000), // Adjust the length as needed
     });
 
     console.log("quick Parse Resp", quickParseResp);
@@ -79,7 +128,12 @@ export const handleAnalysis = async (
       article: quickParseResp.article,
       journalists: quickParseResp.journalists,
       publication: quickParseResp.publication,
+      summary: quickParseResp.summary,
+      politicalBiasScore: quickParseResp.political_bias_score,
+      objectivityBiasScore: quickParseResp.objectivity_score,
     });
+
+    const { id } = quickParseResp.article;
 
     // Fetch publication metadata
     // const hostname = new URL(url).hostname;
@@ -93,28 +147,28 @@ export const handleAnalysis = async (
     // }
 
     // Full parse (in parallel with other operations)
-    const fullParse = await fullParseArticle({ url, html: cleanedHTML });
+    // const fullParse = await fullParseArticle({ url, html: cleanedHTML });
 
     // const fullParse = await fullParseArticle({ url, html: cleanedHTML });
-    console.log("Full Parse", fullParse);
+    // console.log("Full Parse", fullParse);
 
-    if (!fullParse) {
-      console.error("Error full parsing article");
-      throw new Error("Error full parsing article, please try again");
-    }
+    // if (!fullParse) {
+    //   console.error("Error full parsing article");
+    //   throw new Error("Error full parsing article, please try again");
+    // }
 
-    console.log("full response", fullParse);
-    updateState({
-      article: fullParse.article,
-      publication: fullParse.publication,
-      journalists: fullParse.journalists,
-    });
+    // console.log("full response", fullParse);
+    // updateState({
+    //   article: fullParse.article,
+    //   publication: fullParse.publication,
+    //   journalists: fullParse.journalists,
+    // });
 
     // Analyze article section
     // Execute API calls in parallel and update as they complete
-    const { id, text, title } = fullParse.article;
+    // const { id, text, title } = fullParse.article;
 
-    console.log("full parse txt", text);
+    // console.log("full parse txt", text);
 
     // await Promise.all([
     // generateSummary({
@@ -145,32 +199,32 @@ export const handleAnalysis = async (
     //   }),
     // ]);
 
-    const [summary, politicalBias, objectivityBias] = await Promise.all([
-      generateSummary({
-        id,
-        text: text || "",
-      }),
-      analyzePoliticalBias({
-        id,
-        text: text || "",
-      }),
-      analyzeObjectivity({
-        id,
-        text: text || "",
-      }),
-    ]);
+    // const [summary, politicalBias, objectivityBias] = await Promise.all([
+    //   generateSummary({
+    //     id,
+    //     text: text || "",
+    //   }),
+    //   analyzePoliticalBias({
+    //     id,
+    //     text: text || "",
+    //   }),
+    //   analyzeObjectivity({
+    //     id,
+    //     text: text || "",
+    //   }),
+    // ]);
 
-    console.log("Summary", summary);
-    logEvent("summary_analyzed", { summary });
-    updateState({ summary });
+    // console.log("Summary", summary);
+    // logEvent("summary_analyzed", { summary });
+    // updateState({ summary });
 
-    console.log("Political Bias", politicalBias);
-    logEvent("political_analyzed", { politicalBias });
-    updateState({ politicalBias });
+    // console.log("Political Bias", politicalBias);
+    // logEvent("political_analyzed", { politicalBias });
+    // updateState({ politicalBias });
 
-    console.log("Objectivity Bias", objectivityBias);
-    logEvent("objectivity_analyzed", { objectivity: objectivityBias });
-    updateState({ objectivityBias });
+    // console.log("Objectivity Bias", objectivityBias);
+    // logEvent("objectivity_analyzed", { objectivity: objectivityBias });
+    // updateState({ objectivityBias });
 
     // Analyze journalists
     const journalistsAnalysis = await analyzeJournalists({
@@ -182,7 +236,7 @@ export const handleAnalysis = async (
 
     // Analyze publication
     const publicationAnalysis = await analyzePublication({
-      publicationId: fullParse.publication.id,
+      publicationId: quickParseResp.publication.id,
       // publicationId: fullParseResp
       //   ? fullParseResp.article.publication
       //   : quickParseResp.publication,

@@ -220,11 +220,17 @@ export const MainSection = () => {
         <Skeleton className="w-full h-24" />
       )}
 
-      {appState.politicalBias && appState.objectivityBias ? (
+      {appState.politicalBiasScore && appState.objectivityBiasScore ? (
         <ArticleSection
-          politicalBias={appState.politicalBias}
-          objectivityBias={appState.objectivityBias}
+          politicalBiasScore={appState.politicalBiasScore}
+          objectivityBiasScore={appState.objectivityBiasScore}
         />
+      ) : (
+        <Skeleton className="w-full h-64" />
+      )}
+
+      {appState.summary ? (
+        <SummarySection summary={appState.summary} />
       ) : (
         <Skeleton className="w-full h-64" />
       )}
@@ -237,12 +243,6 @@ export const MainSection = () => {
 
       {appState.publicationAnalysis ? (
         <PublicationSection pubResponse={appState.publicationAnalysis} />
-      ) : (
-        <Skeleton className="w-full h-64" />
-      )}
-
-      {appState.summary ? (
-        <SummarySection summaryResponse={appState.summary} />
       ) : (
         <Skeleton className="w-full h-64" />
       )}

@@ -10,17 +10,15 @@ import { SummaryResponseType } from "@/types";
 import { parseFootnotes } from "@/utils/footnotes";
 
 type SummarySectionProps = {
-  summaryResponse: SummaryResponseType;
+  summary: string;
 };
 
-export const SummarySection: React.FC<SummarySectionProps> = ({
-  summaryResponse,
-}) => {
-  const { summary, footnotes } = summaryResponse;
+export const SummarySection: React.FC<SummarySectionProps> = ({ summary }) => {
+  // const { summary, footnotes } = summaryResponse;
 
   console.log("sunmmary", summary);
 
-  console.log("footnotes", footnotes);
+  // console.log("footnotes", footnotes);
 
   // Split the summary into bullet points
   const bulletPoints = summary
@@ -46,7 +44,7 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
         <ul className="list-disc pl-5 space-y-2">
           {bulletPoints.map((point, index) => (
             <li key={index} className="text-foreground text-sm leading-relaxed">
-              {parseFootnotes(point.replace(/^-\s*/, ""), footnotes)}
+              {parseFootnotes(point.replace(/^-\s*/, ""), {})}
             </li>
           ))}
         </ul>
@@ -54,3 +52,5 @@ export const SummarySection: React.FC<SummarySectionProps> = ({
     </Card>
   );
 };
+
+// {point.replace(/^-\s*/, "")}

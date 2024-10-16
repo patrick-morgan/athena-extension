@@ -14,9 +14,11 @@ export const HeaderSection = ({
   journalists,
 }: HeaderSectionProps) => {
   const publishedDate = formatDate(article.date_published);
+
   const updatedDate = article.date_updated
     ? formatDate(article.date_updated)
     : null;
+  console.log("journalists", journalists);
 
   return (
     <div className="space-y-2 w-full">
