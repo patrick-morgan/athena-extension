@@ -1,7 +1,7 @@
 import {
   analyzeJournalists,
   analyzePublication,
-  checkDateUpdated,
+  // checkDateUpdated,
   PublicationAnalysisResponse,
   quickParseArticle,
 } from "@/api/api";
@@ -63,55 +63,55 @@ export const handleAnalysis = async (
     logEvent("cleaned_html", { body, head, cleanedHtml });
 
     // Check if the article needs updating
-    const dateUpdatedResp = await checkDateUpdated({
-      url,
-      head,
-      body,
-    });
+    // const dateUpdatedResp = await checkDateUpdated({
+    //   url,
+    //   head,
+    //   body,
+    // });
 
-    console.log("Date Updated Resp", dateUpdatedResp);
+    // console.log("Date Updated Resp", dateUpdatedResp);
 
-    if (
-      dateUpdatedResp &&
-      dateUpdatedResp.article &&
-      !dateUpdatedResp.needsUpdate
-    ) {
-      // Article exists and doesn't need updating
-      console.log("Article exists and doesn't need updating");
-      console.log(
-        "date updated setting journalists",
-        dateUpdatedResp.journalists
-      );
-      updateState({
-        currentUrl: url,
-        article: dateUpdatedResp.article,
-        journalists: dateUpdatedResp.journalists,
-        publication: dateUpdatedResp.article.publicationObject,
-        summary: dateUpdatedResp.summary,
-        politicalBiasScore: dateUpdatedResp.political_bias_score,
-        objectivityBiasScore: dateUpdatedResp.objectivity_score,
-      });
+    // if (
+    //   dateUpdatedResp &&
+    //   dateUpdatedResp.article &&
+    //   !dateUpdatedResp.needsUpdate
+    // ) {
+    //   // Article exists and doesn't need updating
+    //   console.log("Article exists and doesn't need updating");
+    //   console.log(
+    //     "date updated setting journalists",
+    //     dateUpdatedResp.journalists
+    //   );
+    //   updateState({
+    //     currentUrl: url,
+    //     article: dateUpdatedResp.article,
+    //     journalists: dateUpdatedResp.journalists,
+    //     publication: dateUpdatedResp.article.publicationObject,
+    //     summary: dateUpdatedResp.summary,
+    //     politicalBiasScore: dateUpdatedResp.political_bias_score,
+    //     objectivityBiasScore: dateUpdatedResp.objectivity_score,
+    //   });
 
-      // Fetch journalists
-      const journalistsAnalysis = await analyzeJournalists({
-        articleId: dateUpdatedResp.article.id,
-      });
-      console.log("Journalists Analysis", journalistsAnalysis);
-      updateState({ journalistsAnalysis });
-      logEvent("journalists_analyzed", { journalists: journalistsAnalysis });
+    //   // Fetch journalists
+    //   const journalistsAnalysis = await analyzeJournalists({
+    //     articleId: dateUpdatedResp.article.id,
+    //   });
+    //   console.log("Journalists Analysis", journalistsAnalysis);
+    //   updateState({ journalistsAnalysis });
+    //   logEvent("journalists_analyzed", { journalists: journalistsAnalysis });
 
-      // Fetch publication
-      const publicationAnalysis = await analyzePublication({
-        publicationId: dateUpdatedResp.article.publicationObject.id,
-      });
-      console.log("Publication Analysis", publicationAnalysis);
-      updateState({ publicationAnalysis });
-      logEvent("publication_analyzed", { publication: publicationAnalysis });
+    //   // Fetch publication
+    //   const publicationAnalysis = await analyzePublication({
+    //     publicationId: dateUpdatedResp.article.publicationObject.id,
+    //   });
+    //   console.log("Publication Analysis", publicationAnalysis);
+    //   updateState({ publicationAnalysis });
+    //   logEvent("publication_analyzed", { publication: publicationAnalysis });
 
-      return; // Exit early as we don't need to re-parse
-    }
+    //   return; // Exit early as we don't need to re-parse
+    // }
 
-    console.log("Article needs updating");
+    // console.log("Article needs updating");
     // If we reach here, we either need to create a new article or update an existing one
     const quickParseResp = await quickParseArticle({
       url,

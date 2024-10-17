@@ -154,6 +154,13 @@ async function fetchAndStoreArticle(url) {
         // journalists,
       } = await response.json();
       console.log("article", article);
+      console.log("journalistsAnalysis", journalistsAnalysis);
+      console.log("publicationAnalysis", publicationAnalysis);
+      console.log("summary", summary);
+      console.log("political_bias_score", political_bias_score);
+      console.log("objectivity_score", objectivity_score);
+
+      if (!article) return;
 
       const publicationAnalysisDict = {};
       publicationAnalysisDict[publicationAnalysis.publication.id] =
@@ -191,6 +198,8 @@ async function fetchAndStoreArticle(url) {
 
       journalistsAnalysis?.forEach((journalist) => {
         console.log("setting journalist", journalist.journalist, journalist);
+
+        if (!journalist?.journalist) return;
         chrome.storage.local.set({
           [journalist.journalist]: journalist,
         });

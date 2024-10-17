@@ -64,12 +64,12 @@ export const fetchArticleByUrl = async (
 };
 
 type DateUpdatedResponse = {
-  article: ArticleModel | null;
+  // article: ArticleModel | null;
   needsUpdate: boolean;
-  journalists: JournalistsModel[];
-  summary: string | null;
-  political_bias_score: number | null;
-  objectivity_score: number | null;
+  // journalists: JournalistsModel[];
+  // summary: string | null;
+  // political_bias_score: number | null;
+  // objectivity_score: number | null;
 };
 
 export const checkDateUpdated = async (payload: {
