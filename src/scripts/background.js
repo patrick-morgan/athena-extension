@@ -6,6 +6,7 @@ import {
   signInWithCredential,
 } from "firebase/auth";
 import config from "../../config";
+import { API_URL } from "@/api/axiosInstance";
 
 const firebaseConfig = config;
 const app = initializeApp(firebaseConfig);
@@ -117,3 +118,85 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true; // Indicates that the response is sent asynchronously
   }
 });
+
+let currentUrl = "";
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === "complete" && tab.url !== currentUrl) {
+    currentUrl = tab.url;
+    if (isValidUrl(currentUrl)) {
+      fetchAndStoreArticle(currentUrl);
+    }
+  }
+});
+
+function isValidUrl(url) {
+  // Implement your URL validation logic here
+  // For example, check if it's not a chrome:// URL, not a search page, etc.
+  return true;
+}
+
+async function fetchAndStoreArticle(url) {
+  try {
+    console.log("fetching article by url", url);
+    const response = await fetch(
+      `${API_URL}/articles/by-url?url=${encodeURIComponent(url)}`
+    );
+    console.log("fetch by url", response.ok);
+    if (response.ok) {
+      const {
+        article,
+        journalistsAnalysis,
+        publicationAnalysis,
+        summary,
+        political_bias_score,
+        objectivity_score,
+        // journalists,
+      } = await response.json();
+      console.log("article", article);
+
+      const publicationAnalysisDict = {};
+      publicationAnalysisDict[publicationAnalysis.publication.id] =
+        publicationAnalysis.analysis;
+
+      const reducedArticle = {
+        id: article.id,
+        created_at: article.created_at,
+        updated_at: article.updated_at,
+        url: article.url,
+        title: article.title,
+        date_published: article.date_published,
+        date_updated: article.date_updated,
+        text: "",
+        publication: article.publication,
+        article_authors: article.article_authors,
+      };
+
+      chrome.storage.local.set({
+        [encodeURIComponent(url)]: {
+          ...reducedArticle,
+          summary: summary,
+          political_bias_score: political_bias_score,
+          objectivity_score: objectivity_score,
+        },
+      });
+      console.log(
+        "setting publication",
+        article.publication,
+        publicationAnalysis
+      );
+      chrome.storage.local.set({
+        [article.publication]: publicationAnalysis,
+      });
+
+      journalistsAnalysis?.forEach((journalist) => {
+        console.log("setting journalist", journalist.journalist, journalist);
+        chrome.storage.local.set({
+          [journalist.journalist]: journalist,
+        });
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching article:", error);
+  }
+}

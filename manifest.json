@@ -18,7 +18,14 @@
     "48": "node-logo.png",
     "128": "node-logo.png"
   },
-  "permissions": ["scripting", "activeTab", "storage", "tabs", "identity"],
+  "permissions": [
+    "scripting",
+    "activeTab",
+    "storage",
+    "tabs",
+    "identity",
+    "http://localhost:3000/"
+  ],
   "background": {
     "service_worker": "js/background.js"
   },
@@ -32,7 +39,7 @@
     "https://express-backend-production-7ccd.up.railway.app/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://www.google-analytics.com https://*.googleapis.com https://*.firebaseapp.com https://*.firebase.com https://express-backend-production-7ccd.up.railway.app"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://www.google-analytics.com https://*.googleapis.com https://*.firebaseapp.com https://*.firebase.com https://express-backend-production-7ccd.up.railway.app http://localhost:3000"
   },
   "web_accessible_resources": [
     {

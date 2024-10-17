@@ -7,8 +7,8 @@ export type AppStateType = {
   publication: PublicationModel | null;
   journalists: JournalistsModel[] | null;
   summary: SummaryModel | null;
-  politicalBias: PoliticalBiasResponseType | null;
-  objectivityBias: ObjectivityBiasResponseType | null;
+  politicalBiasScore: number | null;
+  objectivityBiasScore: number | null;
   journalistsAnalysis: JournalistBiasWithNameModel[] | null;
   publicationAnalysis: PublicationAnalysisResponse | null;
 };
@@ -37,7 +37,11 @@ export type ArticleModel = {
   text: string;
   publication: string;
   publicationObject: PublicationModel;
-  article_authors: JournalistsModel[];
+  article_authors: {
+    article_id: string;
+    journalist_id: string;
+    journalist: JournalistsModel;
+  }[];
 };
 
 export type PublicationModel = {

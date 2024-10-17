@@ -41,6 +41,28 @@ type CreateArticleResponse = {
 //   }
 // };
 
+export const fetchArticleByUrl = async (
+  url: string
+): Promise<{
+  article: ArticleModel;
+  summary: string;
+  journalists: JournalistsModel[];
+  political_bias_score: number;
+  objectivity_score: number;
+  journalistsAnalysis: JournalistBiasWithNameModel[];
+  publicationAnalysis: PublicationAnalysisResponse;
+} | null> => {
+  try {
+    const response = await axiosInstance.get(`/articles/by-url`, {
+      params: { url },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching article by URL:", error);
+    return null;
+  }
+};
+
 type DateUpdatedResponse = {
   article: ArticleModel | null;
   needsUpdate: boolean;

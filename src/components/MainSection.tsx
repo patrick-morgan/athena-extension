@@ -22,6 +22,12 @@ import {
   CardTitle,
 } from "./ui/card";
 import { logPageView, logEvent } from "../../analytics";
+import {
+  ArticleModel,
+  JournalistBiasWithNameModel,
+  JournalistsModel,
+} from "@/types";
+import { PublicationAnalysisResponse } from "@/api/api";
 
 const isUnsupportedPage = (url: string): boolean => {
   const unsupportedDomains = [
@@ -53,6 +59,12 @@ const isUnsupportedPage = (url: string): boolean => {
   }
 };
 
+type ArticleWithAnalysis = ArticleModel & {
+  summary: string;
+  political_bias_score: number;
+  objectivity_score: number;
+};
+
 export const MainSection = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [appState, setAppState] = useState<AppStateType | null | undefined>(
@@ -72,14 +84,146 @@ export const MainSection = () => {
           setIsExtensionPage(true);
           return;
         }
+        console.log("getting for article url", resp.url);
+        console.log("encoded url", encodeURIComponent(resp.url));
 
-        chrome.storage.local.get(["appState"], (result) => {
-          if (result.appState && result.appState.currentUrl === resp.url) {
-            setAppState(result.appState as AppStateType);
-          } else {
-            setAppState(null);
-          }
-        });
+        // Use Promise-based approach for chrome.storage.local.get
+        const getStorageData = (key: string): Promise<any> => {
+          return new Promise((resolve) => {
+            chrome.storage.local.get([key], (result) => {
+              resolve(result[key]);
+            });
+          });
+        };
+
+        const articleData = await getStorageData(encodeURIComponent(resp.url));
+        if (articleData) {
+          const article = articleData as ArticleWithAnalysis;
+          console.log("local storage result", article);
+
+          const publicationAnalysis = (await getStorageData(
+            article.publication
+          )) as PublicationAnalysisResponse | null;
+          console.log("publication analysis", publicationAnalysis);
+
+          const journalistsAnalyses: JournalistBiasWithNameModel[] =
+            await Promise.all(
+              article.article_authors.map(async (journalist) => {
+                console.log("getting journalist", journalist.journalist_id);
+                return (await getStorageData(
+                  journalist.journalist_id
+                )) as JournalistBiasWithNameModel;
+              })
+            );
+          console.log("journalists analyses", journalistsAnalyses);
+
+          console.log("seting app state", {
+            currentUrl: resp.url,
+            article,
+            publication: publicationAnalysis
+              ? publicationAnalysis.publication
+              : null,
+            journalists: article.article_authors.map(
+              (journalist) => journalist.journalist
+            ),
+            summary: article.summary,
+            politicalBiasScore: article.political_bias_score,
+            objectivityBiasScore: article.objectivity_score,
+            journalistsAnalysis: journalistsAnalyses,
+            publicationAnalysis: publicationAnalysis,
+            error: null,
+          });
+
+          setAppState({
+            currentUrl: resp.url,
+            article,
+            publication: publicationAnalysis
+              ? publicationAnalysis.publication
+              : null,
+            journalists: article.article_authors.map(
+              (journalist) => journalist.journalist
+            ),
+            summary: article.summary,
+            politicalBiasScore: article.political_bias_score,
+            objectivityBiasScore: article.objectivity_score,
+            journalistsAnalysis: journalistsAnalyses,
+            publicationAnalysis: publicationAnalysis,
+            error: null,
+          });
+        } else {
+          setAppState(null);
+        }
+
+        // chrome.storage.local.get([encodeURIComponent(resp.url)], (result) => {
+        //   console.log("local storage result", result);
+        //   const article: ArticleWithAnalysis | undefined =
+        //     result[encodeURIComponent(resp.url)];
+        //   if (article) {
+        //     // Get publication and journalists from local storage
+        //     let publicationAnalysis: PublicationAnalysisResponse | null = null;
+        //     let journalistsAnalyses: JournalistBiasWithNameModel[] = [];
+        //     console.log("result article pub", article.publication);
+        //     chrome.storage.local.get([article.publication], (pub) => {
+        //       const publication: PublicationAnalysisResponse | undefined =
+        //         pub[article.publication];
+        //       if (publication) {
+        //         console.log("publication", publication);
+        //         publicationAnalysis = publication;
+        //       }
+        //     });
+        //     console.log("result article authors", article.article_authors);
+        //     article.article_authors.forEach((journalist) => {
+        //       chrome.storage.local.get([journalist.journalist_id], (j) => {
+        //         const journalistAnalysis:
+        //           | JournalistBiasWithNameModel
+        //           | undefined = j[journalist.journalist_id];
+
+        //         console.log("journalist analysis", journalistAnalysis);
+        //         if (journalistAnalysis) {
+        //           console.log("journalist", journalist);
+        //           journalistsAnalyses.push(journalistAnalysis);
+        //         }
+        //       });
+        //     });
+        //     if (publicationAnalysis) {
+        //       console.log("publication analysis", publicationAnalysis);
+        //     }
+
+        //     console.log("seting app state", {
+        //       currentUrl: resp.url,
+        //       article,
+        //       publication: publicationAnalysis
+        //         ? publicationAnalysis.publication
+        //         : null,
+        //       journalists: article.article_authors.map(
+        //         (journalist) => journalist.journalist
+        //       ),
+        //       summary: article.summary,
+        //       politicalBiasScore: article.political_bias_score,
+        //       objectivityBiasScore: article.objectivity_score,
+        //       journalistsAnalysis: journalistsAnalyses,
+        //       publicationAnalysis: publicationAnalysis,
+        //       error: null,
+        //     });
+
+        //     setAppState({
+        //       currentUrl: resp.url,
+        //       article,
+        //       publication: article.publicationObject,
+        //       journalists: article.article_authors.map(
+        //         (journalist) => journalist.journalist
+        //       ),
+        //       summary: article.summary,
+        //       politicalBiasScore: article.political_bias_score,
+        //       objectivityBiasScore: article.objectivity_score,
+        //       journalistsAnalysis: journalistsAnalyses,
+        //       publicationAnalysis: publicationAnalysis,
+        //       error: null,
+        //     });
+        //   } else {
+        //     setAppState(null);
+        //   }
+        // });
       } catch (err) {
         setIsExtensionPage(true);
         setAppState(null);
