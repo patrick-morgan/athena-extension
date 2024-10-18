@@ -1,9 +1,23 @@
+import {
+  analyzeJournalists,
+  analyzePublication,
+  PublicationAnalysisResponse,
+  quickParseArticle,
+} from "@/api/api";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cleanHTML } from "@/parsers/genericParser";
+import {
+  ArticleAuthorType,
+  ArticleModel,
+  JournalistBiasWithNameModel,
+} from "@/types";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { logEvent, logPageView } from "../../analytics";
+import { getIdToken } from "../../firebaseConfig";
 import { useAuth } from "../AuthContext";
-import { AppStateType, handleAnalysis } from "./analysisHandler";
+import { AppStateType } from "./analysisHandler";
 import { AnalyzeArticle } from "./AnalyzeArticle";
 import { AnalyzeButton } from "./AnalyzeButton";
 import { ArticleSection } from "./ArticleSection";
@@ -13,7 +27,6 @@ import { PublicationSection } from "./PublicationSection";
 import { Spinner } from "./spinner";
 import { SubscriptionPage } from "./SubscriptionPage";
 import { SummarySection } from "./SummarySection";
-import { requestContent } from "./utils";
 import {
   Card,
   CardContent,
@@ -21,23 +34,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { logPageView, logEvent } from "../../analytics";
-import {
-  ArticleAuthorType,
-  ArticleModel,
-  JournalistBiasWithNameModel,
-  JournalistsModel,
-} from "@/types";
-import {
-  analyzeJournalists,
-  analyzePublication,
-  checkDateUpdated,
-  PublicationAnalysisResponse,
-  quickParseArticle,
-} from "@/api/api";
-import { cleanHTML } from "@/parsers/genericParser";
-import { ReAnalyzeButton } from "./ReAnalyzeButton";
-import { getIdToken } from "../../firebaseConfig";
+import { requestContent } from "./utils";
 
 const isUnsupportedPage = (url: string): boolean => {
   const unsupportedDomains = [
@@ -381,7 +378,7 @@ export const MainSection = () => {
 
   if (!user) {
     return (
-      <div className="h-full flex justify-center items-center">
+      <div className="h-screen flex justify-center items-center">
         <h2 className="text-2xl font-semibold">Please sign in to use Athena</h2>
       </div>
     );
@@ -421,7 +418,7 @@ export const MainSection = () => {
 
   if (isExtensionPage) {
     return (
-      <div className="h-full flex justify-center items-center p-6">
+      <div className="h-screen flex justify-center items-center p-6">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-primary">
@@ -453,7 +450,7 @@ export const MainSection = () => {
 
   if (!appState) {
     return (
-      <div className="h-full flex flex-col gap-6 justify-center items-center mt-14">
+      <div className="h-screen flex flex-col gap-6 justify-center items-center -mt-8">
         <AnalyzeArticle />
         <AnalyzeButton analyzing={analyzing} onClick={onAnalyze} />
       </div>
@@ -461,7 +458,7 @@ export const MainSection = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 h-screen">
       {appState.article ? (
         <HeaderSection
           article={appState.article}
