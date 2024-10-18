@@ -77,17 +77,6 @@ const getFromStorage = (key: string): Promise<any> => {
   });
 };
 
-// const getAnalysisState = async (url: string) => {
-//   return new Promise((resolve) => {
-//     chrome.runtime.sendMessage(
-//       { action: "getAnalysisState", url },
-//       (response) => {
-//         resolve(response);
-//       }
-//     );
-//   });
-// };
-
 type ArticleWithAnalysis = ArticleModel & {
   summary: string;
   political_bias_score: number;
@@ -273,28 +262,6 @@ export const MainSection = () => {
       setAnalyzing(false);
     }
   };
-
-  // const loadAnalysisData = async (url: string) => {
-  //   console.log("loading analysis data", url);
-  //   try {
-  //     const articleData = await chrome.storage.local.get(
-  //       encodeURIComponent(url)
-  //     );
-  //     const storedData = (await getFromStorage(
-  //       encodeURIComponent(url)
-  //     )) as ArticleWithAnalysis | null;
-
-  //     if (articleData) {
-
-  //       console.log("article data", articleData);
-  //       // Set appState with the stored data
-  //       setAppState(articleData[encodeURIComponent(url)]);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error loading analysis data:", error);
-  //     setError("Failed to load analysis data");
-  //   }
-  // };
 
   const onAnalyze = async () => {
     setAnalyzing(true);

@@ -348,8 +348,6 @@ async function analyzeArticle(data) {
       article_authors: article.article_authors,
     };
 
-    console.log("setting reduced article", reducedArticle);
-
     chrome.storage.local.set({
       [encodeURIComponent(url)]: {
         ...reducedArticle,
