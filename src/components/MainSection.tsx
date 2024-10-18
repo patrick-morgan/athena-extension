@@ -27,6 +27,7 @@ import { PublicationSection } from "./PublicationSection";
 import { Spinner } from "./spinner";
 import { SubscriptionPage } from "./SubscriptionPage";
 import { SummarySection } from "./SummarySection";
+import { JournalistPage } from "./JournalistPage";
 import {
   Card,
   CardContent,
@@ -89,6 +90,9 @@ export const MainSection = () => {
   const [isExtensionPage, setIsExtensionPage] = useState(false);
   const { user, isSubscribed } = useAuth();
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [selectedJournalist, setSelectedJournalist] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     const updateBackgroundToken = async () => {
@@ -448,12 +452,33 @@ export const MainSection = () => {
     );
   }
 
-  if (!appState) {
+  if (appState === null) {
     return (
       <div className="h-screen flex flex-col gap-6 justify-center items-center -mt-8">
         <AnalyzeArticle />
         <AnalyzeButton analyzing={analyzing} onClick={onAnalyze} />
       </div>
+    );
+  }
+
+  if (selectedJournalist) {
+    console.log("seelcted foo", selectedJournalist);
+    return (
+      <JournalistPage
+        journalistId={selectedJournalist}
+        publication={appState.publication}
+        // journalist={{
+        //   id: selectedJournalist.journalist,
+        //   name: selectedJournalist.name,
+        //   numArticlesAnalyzed: selectedJournalist.num_articles_analyzed,
+        //   publication: appState.publication?.name || "",
+        //   biasScore: selectedJournalist.bias_score,
+        //   rhetoricScore: selectedJournalist.rhetoric_score,
+        //   analysis: selectedJournalist.summary,
+        //   // articles: selectedJournalist.articles || [],
+        // }}
+        onBack={() => setSelectedJournalist(null)}
+      />
     );
   }
 
@@ -464,6 +489,7 @@ export const MainSection = () => {
           article={appState.article}
           publication={appState.publication}
           journalists={appState.journalists}
+          onJournalistClick={setSelectedJournalist}
         />
       ) : (
         <Skeleton className="w-full h-24" />
@@ -485,7 +511,10 @@ export const MainSection = () => {
       )}
 
       {appState.journalistsAnalysis ? (
-        <JournalistSection journalistsBias={appState.journalistsAnalysis} />
+        <JournalistSection
+          journalistsBias={appState.journalistsAnalysis}
+          onJournalistClick={setSelectedJournalist}
+        />
       ) : (
         <Skeleton className="w-full h-64" />
       )}

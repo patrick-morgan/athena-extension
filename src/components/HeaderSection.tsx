@@ -6,19 +6,20 @@ type HeaderSectionProps = {
   article: ArticleModel;
   publication: PublicationModel | null;
   journalists: JournalistsModel[] | null;
+  onJournalistClick: (journalistId: string) => void;
 };
 
 export const HeaderSection = ({
   article,
   publication,
   journalists,
+  onJournalistClick,
 }: HeaderSectionProps) => {
   const publishedDate = formatDate(article.date_published);
 
   const updatedDate = article.date_updated
     ? formatDate(article.date_updated)
     : null;
-  console.log("journalists", journalists);
 
   return (
     <div className="space-y-2 w-full">
@@ -36,7 +37,15 @@ export const HeaderSection = ({
         {!!journalists?.length && (
           <>
             {journalists.map((journalist, index) => (
-              <Badge key={index} variant="outline">
+              <Badge
+                key={index}
+                variant="outline"
+                className="cursor-pointer hover:bg-secondary/80"
+                onClick={() => {
+                  console.log("just cliucked on", journalist);
+                  onJournalistClick(journalist.id);
+                }}
+              >
                 {journalist.name}
               </Badge>
             ))}

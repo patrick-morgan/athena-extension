@@ -108,14 +108,8 @@ export const quickParseArticle = async (payload: {
   // htmlSubset: string;
 }): Promise<QuickParseArticleResponse | null> => {
   try {
-    console.log("beginging request");
-    console.log(axiosInstance);
-    console.log("fish fry");
-    console.log("the instance fuck", axiosInstance);
     const response = await axiosInstance.post(`/articles/quick-parse`, payload);
-    console.log("made it ehre");
     logEvent("article_quick_parsed", { article: response.data });
-    console.log("fuck 12");
     return response.data;
   } catch (error) {
     console.error("Error quick parsing article:", error);
@@ -171,6 +165,27 @@ export const analyzeJournalists = async (
     console.error("Error analyzing journalists:", error);
     logEvent("journalists_error", { error: error });
     return [];
+  }
+};
+
+type AnalyzeJournalistPayload = {
+  journalistId: string;
+};
+
+export const analyzeJournalist = async (
+  journalistId: AnalyzeJournalistPayload
+): Promise<JournalistBiasWithNameModel | null> => {
+  try {
+    const response = await axiosInstance.post(
+      `/analyze-journalist`,
+      journalistId
+    );
+    logEvent("journalist_analyzed", { journalist: response.data });
+    return response.data;
+  } catch (error) {
+    console.error("Error analyzing journalists:", error);
+    logEvent("journalists_error", { error: error });
+    return null;
   }
 };
 
@@ -246,6 +261,26 @@ export const analyzeObjectivity = async (
   } catch (error) {
     console.error("Error generating objectivity:", error);
     logEvent("objectivity_error", { error: error });
+    return null;
+  }
+};
+
+type JournalistArticlesResponse = {
+  articles: ArticleModel[];
+};
+
+export const getJournalistArticles = async (
+  journalistId: string
+): Promise<JournalistArticlesResponse | null> => {
+  try {
+    const response = await axiosInstance.get(
+      `/journalists/${journalistId}/articles`
+    );
+    logEvent("journalists_articles", { journalistId, articles: response.data });
+    return response.data;
+  } catch (error) {
+    console.error("Error getting journalists articles:", error);
+    logEvent("get_journalists_articles_error", { error: error });
     return null;
   }
 };

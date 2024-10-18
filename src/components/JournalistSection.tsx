@@ -8,10 +8,12 @@ import { NumberLine } from "./NumberLine";
 
 type JournalistSectionProps = {
   journalistsBias: JournalistBiasWithNameModel[];
+  onJournalistClick: (journalistId: string) => void;
 };
 
 export const JournalistSection: React.FC<JournalistSectionProps> = ({
   journalistsBias,
+  onJournalistClick,
 }) => {
   console.log("journalist bias", journalistsBias);
   if (journalistsBias.length === 0) {
@@ -66,7 +68,11 @@ export const JournalistSection: React.FC<JournalistSectionProps> = ({
       <div className="space-y-3">
         {journalistsBias.map((bias, index) => (
           <div key={index} className="space-y-3 space-x-1">
-            <Badge variant="secondary" className="text-xs font-medium">
+            <Badge
+              variant="secondary"
+              className="text-xs font-medium mb-1 cursor-pointer hover:bg-secondary/80"
+              onClick={() => onJournalistClick(bias.journalist)}
+            >
               {bias.name}
             </Badge>
             <Badge variant="outline" className="text-xs text-muted-foreground">
