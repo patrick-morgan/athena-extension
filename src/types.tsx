@@ -37,11 +37,13 @@ export type ArticleModel = {
   text: string;
   publication: string;
   publicationObject: PublicationModel;
-  article_authors: {
-    article_id: string;
-    journalist_id: string;
-    journalist: JournalistsModel;
-  }[];
+  article_authors: ArticleAuthorType[];
+};
+
+export type ArticleAuthorType = {
+  article_id: string;
+  journalist_id: string;
+  journalist: JournalistsModel;
 };
 
 export type PublicationModel = {

@@ -23,6 +23,7 @@ import {
 } from "./ui/card";
 import { logPageView, logEvent } from "../../analytics";
 import {
+  ArticleAuthorType,
   ArticleModel,
   JournalistBiasWithNameModel,
   JournalistsModel,
@@ -66,6 +67,14 @@ const isUnsupportedPage = (url: string): boolean => {
     console.error("Error parsing URL:", error);
     return true;
   }
+};
+
+const getFromStorage = (key: string): Promise<any> => {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(key, (result) => {
+      resolve(result[key]);
+    });
+  });
 };
 
 // const getAnalysisState = async (url: string) => {
@@ -116,12 +125,28 @@ export const MainSection = () => {
           return;
         }
 
+        console.log("trying to loda pre-loaded shit");
+
+        // Try to load pre-analyzed data first
+        const storedData = await loadStoredAnalysisData(resp.url);
+        if (storedData) {
+          setAppState(storedData);
+          return;
+        }
+
+        // If no stored data, check the analysis state
         const analysisState = await getAnalysisState(resp.url);
         if (analysisState && analysisState.status === "in_progress") {
           setAnalyzing(true);
           pollAnalysisStatus(resp.url);
         } else if (analysisState && analysisState.status === "completed") {
-          await loadAnalysisData(resp.url);
+          // await loadAnalysisData(resp.url);
+          const storedData = await loadStoredAnalysisData(resp.url);
+          if (storedData) {
+            setAppState(storedData);
+            setAnalyzing(false);
+            return;
+          }
         } else {
           setAppState(null);
         }
@@ -134,6 +159,61 @@ export const MainSection = () => {
     initializeState();
   }, []);
 
+  const loadStoredAnalysisData = async (
+    url: string
+  ): Promise<AppStateType | null> => {
+    try {
+      const storedData = (await getFromStorage(
+        encodeURIComponent(url)
+      )) as ArticleWithAnalysis | null;
+
+      console.log("ourstored data", storedData);
+      if (storedData) {
+        // Load publication analysis
+        const publicationAnalysis = (await getFromStorage(
+          storedData.publication
+        )) as PublicationAnalysisResponse;
+
+        console.log("publcatin analysis", publicationAnalysis);
+        // console.log("journalist anslyis", storaed)
+
+        console.log("stored data", storedData);
+
+        // Load journalists analysis
+        const journalistsAnalysis = await Promise.all(
+          storedData.article_authors.map(async (author: ArticleAuthorType) => {
+            const journalistData = (await getFromStorage(
+              author.journalist_id
+            )) as JournalistBiasWithNameModel;
+            return journalistData;
+          })
+        );
+        // Remove undefined
+        const cleanedJournalistAnalysis = journalistsAnalysis.filter((j) => j);
+
+        // const journalistsAnalysis: JournalistBiasWithNameModel[] = [];
+
+        return {
+          currentUrl: url,
+          article: storedData,
+          publication: publicationAnalysis?.publication,
+          journalists: storedData.article_authors
+            .map((author) => author.journalist)
+            .filter((j) => j),
+          summary: storedData.summary,
+          politicalBiasScore: storedData.political_bias_score,
+          objectivityBiasScore: storedData.objectivity_score,
+          journalistsAnalysis: cleanedJournalistAnalysis,
+          publicationAnalysis,
+          error: null,
+        };
+      }
+    } catch (error) {
+      console.error("Error loading stored analysis data:", error);
+    }
+    return null;
+  };
+
   const MAX_POLL_ATTEMPTS = 3;
   const POLL_INTERVAL = 3000; // 3 seconds
 
@@ -142,8 +222,14 @@ export const MainSection = () => {
       const state = await getAnalysisState(url);
       console.log("analysis state MainSection", state);
       if (state && state.status === "completed") {
-        await loadAnalysisData(url);
-        setAnalyzing(false);
+        // await loadAnalysisData(url);
+        // setAnalyzing(false);
+        const storedData = await loadStoredAnalysisData(url);
+        if (storedData) {
+          setAppState(storedData);
+          setAnalyzing(false);
+          return;
+        }
       } else if (state && state.status === "error") {
         setError(state.message || "An error occurred during analysis");
         setAnalyzing(false);
@@ -187,22 +273,28 @@ export const MainSection = () => {
       setAnalyzing(false);
     }
   };
-  const loadAnalysisData = async (url: string) => {
-    console.log("loading analysis data", url);
-    try {
-      const articleData = await chrome.storage.local.get(
-        encodeURIComponent(url)
-      );
-      if (articleData) {
-        console.log("article data", articleData);
-        // Set appState with the stored data
-        setAppState(articleData[encodeURIComponent(url)]);
-      }
-    } catch (error) {
-      console.error("Error loading analysis data:", error);
-      setError("Failed to load analysis data");
-    }
-  };
+
+  // const loadAnalysisData = async (url: string) => {
+  //   console.log("loading analysis data", url);
+  //   try {
+  //     const articleData = await chrome.storage.local.get(
+  //       encodeURIComponent(url)
+  //     );
+  //     const storedData = (await getFromStorage(
+  //       encodeURIComponent(url)
+  //     )) as ArticleWithAnalysis | null;
+
+  //     if (articleData) {
+
+  //       console.log("article data", articleData);
+  //       // Set appState with the stored data
+  //       setAppState(articleData[encodeURIComponent(url)]);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error loading analysis data:", error);
+  //     setError("Failed to load analysis data");
+  //   }
+  // };
 
   const onAnalyze = async () => {
     setAnalyzing(true);
@@ -213,6 +305,15 @@ export const MainSection = () => {
       if (!resp || isUnsupportedPage(resp.url)) {
         throw new Error("Unsupported page");
       }
+
+      // Check for stored data first
+      const storedData = await loadStoredAnalysisData(resp.url);
+      if (storedData) {
+        setAppState(storedData);
+        setAnalyzing(false);
+        return;
+      }
+
       const { head, body } = cleanHTML(resp.html);
       const hostname = new URL(resp.url).hostname;
 
@@ -242,33 +343,6 @@ export const MainSection = () => {
       );
     });
   };
-
-  // const onAnalyze = async () => {
-  //   setAnalyzing(true);
-  //   setAppState(null); // Reset appState to null when starting a new analysis
-  //   logEvent("analysis_started", { section: "MainSection" });
-  //   try {
-  //     await handleAnalysis((partialState) => {
-  //       setAppState(
-  //         (prevState) =>
-  //           ({
-  //             ...prevState,
-  //             ...partialState,
-  //           } as AppStateType)
-  //       );
-
-  //       if (partialState.error) {
-  //         setError(partialState.error);
-  //       }
-  //     });
-  //     logEvent("analysis_completed", { section: "MainSection", success: true });
-  //   } catch (err) {
-  //     setError((err as Error).message);
-  //     logEvent("analysis_error", { error_message: (err as Error).message });
-  //   } finally {
-  //     setAnalyzing(false);
-  //   }
-  // };
 
   const handleQuickParse = async () => {
     setAnalyzing(true);

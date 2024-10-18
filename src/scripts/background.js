@@ -181,15 +181,17 @@ async function fetchAndStoreArticle(url) {
     );
     console.log("fetch by url", response.ok);
     if (response.ok) {
+      // let journalistsAnalysis = [];
       const {
         article,
-        journalistsAnalysis,
         publicationAnalysis,
+        journalistsAnalysis,
         summary,
         political_bias_score,
         objectivity_score,
         // journalists,
       } = await response.json();
+      // journalistsAnalysis =
       console.log("article", article);
       console.log("journalistsAnalysis", journalistsAnalysis);
       console.log("publicationAnalysis", publicationAnalysis);
@@ -198,6 +200,27 @@ async function fetchAndStoreArticle(url) {
       console.log("objectivity_score", objectivity_score);
 
       if (!article) return;
+
+      // If not journalists.length, it didn't run, so quickly run it
+      if (
+        (article.article_authors.length && !journalistsAnalysis.length) ||
+        (journalistsAnalysis.length &&
+          article.article_authors.length > journalistsAnalysis.length)
+      ) {
+        console.log("Running journalist analysis on article", article.id);
+        const journalistResponse = await axiosInstance.post(
+          "/analyze-journalists",
+          {
+            articleId: article.id,
+          }
+        );
+        console.log("journalist response", journalistResponse.data);
+        journalistsAnalysis.length = 0;
+        journalistResponse.data.forEach((j) => {
+          journalistsAnalysis.push(j);
+        });
+        console.log("Journalist Analysis now:", journalistsAnalysis);
+      }
 
       const publicationAnalysisDict = {};
       publicationAnalysisDict[publicationAnalysis.publication.id] =
@@ -224,6 +247,7 @@ async function fetchAndStoreArticle(url) {
           objectivity_score: objectivity_score,
         },
       });
+
       console.log(
         "setting publication",
         article.publication,
@@ -302,10 +326,38 @@ async function analyzeArticle(data) {
       body,
     });
 
+    const { article, summary, political_bias_score, objectivity_score } =
+      quickParseResp.data;
+
     console.log("quickParseResp", quickParseResp.data);
+
     if (!quickParseResp.data) {
       throw new Error("Error quick parsing article");
     }
+
+    const reducedArticle = {
+      id: article.id,
+      created_at: article.created_at,
+      updated_at: article.updated_at,
+      url: article.url,
+      title: article.title,
+      date_published: article.date_published,
+      date_updated: article.date_updated,
+      text: "",
+      publication: article.publication,
+      article_authors: article.article_authors,
+    };
+
+    console.log("setting reduced article", reducedArticle);
+
+    chrome.storage.local.set({
+      [encodeURIComponent(url)]: {
+        ...reducedArticle,
+        summary: summary,
+        political_bias_score: political_bias_score,
+        objectivity_score: objectivity_score,
+      },
+    });
 
     const [journalistsAnalysis, publicationAnalysis] = await Promise.all([
       axiosInstance.post("/analyze-journalists", {
@@ -316,23 +368,23 @@ async function analyzeArticle(data) {
       }),
     ]);
 
-    const analysisResult = {
-      currentUrl: url,
-      article: quickParseResp.data.article,
-      journalists: quickParseResp.data.journalists,
-      publication: quickParseResp.data.publication,
-      summary: quickParseResp.data.summary,
-      politicalBiasScore: quickParseResp.data.political_bias_score,
-      objectivityBiasScore: quickParseResp.data.objectivity_score,
-      journalistsAnalysis: journalistsAnalysis.data,
-      publicationAnalysis: publicationAnalysis.data,
-    };
-
-    console.log("analysisResult", analysisResult);
+    console.log(
+      "setting publication from quick parse",
+      publicationAnalysis.data
+    );
 
     await chrome.storage.local.set({
-      [encodeURIComponent(url)]: analysisResult,
+      [quickParseResp.data.publication.id]: publicationAnalysis.data,
     });
+
+    console.log("journalists", journalistsAnalysis.data);
+    for (const journalist of journalistsAnalysis.data) {
+      console.log("setting", journalist.journalist, "to", journalist);
+      await chrome.storage.local.set({
+        [journalist.journalist]: journalist,
+      });
+    }
+
     console.log("setting analysis state to completed");
     await setAnalysisState(url, { status: "completed" });
   } catch (error) {
