@@ -77,7 +77,7 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
           <ChevronLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <h1 className="text-3xl font-bold text-primary">{journalist.name}</h1>
+        {/* <h1 className="text-3xl font-bold text-primary">{journalist.name}</h1> */}
       </header>
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -96,7 +96,7 @@ const JournalistInfoCard: React.FC<{
 }> = ({ journalist, publication }) => (
   <Card>
     <CardContent className="p-6">
-      {/* <h2 className="text-2xl font-semibold mb-4">{journalist.name}</h2> */}
+      <h2 className="text-2xl font-semibold mb-4">{journalist.name}</h2>
       <div className="space-y-2">
         <p>
           <span className="text-muted-foreground">Articles Analyzed:</span>{" "}
