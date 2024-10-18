@@ -44,36 +44,61 @@ export const signInWithChrome = (): Promise<User> => {
   });
 };
 
-export const getCurrentUser = async (): Promise<User | null> => {
-  if (!authStateInitialized) {
-    await initializeAuthState();
-  }
-  return currentUser;
+// const app = initializeApp(firebaseConfig);
+// const auth = getAuth(app);
+
+export const getCurrentUser = (): Promise<User | null> => {
+  return new Promise((resolve) => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      unsubscribe();
+      resolve(user);
+    });
+  });
 };
 
 export const getIdToken = async (): Promise<string | null> => {
   const user = await getCurrentUser();
   if (user) {
-    return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage({ action: "getIdToken" }, (response) => {
-        if (chrome.runtime.lastError) {
-          logEvent("get_id_token_error", {
-            error: chrome.runtime.lastError.message,
-          });
-          reject(chrome.runtime.lastError);
-        } else if (response.error) {
-          logEvent("get_id_token_error", {
-            error: response.error,
-          });
-          reject(new Error(response.error));
-        } else {
-          resolve(response.token);
-        }
-      });
-    });
+    try {
+      return await user.getIdToken(true);
+    } catch (error) {
+      logEvent("get_id_token_error", { error: (error as Error).message });
+      return null;
+    }
   }
   return null;
 };
+
+// export const getCurrentUser = async (): Promise<User | null> => {
+//   if (!authStateInitialized) {
+//     await initializeAuthState();
+//   }
+//   return currentUser;
+// };
+
+// export const getIdToken = async (): Promise<string | null> => {
+//   const user = await getCurrentUser();
+//   if (user) {
+//     return new Promise((resolve, reject) => {
+//       chrome.runtime.sendMessage({ action: "getIdToken" }, (response) => {
+//         if (chrome.runtime.lastError) {
+//           logEvent("get_id_token_error", {
+//             error: chrome.runtime.lastError.message,
+//           });
+//           reject(chrome.runtime.lastError);
+//         } else if (response.error) {
+//           logEvent("get_id_token_error", {
+//             error: response.error,
+//           });
+//           reject(new Error(response.error));
+//         } else {
+//           resolve(response.token);
+//         }
+//       });
+//     });
+//   }
+//   return null;
+// };
 
 export const signOut = (): Promise<void> => {
   return new Promise((resolve, reject) => {

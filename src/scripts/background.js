@@ -6,7 +6,37 @@ import {
   signInWithCredential,
 } from "firebase/auth";
 import config from "../../config";
-import { API_URL } from "@/api/axiosInstance";
+// import { API_URL } from "@/api/axiosInstance";
+import {
+  analyzeJournalists,
+  analyzePublication,
+  quickParseArticle,
+} from "@/api/api";
+
+import axios from "axios";
+
+export const API_URL = "http://localhost:3000";
+
+const axiosInstance = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+});
+
+axiosInstance.interceptors.request.use(
+  async (config) => {
+    return new Promise((resolve) => {
+      chrome.storage.local.get("idToken", (result) => {
+        if (result.idToken) {
+          config.headers.Authorization = `Bearer ${result.idToken}`;
+        }
+        resolve(config);
+      });
+    });
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 const firebaseConfig = config;
 const app = initializeApp(firebaseConfig);
@@ -117,6 +147,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
     return true; // Indicates that the response is sent asynchronously
   }
+  // else if (message.action === "analyzeArticle") {
+  //   analyzeArticle(message.url);
+  //   sendResponse({ success: true });
+  // } else if (message.action === "getAnalysisState") {
+  //   const state = await getAnalysisState(message.url);
+  //   sendResponse(state);
+  // }
 });
 
 let currentUrl = "";
@@ -209,3 +246,111 @@ async function fetchAndStoreArticle(url) {
     console.error("Error fetching article:", error);
   }
 }
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (
+    message.action === "startAnalysis" ||
+    message.action === "restartAnalysis"
+  ) {
+    analyzeArticle(message.data);
+    // sendResponse({ success: true });
+    return false; // We're not using sendResponse
+  } else if (message.action === "getAnalysisState") {
+    getAnalysisState(message.url).then((state) => {
+      if (chrome.runtime.lastError) {
+        console.error("Error sending response:", chrome.runtime.lastError);
+      } else {
+        sendResponse(state);
+      }
+    });
+    return true; // We will send a response asynchronously
+  }
+  // ... other message handlers ...
+});
+async function setAnalysisState(url, state) {
+  await chrome.storage.local.set({
+    [`analysis_state_${encodeURIComponent(url)}`]: state,
+  });
+}
+
+async function getAnalysisState(url) {
+  const result = await chrome.storage.local.get(
+    `analysis_state_${encodeURIComponent(url)}`
+  );
+  return result[`analysis_state_${encodeURIComponent(url)}`] || null;
+}
+
+async function analyzeArticle(data) {
+  const { url, hostname, head, body } = data;
+  try {
+    console.log("setting analysis state to in_progress");
+    await setAnalysisState(url, { status: "in_progress" });
+
+    console.log("we set, now start parse");
+
+    // If it's a restart, we might want to clear any partial results
+    if (data.restart) {
+      await chrome.storage.local.remove(encodeURIComponent(url));
+    }
+
+    console.log("about to quick parse");
+
+    const quickParseResp = await axiosInstance.post("/articles/quick-parse", {
+      url,
+      hostname,
+      head,
+      body,
+    });
+
+    console.log("quickParseResp", quickParseResp.data);
+    if (!quickParseResp.data) {
+      throw new Error("Error quick parsing article");
+    }
+
+    const [journalistsAnalysis, publicationAnalysis] = await Promise.all([
+      axiosInstance.post("/analyze-journalists", {
+        articleId: quickParseResp.data.article.id,
+      }),
+      axiosInstance.post("/analyze-publication", {
+        publicationId: quickParseResp.data.publication.id,
+      }),
+    ]);
+
+    const analysisResult = {
+      currentUrl: url,
+      article: quickParseResp.data.article,
+      journalists: quickParseResp.data.journalists,
+      publication: quickParseResp.data.publication,
+      summary: quickParseResp.data.summary,
+      politicalBiasScore: quickParseResp.data.political_bias_score,
+      objectivityBiasScore: quickParseResp.data.objectivity_score,
+      journalistsAnalysis: journalistsAnalysis.data,
+      publicationAnalysis: publicationAnalysis.data,
+    };
+
+    console.log("analysisResult", analysisResult);
+
+    await chrome.storage.local.set({
+      [encodeURIComponent(url)]: analysisResult,
+    });
+    console.log("setting analysis state to completed");
+    await setAnalysisState(url, { status: "completed" });
+  } catch (error) {
+    console.error("Error analyzing article:", error);
+    await setAnalysisState(url, { status: "error", message: error.message });
+  }
+}
+
+// Add this function to handle token updates
+function updateIdToken(token) {
+  chrome.storage.local.set({ idToken: token });
+}
+
+// Update the message listener to handle token updates
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === "updateIdToken") {
+    updateIdToken(message.token);
+    sendResponse({ success: true });
+  }
+  // ... other message handlers ...
+});

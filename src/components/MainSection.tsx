@@ -36,6 +36,7 @@ import {
 } from "@/api/api";
 import { cleanHTML } from "@/parsers/genericParser";
 import { ReAnalyzeButton } from "./ReAnalyzeButton";
+import { getIdToken } from "../../firebaseConfig";
 
 const isUnsupportedPage = (url: string): boolean => {
   const unsupportedDomains = [
@@ -67,6 +68,17 @@ const isUnsupportedPage = (url: string): boolean => {
   }
 };
 
+// const getAnalysisState = async (url: string) => {
+//   return new Promise((resolve) => {
+//     chrome.runtime.sendMessage(
+//       { action: "getAnalysisState", url },
+//       (response) => {
+//         resolve(response);
+//       }
+//     );
+//   });
+// };
+
 type ArticleWithAnalysis = ArticleModel & {
   summary: string;
   political_bias_score: number;
@@ -84,8 +96,18 @@ export const MainSection = () => {
   const [updateAvailable, setUpdateAvailable] = useState(false);
 
   useEffect(() => {
-    logPageView("/home");
+    const updateBackgroundToken = async () => {
+      const token = await getIdToken();
+      if (token) {
+        chrome.runtime.sendMessage({ action: "updateIdToken", token });
+      }
+    };
 
+    updateBackgroundToken();
+  }, [user]); // Add this effect to update the token when the user changes
+
+  useEffect(() => {
+    logPageView("/home");
     const initializeState = async () => {
       try {
         const resp = await requestContent();
@@ -93,89 +115,16 @@ export const MainSection = () => {
           setIsExtensionPage(true);
           return;
         }
-        console.log("getting for article url", resp.url);
-        console.log("encoded url", encodeURIComponent(resp.url));
 
-        // Use Promise-based approach for chrome.storage.local.get
-        const getStorageData = (key: string): Promise<any> => {
-          return new Promise((resolve) => {
-            chrome.storage.local.get([key], (result) => {
-              resolve(result[key]);
-            });
-          });
-        };
-
-        const articleData = await getStorageData(encodeURIComponent(resp.url));
-        if (articleData) {
-          const article = articleData as ArticleWithAnalysis;
-          console.log("local storage result", article);
-
-          const publicationAnalysis = (await getStorageData(
-            article.publication
-          )) as PublicationAnalysisResponse | null;
-          console.log("publication analysis", publicationAnalysis);
-
-          const journalistsAnalyses: JournalistBiasWithNameModel[] =
-            await Promise.all(
-              article.article_authors.map(async (journalist) => {
-                console.log("getting journalist", journalist.journalist_id);
-                return (await getStorageData(
-                  journalist.journalist_id
-                )) as JournalistBiasWithNameModel;
-              })
-            );
-          console.log("journalists analyses", journalistsAnalyses);
-
-          console.log("seting app state", {
-            currentUrl: resp.url,
-            article,
-            publication: publicationAnalysis
-              ? publicationAnalysis.publication
-              : null,
-            journalists: article.article_authors.map(
-              (journalist) => journalist.journalist
-            ),
-            summary: article.summary,
-            politicalBiasScore: article.political_bias_score,
-            objectivityBiasScore: article.objectivity_score,
-            journalistsAnalysis: journalistsAnalyses,
-            publicationAnalysis: publicationAnalysis,
-            error: null,
-          });
-
-          setAppState({
-            currentUrl: resp.url,
-            article,
-            publication: publicationAnalysis
-              ? publicationAnalysis.publication
-              : null,
-            journalists: article.article_authors.map(
-              (journalist) => journalist.journalist
-            ),
-            summary: article.summary,
-            politicalBiasScore: article.political_bias_score,
-            objectivityBiasScore: article.objectivity_score,
-            journalistsAnalysis: journalistsAnalyses,
-            publicationAnalysis: publicationAnalysis,
-            error: null,
-          });
+        const analysisState = await getAnalysisState(resp.url);
+        if (analysisState && analysisState.status === "in_progress") {
+          setAnalyzing(true);
+          pollAnalysisStatus(resp.url);
+        } else if (analysisState && analysisState.status === "completed") {
+          await loadAnalysisData(resp.url);
         } else {
           setAppState(null);
         }
-
-        // Check if the article needs updating
-        const { head, body } = cleanHTML(resp.html);
-        const dateUpdatedResp = await checkDateUpdated({
-          url: resp.url,
-          head,
-          body,
-        });
-        console.log("date updated resp", dateUpdatedResp);
-
-        if (dateUpdatedResp && dateUpdatedResp.needsUpdate) {
-          setUpdateAvailable(true);
-        }
-        setUpdateAvailable(false);
       } catch (err) {
         setIsExtensionPage(true);
         setAppState(null);
@@ -185,32 +134,141 @@ export const MainSection = () => {
     initializeState();
   }, []);
 
-  const onAnalyze = async () => {
-    setAnalyzing(true);
-    setAppState(null); // Reset appState to null when starting a new analysis
-    logEvent("analysis_started", { section: "MainSection" });
-    try {
-      await handleAnalysis((partialState) => {
-        setAppState(
-          (prevState) =>
-            ({
-              ...prevState,
-              ...partialState,
-            } as AppStateType)
-        );
+  const MAX_POLL_ATTEMPTS = 3;
+  const POLL_INTERVAL = 3000; // 3 seconds
 
-        if (partialState.error) {
-          setError(partialState.error);
+  const pollAnalysisStatus = async (url: string, attemptCount: number = 0) => {
+    const checkStatus = async () => {
+      const state = await getAnalysisState(url);
+      console.log("analysis state MainSection", state);
+      if (state && state.status === "completed") {
+        await loadAnalysisData(url);
+        setAnalyzing(false);
+      } else if (state && state.status === "error") {
+        setError(state.message || "An error occurred during analysis");
+        setAnalyzing(false);
+      } else {
+        if (attemptCount >= MAX_POLL_ATTEMPTS) {
+          console.log("Max poll attempts reached. Restarting analysis.");
+          restartAnalysis(url);
+        } else {
+          setTimeout(
+            () => pollAnalysisStatus(url, attemptCount + 1),
+            POLL_INTERVAL
+          );
         }
+      }
+    };
+    checkStatus();
+  };
+
+  const restartAnalysis = async (url: string) => {
+    try {
+      const resp = await requestContent();
+      if (!resp || isUnsupportedPage(resp.url)) {
+        throw new Error("Unsupported page");
+      }
+      const { head, body } = cleanHTML(resp.html);
+      const hostname = new URL(resp.url).hostname;
+
+      // Send message to background script to restart analysis
+      chrome.runtime.sendMessage({
+        action: "restartAnalysis",
+        data: { url: resp.url, hostname, head, body },
       });
-      logEvent("analysis_completed", { section: "MainSection", success: true });
+
+      // Reset attempt count and start polling again
+      pollAnalysisStatus(url, 0);
     } catch (err) {
       setError((err as Error).message);
-      logEvent("analysis_error", { error_message: (err as Error).message });
-    } finally {
+      logEvent("analysis_restart_error", {
+        error_message: (err as Error).message,
+      });
       setAnalyzing(false);
     }
   };
+  const loadAnalysisData = async (url: string) => {
+    console.log("loading analysis data", url);
+    try {
+      const articleData = await chrome.storage.local.get(
+        encodeURIComponent(url)
+      );
+      if (articleData) {
+        console.log("article data", articleData);
+        // Set appState with the stored data
+        setAppState(articleData[encodeURIComponent(url)]);
+      }
+    } catch (error) {
+      console.error("Error loading analysis data:", error);
+      setError("Failed to load analysis data");
+    }
+  };
+
+  const onAnalyze = async () => {
+    setAnalyzing(true);
+    setAppState(null);
+    logEvent("analysis_started", { section: "MainSection" });
+    try {
+      const resp = await requestContent();
+      if (!resp || isUnsupportedPage(resp.url)) {
+        throw new Error("Unsupported page");
+      }
+      const { head, body } = cleanHTML(resp.html);
+      const hostname = new URL(resp.url).hostname;
+
+      // Send message to background script to start analysis
+      chrome.runtime.sendMessage({
+        action: "startAnalysis",
+        data: { url: resp.url, hostname, head, body },
+      });
+
+      pollAnalysisStatus(resp.url);
+    } catch (err) {
+      setError((err as Error).message);
+      logEvent("analysis_error", { error_message: (err as Error).message });
+      setAnalyzing(false);
+    }
+  };
+
+  const getAnalysisState = async (
+    url: string
+  ): Promise<{ status: string; message?: string } | null> => {
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        { action: "getAnalysisState", url },
+        (response) => {
+          resolve(response);
+        }
+      );
+    });
+  };
+
+  // const onAnalyze = async () => {
+  //   setAnalyzing(true);
+  //   setAppState(null); // Reset appState to null when starting a new analysis
+  //   logEvent("analysis_started", { section: "MainSection" });
+  //   try {
+  //     await handleAnalysis((partialState) => {
+  //       setAppState(
+  //         (prevState) =>
+  //           ({
+  //             ...prevState,
+  //             ...partialState,
+  //           } as AppStateType)
+  //       );
+
+  //       if (partialState.error) {
+  //         setError(partialState.error);
+  //       }
+  //     });
+  //     logEvent("analysis_completed", { section: "MainSection", success: true });
+  //   } catch (err) {
+  //     setError((err as Error).message);
+  //     logEvent("analysis_error", { error_message: (err as Error).message });
+  //   } finally {
+  //     setAnalyzing(false);
+  //   }
+  // };
 
   const handleQuickParse = async () => {
     setAnalyzing(true);

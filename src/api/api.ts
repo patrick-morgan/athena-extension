@@ -108,8 +108,14 @@ export const quickParseArticle = async (payload: {
   // htmlSubset: string;
 }): Promise<QuickParseArticleResponse | null> => {
   try {
+    console.log("beginging request");
+    console.log(axiosInstance);
+    console.log("fish fry");
+    console.log("the instance fuck", axiosInstance);
     const response = await axiosInstance.post(`/articles/quick-parse`, payload);
+    console.log("made it ehre");
     logEvent("article_quick_parsed", { article: response.data });
+    console.log("fuck 12");
     return response.data;
   } catch (error) {
     console.error("Error quick parsing article:", error);
