@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import { analyzeJournalist, getJournalistArticles } from "@/api/api";
 import {
   ArticleModel,
@@ -5,27 +6,17 @@ import {
   PublicationModel,
 } from "@/types";
 import { formatDate } from "@/utils/date";
-import { ChevronLeft } from "lucide-react";
-import React, { useEffect, useState } from "react";
-import { CollapsibleCard } from "./CollapsibleCard";
-import { NumberLine } from "./NumberLine";
+import { motion } from "framer-motion";
+import { ChevronLeft, AlertCircle, ExternalLink } from "lucide-react";
 import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import ReactMarkdown from "react-markdown";
 
 interface JournalistPageProps {
   journalistId: string;
   publication: PublicationModel | null;
-  //   journalist: {
-  //     id: string;
-  //     name: string;
-  //     numArticlesAnalyzed: number;
-  //     publication: string;
-  //     biasScore: number;
-  //     rhetoricScore: number;
-  //     analysis: string;
-  //     // articles: Array<{ title: string; url: string; date: string }>;
-  //   };
   onBack: () => void;
 }
 
@@ -34,112 +25,212 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
   publication,
   onBack,
 }) => {
-  const [loadingJournalist, setLoadingJournalist] = useState(true);
-  const [journalistBias, setJournalistBias] =
+  const [journalist, setJournalist] =
     useState<JournalistBiasWithNameModel | null>(null);
   const [articles, setArticles] = useState<ArticleModel[]>([]);
-  const [loadingArticles, setLoadingArticles] = useState(true);
-
-  console.log("journalist", journalistBias);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Get journalist bias
-    console.log("getting bias for", journalistId);
-    analyzeJournalist({ journalistId }).then((j) => {
-      console.log("resp", j);
-      setJournalistBias(j);
-      setLoadingJournalist(false);
-    });
+    const fetchData = async () => {
+      try {
+        const [journalistData, articlesData] = await Promise.all([
+          analyzeJournalist({ journalistId }),
+          getJournalistArticles(journalistId),
+        ]);
+        setJournalist(journalistData);
+        setArticles(articlesData?.articles ?? []);
+      } catch (err) {
+        setError("Failed to load journalist data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Fetch journalist's articles
-    getJournalistArticles(journalistId).then((data) => {
-      setArticles(data?.articles ?? []);
-      setLoadingArticles(false);
-    });
+    fetchData();
   }, [journalistId]);
 
-  if (loadingJournalist) {
-    return <Skeleton className="w-full h-24" />;
+  if (error) {
+    return (
+      <Alert variant="destructive" className="mt-4">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
   }
-  if (!journalistBias) {
-    return <div>error getting journalist</div>;
+
+  if (loading || !journalist) {
+    return <JournalistSkeleton />;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center">
-        <Button variant="ghost" onClick={onBack} className="mr-4">
-          <ChevronLeft className="h-4 w-4" />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-8 p-6"
+    >
+      <header className="flex items-center justify-between">
+        <Button variant="ghost" onClick={onBack}>
+          <ChevronLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <h1 className="text-2xl font-bold">{journalistBias.name}</h1>
-      </div>
+        <h1 className="text-3xl font-bold text-primary">{journalist.name}</h1>
+      </header>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Journalist Information</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>Articles Analyzed: {journalistBias.num_articles_analyzed}</p>
-          {publication && (
-            <p>Publication: {publication.name ?? publication.hostname}</p>
-          )}
-        </CardContent>
-      </Card>
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <JournalistInfoCard journalist={journalist} publication={publication} />
+        <BiasAnalysisCard journalist={journalist} />
+      </section>
 
-      <CollapsibleCard
-        title="Bias Analysis"
-        tooltipText="Analysis based on the journalist's writing style and content"
-        expandedContent={
-          <p className="text-sm text-muted-foreground">
-            {journalistBias.summary}
-          </p>
-        }
-      >
-        <div className="space-y-4">
-          <NumberLine
-            leftText="Left wing"
-            rightText="Right wing"
-            tickPosition={journalistBias.bias_score}
-          />
-          <NumberLine
-            leftText="Opinion"
-            rightText="Factual"
-            tickPosition={journalistBias.rhetoric_score}
-          />
-        </div>
-      </CollapsibleCard>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Articles</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            {loadingArticles ? (
-              <Skeleton className="w-full h-24" />
-            ) : (
-              <>
-                {articles.map((article, index) => (
-                  <li key={index}>
-                    <a
-                      href={article.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 hover:underline"
-                    >
-                      {article.title}
-                    </a>
-                    <span className="text-sm text-muted-foreground ml-2">
-                      {formatDate(article.date_published)}
-                    </span>
-                  </li>
-                ))}
-              </>
-            )}
-          </ul>
-        </CardContent>
-      </Card>
-    </div>
+      <ArticlesList articles={articles} />
+    </motion.div>
   );
 };
+
+const JournalistInfoCard: React.FC<{
+  journalist: JournalistBiasWithNameModel;
+  publication: PublicationModel | null;
+}> = ({ journalist, publication }) => (
+  <Card>
+    <CardContent className="p-6">
+      {/* <h2 className="text-2xl font-semibold mb-4">{journalist.name}</h2> */}
+      <div className="space-y-2">
+        <p>
+          <span className="text-muted-foreground">Articles Analyzed:</span>{" "}
+          <span className="font-semibold">
+            {journalist.num_articles_analyzed}
+          </span>
+        </p>
+        {publication && (
+          <p>
+            <span className="text-muted-foreground">Publication:</span>{" "}
+            <span className="font-semibold">
+              {publication.name ?? publication.hostname}
+            </span>
+          </p>
+        )}
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const renderMarkdown = (content: string) => {
+  return (
+    <ReactMarkdown
+      components={{
+        p: ({ node, ...props }) => (
+          <p className="text-muted-foreground text-xs" {...props} />
+        ),
+        li: ({ node, ...props }) => (
+          <li className="text-muted-foreground text-xs" {...props} />
+        ),
+        ul: ({ node, ...props }) => (
+          <ul className="list-disc pl-5 space-y-2" {...props} />
+        ),
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  );
+};
+
+const BiasAnalysisCard: React.FC<{
+  journalist: JournalistBiasWithNameModel;
+}> = ({ journalist }) => (
+  <Card>
+    <CardContent className="p-6">
+      <h2 className="text-xl font-semibold mb-4">Bias Analysis</h2>
+      <div className="space-y-4">
+        <BiasBar
+          label="Political Bias"
+          value={journalist.bias_score}
+          leftLabel="Left"
+          rightLabel="Right"
+        />
+        <BiasBar
+          label="Writing Style"
+          value={journalist.rhetoric_score}
+          leftLabel="Opinion"
+          rightLabel="Factual"
+        />
+      </div>
+      <p className="mt-4 text-sm text-muted-foreground">
+        {renderMarkdown(journalist.summary)}
+      </p>
+    </CardContent>
+  </Card>
+);
+
+const BiasBar: React.FC<{
+  label: string;
+  value: number;
+  leftLabel: string;
+  rightLabel: string;
+}> = ({ label, value, leftLabel, rightLabel }) => (
+  <div className="space-y-2">
+    <div className="flex justify-between text-xs text-muted-foreground">
+      <span>{leftLabel}</span>
+      <span>{rightLabel}</span>
+    </div>
+    <div className="relative h-2 bg-secondary rounded-full overflow-hidden">
+      <motion.div
+        className="absolute top-0 left-0 h-full bg-primary"
+        initial={{ width: 0 }}
+        animate={{ width: `${value * 1}%` }}
+        transition={{ duration: 1, ease: "easeOut" }}
+      />
+    </div>
+    <div className="flex justify-between text-xs">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-semibold">{(value * 1).toFixed(1)}%</span>
+    </div>
+  </div>
+);
+
+const ArticlesList: React.FC<{ articles: ArticleModel[] }> = ({ articles }) => (
+  <section>
+    <h2 className="text-2xl font-semibold mb-4">Recent Articles</h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {articles.slice(0, 9).map((article, index) => (
+        <motion.a
+          key={article.id}
+          href={article.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block p-4 bg-card rounded-lg hover:bg-accent transition-colors duration-200"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: index * 0.1 }}
+        >
+          <h3 className="text-lg font-semibold mb-2 line-clamp-2">
+            {article.title}
+          </h3>
+          <p className="text-sm text-muted-foreground mb-2">
+            {formatDate(article.date_published)}
+          </p>
+          <ExternalLink className="h-4 w-4 text-primary" />
+        </motion.a>
+      ))}
+    </div>
+  </section>
+);
+
+const JournalistSkeleton: React.FC = () => (
+  <div className="space-y-8 p-6">
+    <Skeleton className="h-10 w-3/4" />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Skeleton className="h-48 w-full" />
+      <Skeleton className="h-48 w-full" />
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {[...Array(9)].map((_, i) => (
+        <Skeleton key={i} className="h-32 w-full" />
+      ))}
+    </div>
+  </div>
+);
+
+export default JournalistPage;
