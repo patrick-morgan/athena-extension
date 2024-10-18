@@ -499,9 +499,9 @@ export const MainSection = () => {
         <Skeleton className="w-full h-64" />
       )}
 
-      {updateAvailable && (
+      {/* {updateAvailable && (
         <ReAnalyzeButton onClick={handleQuickParse} analyzing={analyzing} />
-      )}
+      )} */}
     </div>
   );
 };
