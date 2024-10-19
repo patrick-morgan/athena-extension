@@ -49,3 +49,10 @@ export const requestContent = async (): Promise<
 //     });
 //   });
 // };
+
+export const scrollToTop = () => {
+  const mainContent = document.querySelector("main");
+  if (mainContent) {
+    mainContent.scrollTop = 0;
+  }
+};

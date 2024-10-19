@@ -35,7 +35,7 @@ import {
   CardHeader,
   CardTitle,
 } from "./ui/card";
-import { requestContent } from "./utils";
+import { requestContent, scrollToTop } from "./utils";
 import PublicationPage from "./PublicationPage";
 
 const isUnsupportedPage = (url: string): boolean => {
@@ -372,6 +372,24 @@ export const MainSection = () => {
       setAnalyzing(false);
     }
   };
+
+  const handleJournalistClick = (journalistId: string) => {
+    setSelectedJournalist(journalistId);
+    scrollToTop();
+  };
+
+  const handlePublicationClick = () => {
+    setSelectedJournalist(null);
+    setSelectedPublication(appState?.article?.publication ?? null);
+    scrollToTop();
+  };
+
+  const handleBackClick = () => {
+    setSelectedJournalist(null);
+    setSelectedPublication(null);
+    scrollToTop();
+  };
+
   // const handleReAnalyze = async () => {
   //   setAnalyzing(true);
   //   setUpdateAvailable(false);
@@ -481,11 +499,8 @@ export const MainSection = () => {
         //   analysis: selectedJournalist.summary,
         //   // articles: selectedJournalist.articles || [],
         // }}
-        onPublicationClick={() => {
-          setSelectedJournalist(null);
-          setSelectedPublication(appState.article?.publication ?? null);
-        }}
-        onBack={() => setSelectedJournalist(null)}
+        onPublicationClick={handlePublicationClick}
+        onBack={handleBackClick}
       />
     );
   }
@@ -494,7 +509,7 @@ export const MainSection = () => {
     return (
       <PublicationPage
         publicationId={selectedPublication}
-        onBack={() => setSelectedPublication(null)}
+        onBack={handleBackClick}
       />
     );
   }
@@ -507,10 +522,8 @@ export const MainSection = () => {
           article={appState.article}
           publication={appState.publication}
           journalists={appState.journalists}
-          onJournalistClick={setSelectedJournalist}
-          onPublicationClick={() =>
-            setSelectedPublication(appState.article?.publication ?? null)
-          }
+          onJournalistClick={handleJournalistClick}
+          onPublicationClick={handlePublicationClick}
         />
       ) : (
         <Skeleton className="w-full h-24" />
@@ -534,7 +547,7 @@ export const MainSection = () => {
       {appState.journalistsAnalysis ? (
         <JournalistSection
           journalistsBias={appState.journalistsAnalysis}
-          onJournalistClick={setSelectedJournalist}
+          onJournalistClick={handleJournalistClick}
         />
       ) : (
         <Skeleton className="w-full h-64" />
@@ -543,10 +556,7 @@ export const MainSection = () => {
       {appState.publicationAnalysis ? (
         <PublicationSection
           pubResponse={appState.publicationAnalysis}
-          onPublicationClick={() => {
-            setSelectedJournalist(null);
-            setSelectedPublication(appState.article?.publication ?? null);
-          }}
+          onPublicationClick={handlePublicationClick}
         />
       ) : (
         <Skeleton className="w-full h-64" />

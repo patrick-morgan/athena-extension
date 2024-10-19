@@ -13,9 +13,11 @@ import { MainSection } from "./components/MainSection";
 import { Spinner } from "./components/spinner";
 import { AboutPage } from "./components/AboutPage";
 import { SupportPage } from "./components/SupportPage";
+import { useScrollToTop } from "./utils/hooks/useScrollToTop";
 
 const AppContent = () => {
   const { user, isLoading } = useAuth();
+  useScrollToTop();
 
   if (isLoading) {
     return (
