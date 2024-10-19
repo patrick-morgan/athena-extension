@@ -530,14 +530,14 @@ export const MainSection = () => {
         <Skeleton className="w-full h-64" />
       )}
 
-      {/* {appState.journalistsAnalysis ? (
-          <JournalistSection
-            journalistsBias={appState.journalistsAnalysis}
-            onJournalistClick={setSelectedJournalist}
-          />
-        ) : (
-          <Skeleton className="w-full h-64" />
-        )} */}
+      {appState.journalistsAnalysis ? (
+        <JournalistSection
+          journalistsBias={appState.journalistsAnalysis}
+          onJournalistClick={setSelectedJournalist}
+        />
+      ) : (
+        <Skeleton className="w-full h-64" />
+      )}
 
       {/* {appState.publicationAnalysis ? (
           <PublicationSection

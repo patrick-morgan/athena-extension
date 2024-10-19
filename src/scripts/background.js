@@ -357,31 +357,31 @@ async function analyzeArticle(data) {
       },
     });
 
-    const [journalistsAnalysis, publicationAnalysis] = await Promise.all([
-      axiosInstance.post("/analyze-journalists", {
-        articleId: quickParseResp.data.article.id,
-      }),
-      axiosInstance.post("/analyze-publication", {
-        publicationId: quickParseResp.data.publication.id,
-      }),
-    ]);
+    // const [journalistsAnalysis, publicationAnalysis] = await Promise.all([
+    //   axiosInstance.post("/analyze-journalists", {
+    //     articleId: quickParseResp.data.article.id,
+    //   }),
+    //   axiosInstance.post("/analyze-publication", {
+    //     publicationId: quickParseResp.data.publication.id,
+    //   }),
+    // ]);
 
-    console.log(
-      "setting publication from quick parse",
-      publicationAnalysis.data
-    );
+    // console.log(
+    //   "setting publication from quick parse",
+    //   publicationAnalysis.data
+    // );
 
-    await chrome.storage.local.set({
-      [quickParseResp.data.publication.id]: publicationAnalysis.data,
-    });
+    // await chrome.storage.local.set({
+    //   [quickParseResp.data.publication.id]: publicationAnalysis.data,
+    // });
 
-    console.log("journalists", journalistsAnalysis.data);
-    for (const journalist of journalistsAnalysis.data) {
-      console.log("setting", journalist.journalist, "to", journalist);
-      await chrome.storage.local.set({
-        [journalist.journalist]: journalist,
-      });
-    }
+    // console.log("journalists", journalistsAnalysis.data);
+    // for (const journalist of journalistsAnalysis.data) {
+    //   console.log("setting", journalist.journalist, "to", journalist);
+    //   await chrome.storage.local.set({
+    //     [journalist.journalist]: journalist,
+    //   });
+    // }
 
     console.log("setting analysis state to completed");
     await setAnalysisState(url, { status: "completed" });

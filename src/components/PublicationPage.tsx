@@ -12,7 +12,7 @@ import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import ReactMarkdown from "react-markdown";
+import { BiasAnalysisCard } from "./BiasAnalysisCard";
 
 interface PublicationPageProps {
   publicationId: string;
@@ -82,7 +82,11 @@ export const PublicationPage: React.FC<PublicationPageProps> = ({
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PublicationInfoCard publicationResponse={publication} />
-        <BiasAnalysisCard analysis={publication.analysis} />
+        <BiasAnalysisCard
+          biasScore={publication.analysis.bias_score * 1}
+          rhetoricScore={publication.analysis.rhetoric_score * 1}
+          summary={publication.analysis.summary}
+        />
       </section>
 
       <ArticlesList articles={articles} />
@@ -120,105 +124,6 @@ const PublicationInfoCard: React.FC<{
     </CardContent>
   </Card>
 );
-
-const BiasAnalysisCard: React.FC<{
-  analysis: PublicationAnalysisResponse["analysis"];
-}> = ({ analysis }) => (
-  <Card>
-    <CardContent className="p-6">
-      <h2 className="text-xl font-semibold mb-4">Bias Analysis</h2>
-      <div className="space-y-6">
-        <BiasBar
-          label="Political Bias"
-          value={analysis.bias_score}
-          leftLabel="Left"
-          rightLabel="Right"
-        />
-        <WritingStyleBar
-          label="Writing Style"
-          value={analysis.rhetoric_score}
-          leftLabel="Opinion"
-          rightLabel="Factual"
-        />
-      </div>
-      <p className="mt-6 text-sm text-muted-foreground">
-        {renderMarkdown(analysis.summary)}
-      </p>
-    </CardContent>
-  </Card>
-);
-
-const BiasBar: React.FC<{
-  label: string;
-  value: number;
-  leftLabel: string;
-  rightLabel: string;
-}> = ({ label, value, leftLabel, rightLabel }) => (
-  <div className="space-y-2">
-    <div className="flex justify-between text-xs text-muted-foreground">
-      <span>{leftLabel}</span>
-      <span>{rightLabel}</span>
-    </div>
-    <div className="relative h-4 bg-gradient-to-r from-blue-500 via-gray-200 to-red-500 rounded-full overflow-hidden">
-      <motion.div
-        className="absolute top-0 bottom-0 left-0 w-1 bg-black"
-        initial={{ left: 0 }}
-        animate={{ left: `calc(${value * 1}% - 2px)` }}
-        transition={{ duration: 1, ease: "easeOut" }}
-      />
-    </div>
-    <div className="flex justify-between text-xs">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-semibold">{(value * 1).toFixed(1)}%</span>
-    </div>
-  </div>
-);
-
-const WritingStyleBar: React.FC<{
-  label: string;
-  value: number;
-  leftLabel: string;
-  rightLabel: string;
-}> = ({ label, value, leftLabel, rightLabel }) => (
-  <div className="space-y-2">
-    <div className="flex justify-between text-xs text-muted-foreground">
-      <span>{leftLabel}</span>
-      <span>{rightLabel}</span>
-    </div>
-    <div className="relative h-4 bg-gradient-to-r from-purple-500 via-gray-200 to-green-500 rounded-full overflow-hidden">
-      <motion.div
-        className="absolute top-0 bottom-0 left-0 w-1 bg-black"
-        initial={{ left: 0 }}
-        animate={{ left: `calc(${value * 1}% - 2px)` }}
-        transition={{ duration: 1, ease: "easeOut" }}
-      />
-    </div>
-    <div className="flex justify-between text-xs">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-semibold">{(value * 1).toFixed(1)}%</span>
-    </div>
-  </div>
-);
-
-const renderMarkdown = (content: string) => {
-  return (
-    <ReactMarkdown
-      components={{
-        p: ({ node, ...props }) => (
-          <p className="text-muted-foreground text-xs" {...props} />
-        ),
-        li: ({ node, ...props }) => (
-          <li className="text-muted-foreground text-xs" {...props} />
-        ),
-        ul: ({ node, ...props }) => (
-          <ul className="list-disc pl-5 space-y-2" {...props} />
-        ),
-      }}
-    >
-      {content}
-    </ReactMarkdown>
-  );
-};
 
 const ArticlesList: React.FC<{ articles: ArticleModel[] }> = ({ articles }) => (
   <section>
