@@ -108,7 +108,7 @@ const PublicationInfoCard: React.FC<{
         <p>
           <span className="text-muted-foreground">Website:</span>{" "}
           <a
-            href={publicationResponse.publication.hostname}
+            href={`https://${publicationResponse.publication.hostname}`}
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold text-primary hover:underline"
@@ -116,6 +116,14 @@ const PublicationInfoCard: React.FC<{
             {publicationResponse.publication.hostname}
           </a>
         </p>
+        {publicationResponse.publication.date_founded && (
+          <p>
+            <span className="text-muted-foreground">Date Founded:</span>{" "}
+            <span className="font-semibold">
+              {formatDate(publicationResponse.publication.date_founded)}
+            </span>
+          </p>
+        )}
         <p>
           <span className="text-muted-foreground">Articles Analyzed:</span>{" "}
           <span className="font-semibold">

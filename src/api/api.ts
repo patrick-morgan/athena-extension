@@ -133,19 +133,19 @@ export const fullParseArticle = async (payload: {
   }
 };
 
-export const fetchPublicationMetadata = async (payload: {
-  hostname: string;
-}): Promise<PublicationModel | null> => {
-  try {
-    const response = await axiosInstance.post(`/publication-metadata`, payload);
-    logEvent("publication_metadata_fetched", { metadata: response.data });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching publication metadata:", error);
-    logEvent("publication_metadata_error", { error: error });
-    return null;
-  }
-};
+// export const fetchPublicationMetadata = async (payload: {
+//   hostname: string;
+// }): Promise<PublicationModel | null> => {
+//   try {
+//     const response = await axiosInstance.post(`/publication-metadata`, payload);
+//     logEvent("publication_metadata_fetched", { metadata: response.data });
+//     return response.data;
+//   } catch (error) {
+//     console.error("Error fetching publication metadata:", error);
+//     logEvent("publication_metadata_error", { error: error });
+//     return null;
+//   }
+// };
 
 type AnalyzeJournalistsPayload = {
   articleId: string;

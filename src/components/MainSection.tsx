@@ -208,7 +208,7 @@ export const MainSection = () => {
     return null;
   };
 
-  const MAX_POLL_ATTEMPTS = 3;
+  const MAX_POLL_ATTEMPTS = 5;
   const POLL_INTERVAL = 3000; // 3 seconds
 
   const pollAnalysisStatus = async (url: string, attemptCount: number = 0) => {
