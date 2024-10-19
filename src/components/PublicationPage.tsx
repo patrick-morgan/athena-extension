@@ -28,6 +28,7 @@ export const PublicationPage: React.FC<PublicationPageProps> = ({
   const [articles, setArticles] = useState<ArticleModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  console.log("analyzing", publicationId);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,6 +37,7 @@ export const PublicationPage: React.FC<PublicationPageProps> = ({
           analyzePublication({ publicationId }),
           getPublicationArticles(publicationId),
         ]);
+        console.log("pub data", publicationData);
         setPublication(publicationData);
         setArticles(articlesData?.articles ?? []);
       } catch (err) {

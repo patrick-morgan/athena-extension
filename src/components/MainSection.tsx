@@ -498,6 +498,7 @@ export const MainSection = () => {
       />
     );
   }
+  console.log("publication", appState);
 
   return (
     <div className="space-y-6 p-6 ">
@@ -539,17 +540,17 @@ export const MainSection = () => {
         <Skeleton className="w-full h-64" />
       )}
 
-      {/* {appState.publicationAnalysis ? (
-          <PublicationSection
-            pubResponse={appState.publicationAnalysis}
-            onPublicationClick={() => {
-              setSelectedJournalist(null);
-              setSelectedPublication(appState.article?.publication ?? null);
-            }}
-          />
-        ) : (
-          <Skeleton className="w-full h-64" />
-        )} */}
+      {appState.publicationAnalysis ? (
+        <PublicationSection
+          pubResponse={appState.publicationAnalysis}
+          onPublicationClick={() => {
+            setSelectedJournalist(null);
+            setSelectedPublication(appState.article?.publication ?? null);
+          }}
+        />
+      ) : (
+        <Skeleton className="w-full h-64" />
+      )}
 
       {/* {updateAvailable && (
           <ReAnalyzeButton onClick={handleQuickParse} analyzing={analyzing} />
