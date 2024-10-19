@@ -45,9 +45,9 @@ export const App = () => {
     <AuthProvider>
       <Router>
         <Layout>
-          <div className="mx-auto h-full w-full">
-            <AppContent />
-          </div>
+          {/* <div className="mx-auto h-full w-full"> */}
+          <AppContent />
+          {/* </div> */}
         </Layout>
       </Router>
     </AuthProvider>

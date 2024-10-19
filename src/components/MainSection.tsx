@@ -386,7 +386,7 @@ export const MainSection = () => {
 
   if (!user) {
     return (
-      <div className="h-screen flex justify-center items-center">
+      <div className="flex justify-center items-center">
         <h2 className="text-2xl font-semibold">Please sign in to use Athena</h2>
       </div>
     );
@@ -426,7 +426,7 @@ export const MainSection = () => {
 
   if (isExtensionPage) {
     return (
-      <div className="h-screen flex justify-center items-center p-6">
+      <div className="flex justify-center items-center p-6">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-primary">
@@ -450,7 +450,7 @@ export const MainSection = () => {
 
   if (appState === undefined) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center">
         <Spinner />
       </div>
     );
@@ -458,7 +458,7 @@ export const MainSection = () => {
 
   if (appState === null) {
     return (
-      <div className="h-screen flex flex-col gap-6 justify-center items-center -mt-8">
+      <div className="flex flex-col gap-6 justify-center items-center -mt-8">
         <AnalyzeArticle />
         <AnalyzeButton analyzing={analyzing} onClick={onAnalyze} />
       </div>
@@ -500,7 +500,7 @@ export const MainSection = () => {
   }
 
   return (
-    <div className="space-y-6 h-screen">
+    <div className="space-y-6 p-6 ">
       {appState.article ? (
         <HeaderSection
           article={appState.article}
@@ -531,29 +531,29 @@ export const MainSection = () => {
       )}
 
       {/* {appState.journalistsAnalysis ? (
-        <JournalistSection
-          journalistsBias={appState.journalistsAnalysis}
-          onJournalistClick={setSelectedJournalist}
-        />
-      ) : (
-        <Skeleton className="w-full h-64" />
-      )} */}
+          <JournalistSection
+            journalistsBias={appState.journalistsAnalysis}
+            onJournalistClick={setSelectedJournalist}
+          />
+        ) : (
+          <Skeleton className="w-full h-64" />
+        )} */}
 
       {/* {appState.publicationAnalysis ? (
-        <PublicationSection
-          pubResponse={appState.publicationAnalysis}
-          onPublicationClick={() => {
-            setSelectedJournalist(null);
-            setSelectedPublication(appState.article?.publication ?? null);
-          }}
-        />
-      ) : (
-        <Skeleton className="w-full h-64" />
-      )} */}
+          <PublicationSection
+            pubResponse={appState.publicationAnalysis}
+            onPublicationClick={() => {
+              setSelectedJournalist(null);
+              setSelectedPublication(appState.article?.publication ?? null);
+            }}
+          />
+        ) : (
+          <Skeleton className="w-full h-64" />
+        )} */}
 
       {/* {updateAvailable && (
-        <ReAnalyzeButton onClick={handleQuickParse} analyzing={analyzing} />
-      )} */}
+          <ReAnalyzeButton onClick={handleQuickParse} analyzing={analyzing} />
+        )} */}
     </div>
   );
 };

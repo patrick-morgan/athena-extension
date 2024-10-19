@@ -13,8 +13,8 @@ export const Layout = ({ children }: LayoutProps) => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col h-full min-h-[500px] w-[500px] bg-background">
-      <header className="w-full px-6 p-4 bg-primary text-primary-foreground border-b border-accent/10 flex items-center justify-between">
+    <div className="flex flex-col h-[600px] w-[500px] bg-background">
+      <header className="h-16 w-full px-6 bg-primary text-primary-foreground border-b border-accent/10 flex items-center justify-between">
         <div
           className="flex items-center gap-2 cursor-pointer"
           onClick={() => navigate("/")}
@@ -38,7 +38,7 @@ export const Layout = ({ children }: LayoutProps) => {
           )}
         </div>
       </header>
-      <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );
 };
