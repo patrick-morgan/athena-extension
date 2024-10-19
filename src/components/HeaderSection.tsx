@@ -7,6 +7,7 @@ type HeaderSectionProps = {
   publication: PublicationModel | null;
   journalists: JournalistsModel[] | null;
   onJournalistClick: (journalistId: string) => void;
+  onPublicationClick: () => void;
 };
 
 export const HeaderSection = ({
@@ -14,6 +15,7 @@ export const HeaderSection = ({
   publication,
   journalists,
   onJournalistClick,
+  onPublicationClick,
 }: HeaderSectionProps) => {
   const publishedDate = formatDate(article.date_published);
 
@@ -30,7 +32,11 @@ export const HeaderSection = ({
           <Badge variant="secondary">Updated: {updatedDate}</Badge>
         )}
         {publication && (
-          <Badge variant="secondary">
+          <Badge
+            variant="secondary"
+            className="text-xs font-medium cursor-pointer hover:bg-secondary/80"
+            onClick={onPublicationClick}
+          >
             {publication.name ?? publication.hostname}
           </Badge>
         )}

@@ -1,8 +1,9 @@
 import React from "react";
 // import ReactMarkdown from "react-markdown";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 // import { parseFootnotes } from "@/utils/footnotes";
-import { NumberLine } from "./NumberLine";
+// import { NumberLine } from "./NumberLine";
+import { motion } from "framer-motion";
 
 type ArticleSectionProps = {
   politicalBiasScore: number;
@@ -63,34 +64,77 @@ export const ArticleSection: React.FC<ArticleSectionProps> = ({
   // };
 
   return (
-    <Card className="w-full bg-card shadow-sm">
-      <CardHeader>
-        <CardTitle className="text-primary text-md">Article Analysis</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <Card className="w-full">
+      <CardContent className="p-6">
+        {/* <h2 className="text-2xl font-semibold mb-4">{article.title}</h2> */}
         <div className="space-y-4">
-          <div>
-            <NumberLine
-              leftText="Left wing"
-              rightText="Right wing"
-              tickPosition={politicalBiasScore}
-            />
-            {/* <div className="space-y-2">
-              {renderContent(politicalBias.analysis, politicalBias.footnotes)}
-            </div> */}
-          </div>
-          <div>
-            <NumberLine
-              leftText="Opinion"
-              rightText="Factual"
-              tickPosition={objectivityBiasScore}
-            />
-            {/* <div className="space-y-2">
-              {renderContent(objectivityBias.analysis, objectivityBias.footnotes)}
-            </div> */}
-          </div>
+          <BiasBar
+            label="Political Bias"
+            value={politicalBiasScore}
+            leftLabel="Left"
+            rightLabel="Right"
+          />
+          <WritingStyleBar
+            label="Writing Style"
+            value={objectivityBiasScore}
+            leftLabel="Opinion"
+            rightLabel="Factual"
+          />
         </div>
+        {/* <p className="mt-4 text-sm text-muted-foreground">{analysis.summary}</p> */}
       </CardContent>
     </Card>
   );
 };
+
+const BiasBar: React.FC<{
+  label: string;
+  value: number;
+  leftLabel: string;
+  rightLabel: string;
+}> = ({ label, value, leftLabel, rightLabel }) => (
+  <div className="space-y-2">
+    <div className="flex justify-between text-xs text-muted-foreground">
+      <span>{leftLabel}</span>
+      <span>{rightLabel}</span>
+    </div>
+    <div className="relative h-4 bg-gradient-to-r from-blue-500 via-gray-200 to-red-500 rounded-full overflow-hidden">
+      <motion.div
+        className="absolute top-0 bottom-0 left-0 w-1 bg-black"
+        initial={{ left: 0 }}
+        animate={{ left: `calc(${value * 1}% - 2px)` }}
+        transition={{ duration: 1, ease: "easeOut" }}
+      />
+    </div>
+    <div className="flex justify-between text-xs">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-semibold">{(value * 1).toFixed(1)}%</span>
+    </div>
+  </div>
+);
+
+const WritingStyleBar: React.FC<{
+  label: string;
+  value: number;
+  leftLabel: string;
+  rightLabel: string;
+}> = ({ label, value, leftLabel, rightLabel }) => (
+  <div className="space-y-2">
+    <div className="flex justify-between text-xs text-muted-foreground">
+      <span>{leftLabel}</span>
+      <span>{rightLabel}</span>
+    </div>
+    <div className="relative h-4 bg-gradient-to-r from-purple-500 via-gray-200 to-green-500 rounded-full overflow-hidden">
+      <motion.div
+        className="absolute top-0 bottom-0 left-0 w-1 bg-black"
+        initial={{ left: 0 }}
+        animate={{ left: `calc(${value * 1}% - 2px)` }}
+        transition={{ duration: 1, ease: "easeOut" }}
+      />
+    </div>
+    <div className="flex justify-between text-xs">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-semibold">{(value * 1).toFixed(1)}%</span>
+    </div>
+  </div>
+);

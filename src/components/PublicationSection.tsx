@@ -8,10 +8,12 @@ import { NumberLine } from "./NumberLine";
 
 type PublicationSectionProps = {
   pubResponse: PublicationAnalysisResponse;
+  onPublicationClick: () => void;
 };
 
 export const PublicationSection: React.FC<PublicationSectionProps> = ({
   pubResponse,
+  onPublicationClick,
 }) => {
   const { publication, analysis } = pubResponse;
 
@@ -43,7 +45,11 @@ export const PublicationSection: React.FC<PublicationSectionProps> = ({
       expandedContent={renderMarkdown(analysis.summary)}
     >
       <div className="space-y-3 space-x-1">
-        <Badge variant="secondary" className="text-xs font-medium">
+        <Badge
+          variant="secondary"
+          className="text-xs font-medium cursor-pointer hover:bg-secondary/80"
+          onClick={onPublicationClick}
+        >
           {publication.name ?? publication.hostname}
         </Badge>
         <Badge variant="outline" className="text-xs text-muted-foreground">

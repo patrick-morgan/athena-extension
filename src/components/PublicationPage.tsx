@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { analyzeJournalist, getJournalistArticles } from "@/api/api";
 import {
-  ArticleModel,
-  JournalistBiasWithNameModel,
-  PublicationModel,
-} from "@/types";
+  analyzePublication,
+  getPublicationArticles,
+  PublicationAnalysisResponse,
+} from "@/api/api";
+import { ArticleModel } from "@/types";
 import { formatDate } from "@/utils/date";
 import { motion } from "framer-motion";
 import { ChevronLeft, AlertCircle, ExternalLink } from "lucide-react";
@@ -14,21 +14,17 @@ import { Skeleton } from "./ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import ReactMarkdown from "react-markdown";
 
-interface JournalistPageProps {
-  journalistId: string;
-  publication: PublicationModel | null;
-  onPublicationClick: () => void;
+interface PublicationPageProps {
+  publicationId: string;
   onBack: () => void;
 }
 
-export const JournalistPage: React.FC<JournalistPageProps> = ({
-  journalistId,
-  publication,
-  onPublicationClick,
+export const PublicationPage: React.FC<PublicationPageProps> = ({
+  publicationId,
   onBack,
 }) => {
-  const [journalist, setJournalist] =
-    useState<JournalistBiasWithNameModel | null>(null);
+  const [publication, setPublication] =
+    useState<PublicationAnalysisResponse | null>(null);
   const [articles, setArticles] = useState<ArticleModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,21 +32,21 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [journalistData, articlesData] = await Promise.all([
-          analyzeJournalist({ journalistId }),
-          getJournalistArticles(journalistId),
+        const [publicationData, articlesData] = await Promise.all([
+          analyzePublication({ publicationId }),
+          getPublicationArticles(publicationId),
         ]);
-        setJournalist(journalistData);
+        setPublication(publicationData);
         setArticles(articlesData?.articles ?? []);
       } catch (err) {
-        setError("Failed to load journalist data. Please try again later.");
+        setError("Failed to load publication data. Please try again later.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [journalistId]);
+  }, [publicationId]);
 
   if (error) {
     return (
@@ -62,8 +58,8 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
     );
   }
 
-  if (loading || !journalist) {
-    return <JournalistSkeleton />;
+  if (loading || !publication) {
+    return <PublicationSkeleton />;
   }
 
   return (
@@ -79,15 +75,14 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
           <ChevronLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
+        {/* <h1 className="text-3xl font-bold text-primary">
+          {publication.publication.name}
+        </h1> */}
       </header>
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <JournalistInfoCard
-          journalist={journalist}
-          publication={publication}
-          onPublicationClick={onPublicationClick}
-        />
-        <BiasAnalysisCard journalist={journalist} />
+        <PublicationInfoCard publicationResponse={publication} />
+        <BiasAnalysisCard analysis={publication.analysis} />
       </section>
 
       <ArticlesList articles={articles} />
@@ -95,60 +90,59 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
   );
 };
 
-const JournalistInfoCard: React.FC<{
-  journalist: JournalistBiasWithNameModel;
-  publication: PublicationModel | null;
-  onPublicationClick: () => void;
-}> = ({ journalist, publication, onPublicationClick }) => (
+const PublicationInfoCard: React.FC<{
+  publicationResponse: PublicationAnalysisResponse;
+}> = ({ publicationResponse }) => (
   <Card>
     <CardContent className="p-6">
-      <h2 className="text-2xl font-semibold mb-4">{journalist.name}</h2>
+      <h2 className="text-2xl font-semibold mb-4">
+        {publicationResponse.publication.name}
+      </h2>
       <div className="space-y-2">
+        <p>
+          <span className="text-muted-foreground">Website:</span>{" "}
+          <a
+            href={publicationResponse.publication.hostname}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-primary hover:underline"
+          >
+            {publicationResponse.publication.hostname}
+          </a>
+        </p>
         <p>
           <span className="text-muted-foreground">Articles Analyzed:</span>{" "}
           <span className="font-semibold">
-            {journalist.num_articles_analyzed}
+            {publicationResponse.analysis.num_articles_analyzed}
           </span>
         </p>
-        {publication && (
-          <p>
-            <span className="text-muted-foreground">Publication:</span>{" "}
-            <Button
-              variant="link"
-              className="p-0 h-auto font-semibold"
-              onClick={onPublicationClick}
-            >
-              {publication.name ?? publication.hostname}
-            </Button>
-          </p>
-        )}
       </div>
     </CardContent>
   </Card>
 );
 
 const BiasAnalysisCard: React.FC<{
-  journalist: JournalistBiasWithNameModel;
-}> = ({ journalist }) => (
+  analysis: PublicationAnalysisResponse["analysis"];
+}> = ({ analysis }) => (
   <Card>
     <CardContent className="p-6">
       <h2 className="text-xl font-semibold mb-4">Bias Analysis</h2>
       <div className="space-y-6">
         <BiasBar
           label="Political Bias"
-          value={journalist.bias_score}
+          value={analysis.bias_score}
           leftLabel="Left"
           rightLabel="Right"
         />
         <WritingStyleBar
           label="Writing Style"
-          value={journalist.rhetoric_score}
+          value={analysis.rhetoric_score}
           leftLabel="Opinion"
           rightLabel="Factual"
         />
       </div>
       <p className="mt-6 text-sm text-muted-foreground">
-        {renderMarkdown(journalist.summary)}
+        {renderMarkdown(analysis.summary)}
       </p>
     </CardContent>
   </Card>
@@ -206,108 +200,6 @@ const WritingStyleBar: React.FC<{
   </div>
 );
 
-// const BiasBar: React.FC<{
-//   label: string;
-//   value: number;
-//   leftLabel: string;
-//   rightLabel: string;
-// }> = ({ label, value, leftLabel, rightLabel }) => (
-//   <div className="space-y-2">
-//     <div className="flex justify-between text-xs text-muted-foreground">
-//       <span>{leftLabel}</span>
-//       <span>{rightLabel}</span>
-//     </div>
-//     <div className="relative h-4 bg-gradient-to-r from-blue-500 via-gray-200 to-red-500 rounded-full overflow-hidden">
-//       <motion.div
-//         className="absolute top-0 bottom-0 left-0 w-1 bg-black"
-//         initial={{ x: 0 }}
-//         animate={{ x: `${value * 100}%` }}
-//         transition={{ duration: 1, ease: "easeOut" }}
-//       />
-//     </div>
-//     <div className="flex justify-between text-xs">
-//       <span className="text-muted-foreground">{label}</span>
-//       <span className="font-semibold">{(value * 1).toFixed(1)}%</span>
-//     </div>
-//   </div>
-// );
-// const BiasBar: React.FC<{
-//   label: string;
-//   value: number;
-//   leftLabel: string;
-//   rightLabel: string;
-// }> = ({ label, value, leftLabel, rightLabel }) => (
-//   <div className="space-y-2">
-//     <div className="flex justify-between text-xs text-muted-foreground">
-//       <span>{leftLabel}</span>
-//       <span>{rightLabel}</span>
-//     </div>
-//     <div className="relative h-4 bg-gradient-to-r from-blue-500 via-gray-200 to-red-500 rounded-full overflow-hidden">
-//       <motion.div
-//         className="absolute top-0 bottom-0 left-0 w-1 bg-black"
-//         initial={{ x: 0 }}
-//         animate={{ x: `calc(${value * 1}% - 2px)` }}
-//         transition={{ duration: 1, ease: "easeOut" }}
-//       />
-//     </div>
-//     <div className="flex justify-between text-xs">
-//       <span className="text-muted-foreground">{label}</span>
-//       <span className="font-semibold">{(value * 1).toFixed(1)}%</span>
-//     </div>
-//   </div>
-// );
-
-// const WritingStyleBar: React.FC<{
-//   label: string;
-//   value: number;
-//   leftLabel: string;
-//   rightLabel: string;
-// }> = ({ label, value, leftLabel, rightLabel }) => (
-//   <div className="space-y-2">
-//     <div className="flex justify-between text-xs text-muted-foreground">
-//       <span>{leftLabel}</span>
-//       <span>{rightLabel}</span>
-//     </div>
-//     <div className="relative h-4 bg-gradient-to-r from-purple-500 via-gray-200 to-green-500 rounded-full overflow-hidden">
-//       <motion.div
-//         className="absolute top-0 bottom-0 left-0 w-1 bg-black"
-//         initial={{ x: 0 }}
-//         animate={{ x: `${value * 100}%` }}
-//         transition={{ duration: 1, ease: "easeOut" }}
-//       />
-//     </div>
-//     <div className="flex justify-between text-xs">
-//       <span className="text-muted-foreground">{label}</span>
-//       <span className="font-semibold">{(value * 1).toFixed(1)}%</span>
-//     </div>
-//   </div>
-// );
-// const WritingStyleBar: React.FC<{
-//   label: string;
-//   value: number;
-//   leftLabel: string;
-//   rightLabel: string;
-// }> = ({ label, value, leftLabel, rightLabel }) => (
-//   <div className="space-y-2">
-//     <div className="flex justify-between text-xs text-muted-foreground">
-//       <span>{leftLabel}</span>
-//       <span>{rightLabel}</span>
-//     </div>
-//     <div className="relative h-4 bg-gradient-to-r from-purple-500 via-gray-200 to-green-500 rounded-full overflow-hidden">
-//       <motion.div
-//         className="absolute top-0 bottom-0 left-0 w-1 bg-black"
-//         initial={{ x: 0 }}
-//         animate={{ x: `calc(${value * 1}% - 2px)` }}
-//         transition={{ duration: 1, ease: "easeOut" }}
-//       />
-//     </div>
-//     <div className="flex justify-between text-xs">
-//       <span className="text-muted-foreground">{label}</span>
-//       <span className="font-semibold">{(value * 1).toFixed(1)}%</span>
-//     </div>
-//   </div>
-// );
-
 const renderMarkdown = (content: string) => {
   return (
     <ReactMarkdown
@@ -356,7 +248,7 @@ const ArticlesList: React.FC<{ articles: ArticleModel[] }> = ({ articles }) => (
   </section>
 );
 
-const JournalistSkeleton: React.FC = () => (
+const PublicationSkeleton: React.FC = () => (
   <div className="space-y-8 p-6">
     <Skeleton className="h-10 w-3/4" />
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -371,4 +263,4 @@ const JournalistSkeleton: React.FC = () => (
   </div>
 );
 
-export default JournalistPage;
+export default PublicationPage;

@@ -36,6 +36,7 @@ import {
   CardTitle,
 } from "./ui/card";
 import { requestContent } from "./utils";
+import PublicationPage from "./PublicationPage";
 
 const isUnsupportedPage = (url: string): boolean => {
   const unsupportedDomains = [
@@ -91,6 +92,9 @@ export const MainSection = () => {
   const { user, isSubscribed } = useAuth();
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [selectedJournalist, setSelectedJournalist] = useState<string | null>(
+    null
+  );
+  const [selectedPublication, setSelectedPublication] = useState<string | null>(
     null
   );
 
@@ -477,7 +481,20 @@ export const MainSection = () => {
         //   analysis: selectedJournalist.summary,
         //   // articles: selectedJournalist.articles || [],
         // }}
+        onPublicationClick={() => {
+          setSelectedJournalist(null);
+          setSelectedPublication(appState.article?.publication ?? null);
+        }}
         onBack={() => setSelectedJournalist(null)}
+      />
+    );
+  }
+
+  if (selectedPublication) {
+    return (
+      <PublicationPage
+        publicationId={selectedPublication}
+        onBack={() => setSelectedPublication(null)}
       />
     );
   }
@@ -490,6 +507,9 @@ export const MainSection = () => {
           publication={appState.publication}
           journalists={appState.journalists}
           onJournalistClick={setSelectedJournalist}
+          onPublicationClick={() =>
+            setSelectedPublication(appState.article?.publication ?? null)
+          }
         />
       ) : (
         <Skeleton className="w-full h-24" />
@@ -510,20 +530,26 @@ export const MainSection = () => {
         <Skeleton className="w-full h-64" />
       )}
 
-      {appState.journalistsAnalysis ? (
+      {/* {appState.journalistsAnalysis ? (
         <JournalistSection
           journalistsBias={appState.journalistsAnalysis}
           onJournalistClick={setSelectedJournalist}
         />
       ) : (
         <Skeleton className="w-full h-64" />
-      )}
+      )} */}
 
-      {appState.publicationAnalysis ? (
-        <PublicationSection pubResponse={appState.publicationAnalysis} />
+      {/* {appState.publicationAnalysis ? (
+        <PublicationSection
+          pubResponse={appState.publicationAnalysis}
+          onPublicationClick={() => {
+            setSelectedJournalist(null);
+            setSelectedPublication(appState.article?.publication ?? null);
+          }}
+        />
       ) : (
         <Skeleton className="w-full h-64" />
-      )}
+      )} */}
 
       {/* {updateAvailable && (
         <ReAnalyzeButton onClick={handleQuickParse} analyzing={analyzing} />

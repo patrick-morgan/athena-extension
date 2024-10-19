@@ -284,3 +284,26 @@ export const getJournalistArticles = async (
     return null;
   }
 };
+
+type PublicationArticlesResponse = {
+  articles: ArticleModel[];
+};
+
+export const getPublicationArticles = async (
+  publicationId: string
+): Promise<PublicationArticlesResponse | null> => {
+  try {
+    const response = await axiosInstance.get(
+      `/publications/${publicationId}/articles`
+    );
+    logEvent("publication_articles_fetched", {
+      publicationId,
+      articles: response.data,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error getting publication articles:", error);
+    logEvent("get_publication_articles_error", { error: error, publicationId });
+    return null;
+  }
+};
