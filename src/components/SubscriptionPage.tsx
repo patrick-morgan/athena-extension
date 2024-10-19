@@ -22,7 +22,7 @@ export const SubscriptionPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-full mt-12">
+    <div className="flex flex-col items-center justify-center h-full">
       <h1 className="text-2xl font-bold mb-4">Upgrade to Premium</h1>
       <p className="text-lg mb-6">
         Get full access to Athena AI for just $5/month

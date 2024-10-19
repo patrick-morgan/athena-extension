@@ -426,7 +426,7 @@ export const MainSection = () => {
 
   if (isExtensionPage) {
     return (
-      <div className="flex justify-center items-center p-6">
+      <div className="flex justify-center items-center h-full p-6">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-primary">
@@ -450,7 +450,7 @@ export const MainSection = () => {
 
   if (appState === undefined) {
     return (
-      <div className="flex justify-center items-center">
+      <div className="flex justify-center items-center h-full">
         <Spinner />
       </div>
     );
@@ -458,7 +458,7 @@ export const MainSection = () => {
 
   if (appState === null) {
     return (
-      <div className="flex flex-col gap-6 justify-center items-center -mt-8">
+      <div className="flex flex-col gap-6 justify-center items-center h-full">
         <AnalyzeArticle />
         <AnalyzeButton analyzing={analyzing} onClick={onAnalyze} />
       </div>
@@ -501,7 +501,7 @@ export const MainSection = () => {
   console.log("publication", appState);
 
   return (
-    <div className="space-y-6 p-6 ">
+    <div className="space-y-6 p-6">
       {appState.article ? (
         <HeaderSection
           article={appState.article}
