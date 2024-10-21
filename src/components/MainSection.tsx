@@ -1,33 +1,23 @@
-import {
-  analyzeJournalists,
-  analyzePublication,
-  PublicationAnalysisResponse,
-  quickParseArticle,
-} from "@/api/api";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cleanHTML } from "@/parsers/genericParser";
-import {
-  ArticleAuthorType,
-  ArticleModel,
-  JournalistBiasWithNameModel,
-} from "@/types";
+import { AppStateType, ArticleModel } from "@/types";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { logEvent, logPageView } from "../../analytics";
 import { getIdToken } from "../../firebaseConfig";
 import { useAuth } from "../AuthContext";
-import { AppStateType } from "./analysisHandler";
 import { AnalyzeArticle } from "./AnalyzeArticle";
 import { AnalyzeButton } from "./AnalyzeButton";
 import { ArticleSection } from "./ArticleSection";
 import { HeaderSection } from "./HeaderSection";
+import { JournalistPage } from "./JournalistPage";
 import { JournalistSection } from "./JournalistSection";
+import PublicationPage from "./PublicationPage";
 import { PublicationSection } from "./PublicationSection";
 import { Spinner } from "./spinner";
 import { SubscriptionPage } from "./SubscriptionPage";
 import { SummarySection } from "./SummarySection";
-import { JournalistPage } from "./JournalistPage";
 import {
   Card,
   CardContent,
@@ -36,7 +26,6 @@ import {
   CardTitle,
 } from "./ui/card";
 import { requestContent, scrollToTop } from "./utils";
-import PublicationPage from "./PublicationPage";
 
 const isUnsupportedPage = (url: string): boolean => {
   const unsupportedDomains = [
@@ -119,32 +108,85 @@ export const MainSection = () => {
           return;
         }
 
-        console.log("trying to loda pre-loaded shit");
+        console.log("Trying to load pre-analyzed data");
 
-        // Try to load pre-analyzed data first
-        const storedData = await loadStoredAnalysisData(resp.url);
-        if (storedData) {
-          setAppState(storedData);
-          return;
-        }
+        // Try to load quick parse data
+        const quickParseData = await loadQuickParseData(resp.url);
+        console.log("loadedQuickParse data", quickParseData);
+        if (quickParseData) {
+          setAppState(quickParseData);
 
-        // If no stored data, check the analysis state
-        const analysisState = await getAnalysisState(resp.url);
-        if (analysisState && analysisState.status === "in_progress") {
-          setAnalyzing(true);
-          pollAnalysisStatus(resp.url);
-        } else if (analysisState && analysisState.status === "completed") {
-          // await loadAnalysisData(resp.url);
-          const storedData = await loadStoredAnalysisData(resp.url);
-          if (storedData) {
-            setAppState(storedData);
+          // Check detailed analysis state
+          const detailedState = await getDetailedAnalysisState(resp.url);
+          console.log("detailedStae", detailedState);
+          if (detailedState && detailedState.status === "in_progress") {
+            setAnalyzing(true);
+            pollDetailedAnalysisStatus(resp.url);
+          } else if (detailedState && detailedState.status === "completed") {
+            const detailedData = await loadDetailedAnalysisData(resp.url);
+            // if (detailedData) {
+            //   setAppState((prevState) => {
+            //     if (!prevState) return prevState; // Return null or undefined if prevState is null or undefined
+            //     return {
+            //       ...prevState,
+            //       journalistsAnalysis:
+            //         detailedData.journalistsAnalysis ??
+            //         prevState.journalistsAnalysis,
+            //       publicationAnalysis:
+            //         detailedData.publicationAnalysis ??
+            //         prevState.publicationAnalysis,
+            //     };
+            //   });
+            // }
+            if (detailedData) {
+              setAppState((prevState) => {
+                if (!prevState) {
+                  // If there's no previous state, create a new state with the detailed data
+                  return {
+                    currentUrl: "", // You might want to set this to the current URL
+                    article: null,
+                    publication: null,
+                    journalists: null,
+                    summary: null,
+                    politicalBiasScore: null,
+                    objectivityBiasScore: null,
+                    journalistsAnalysis:
+                      detailedData.journalistsAnalysis ?? null,
+                    publicationAnalysis:
+                      detailedData.publicationAnalysis ?? null,
+                    error: null,
+                  };
+                }
+                // If there is a previous state, merge the new data
+                return {
+                  ...prevState,
+                  journalistsAnalysis:
+                    detailedData.journalistsAnalysis ??
+                    prevState.journalistsAnalysis,
+                  publicationAnalysis:
+                    detailedData.publicationAnalysis ??
+                    prevState.publicationAnalysis,
+                };
+              });
+            }
             setAnalyzing(false);
-            return;
+          } else {
+            // If detailed analysis hasn't started, start it
+            startDetailedAnalysis(resp.url);
           }
         } else {
-          setAppState(null);
+          // Check quick parse state
+          const quickParseState = await getQuickParseState(resp.url);
+          if (quickParseState && quickParseState.status === "in_progress") {
+            setAnalyzing(true);
+            pollQuickParseStatus(resp.url);
+          } else {
+            // No data and no analysis in progress, set appState to null
+            setAppState(null);
+          }
         }
       } catch (err) {
+        console.error("Error initializing state:", err);
         setIsExtensionPage(true);
         setAppState(null);
       }
@@ -153,87 +195,142 @@ export const MainSection = () => {
     initializeState();
   }, []);
 
-  const loadStoredAnalysisData = async (
-    url: string
-  ): Promise<AppStateType | null> => {
-    try {
-      const storedData = (await getFromStorage(
-        encodeURIComponent(url)
-      )) as ArticleWithAnalysis | null;
-
-      console.log("ourstored data", storedData);
-      if (storedData) {
-        // Load publication analysis
-        const publicationAnalysis = (await getFromStorage(
-          storedData.publication
-        )) as PublicationAnalysisResponse;
-
-        console.log("publcatin analysis", publicationAnalysis);
-        // console.log("journalist anslyis", storaed)
-
-        console.log("stored data", storedData);
-
-        // Load journalists analysis
-        const journalistsAnalysis = await Promise.all(
-          storedData.article_authors.map(async (author: ArticleAuthorType) => {
-            const journalistData = (await getFromStorage(
-              author.journalist_id
-            )) as JournalistBiasWithNameModel;
-            return journalistData;
-          })
-        );
-        // Remove undefined
-        const cleanedJournalistAnalysis = journalistsAnalysis.filter((j) => j);
-
-        // const journalistsAnalysis: JournalistBiasWithNameModel[] = [];
-
-        return {
-          currentUrl: url,
-          article: storedData,
-          publication: publicationAnalysis?.publication,
-          journalists: storedData.article_authors
-            .map((author) => author.journalist)
-            .filter((j) => j),
-          summary: storedData.summary,
-          politicalBiasScore: storedData.political_bias_score,
-          objectivityBiasScore: storedData.objectivity_score,
-          journalistsAnalysis: cleanedJournalistAnalysis,
-          publicationAnalysis,
-          error: null,
-        };
-      }
-    } catch (error) {
-      console.error("Error loading stored analysis data:", error);
-    }
-    return null;
-  };
-
   const MAX_POLL_ATTEMPTS = 5;
   const POLL_INTERVAL = 3000; // 3 seconds
 
-  const pollAnalysisStatus = async (url: string, attemptCount: number = 0) => {
+  const restartAnalysis = async (url: string) => {
+    setAnalyzing(true);
+    setAppState(null);
+    setError(null);
+    logEvent("analysis_restarted", { section: "MainSection" });
+
+    try {
+      const resp = await requestContent();
+      if (!resp || isUnsupportedPage(resp.url)) {
+        throw new Error("Unsupported page");
+      }
+
+      const { head, body } = cleanHTML(resp.html);
+      const hostname = new URL(resp.url).hostname;
+
+      // Clear existing analysis data
+      await chrome.storage.local.remove([
+        encodeURIComponent(url),
+        `${encodeURIComponent(url)}_detailed`,
+        `quick_parse_state_${encodeURIComponent(url)}`,
+        `detailed_analysis_state_${encodeURIComponent(url)}`,
+      ]);
+
+      // Start quick parse
+      chrome.runtime.sendMessage({
+        action: "startQuickParse",
+        data: { url: resp.url, hostname, head, body, restart: true },
+      });
+
+      pollQuickParseStatus(resp.url);
+    } catch (err) {
+      setError((err as Error).message);
+      logEvent("analysis_restart_error", {
+        error_message: (err as Error).message,
+      });
+      setAnalyzing(false);
+    }
+  };
+
+  const loadQuickParseData = async (
+    url: string
+  ): Promise<AppStateType | null> => {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(encodeURIComponent(url), (result) => {
+        const data = result[encodeURIComponent(url)];
+        if (data) {
+          resolve({
+            currentUrl: url,
+            article: data,
+            journalists: data.article_authors,
+            publication: data.publication, // todo fish
+            summary: data.summary,
+            politicalBiasScore: data.political_bias_score,
+            objectivityBiasScore: data.objectivity_score,
+            journalistsAnalysis: null,
+            publicationAnalysis: null,
+            error: null,
+          });
+        } else {
+          resolve(null);
+        }
+      });
+    });
+  };
+
+  const loadDetailedAnalysisData = async (
+    url: string
+  ): Promise<Partial<AppStateType> | null> => {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(
+        `${encodeURIComponent(url)}_detailed`,
+        (result) => {
+          const data = result[`${encodeURIComponent(url)}_detailed`];
+          if (data) {
+            resolve({
+              journalistsAnalysis: data.journalistsAnalysis,
+              publicationAnalysis: data.publicationAnalysis,
+            });
+          } else {
+            resolve(null);
+          }
+        }
+      );
+    });
+  };
+
+  async function getQuickParseState(url: string) {
+    const result = await chrome.storage.local.get(
+      `quick_parse_state_${encodeURIComponent(url)}`
+    );
+    return result[`quick_parse_state_${encodeURIComponent(url)}`] || null;
+  }
+
+  async function getDetailedAnalysisState(url: string) {
+    const result = await chrome.storage.local.get(
+      `detailed_analysis_state_${encodeURIComponent(url)}`
+    );
+    console.log("detailed analysis state result:", result);
+    return result[`detailed_analysis_state_${encodeURIComponent(url)}`] || null;
+  }
+
+  const pollDetailedAnalysisStatus = async (
+    url: string,
+    attemptCount: number = 0
+  ) => {
     const checkStatus = async () => {
-      const state = await getAnalysisState(url);
-      console.log("analysis state MainSection", state);
+      const state = await getDetailedAnalysisState(url);
       if (state && state.status === "completed") {
-        // await loadAnalysisData(url);
-        // setAnalyzing(false);
-        const storedData = await loadStoredAnalysisData(url);
-        if (storedData) {
-          setAppState(storedData);
-          setAnalyzing(false);
-          return;
+        const detailedData = await loadDetailedAnalysisData(url);
+        if (detailedData) {
+          console.log("detailed data foo", detailedData);
+          setAppState((prevState) => {
+            // THIS may cause a bug may need to fix ye lazy bozo
+            if (prevState === null || prevState === undefined) {
+              return prevState; // Return null or undefined if prevState is null or undefined
+            }
+            return {
+              ...prevState,
+              journalistsAnalysis:
+                detailedData.journalistsAnalysis ??
+                prevState.journalistsAnalysis,
+              publicationAnalysis:
+                detailedData.publicationAnalysis ??
+                prevState.publicationAnalysis,
+            };
+          });
         }
       } else if (state && state.status === "error") {
-        setError(state.message || "An error occurred during analysis");
-        setAnalyzing(false);
+        console.error("Error in detailed analysis:", state.message);
       } else {
-        if (attemptCount >= MAX_POLL_ATTEMPTS) {
-          console.log("Max poll attempts reached. Restarting analysis.");
-          restartAnalysis(url);
-        } else {
+        if (attemptCount < MAX_POLL_ATTEMPTS) {
           setTimeout(
-            () => pollAnalysisStatus(url, attemptCount + 1),
+            () => pollDetailedAnalysisStatus(url, attemptCount + 1),
             POLL_INTERVAL
           );
         }
@@ -242,30 +339,45 @@ export const MainSection = () => {
     checkStatus();
   };
 
-  const restartAnalysis = async (url: string) => {
-    try {
-      const resp = await requestContent();
-      if (!resp || isUnsupportedPage(resp.url)) {
-        throw new Error("Unsupported page");
+  const startDetailedAnalysis = (url: string) => {
+    chrome.runtime.sendMessage({
+      action: "startDetailedAnalysis",
+      data: { url },
+    });
+    pollDetailedAnalysisStatus(url);
+  };
+
+  const pollQuickParseStatus = async (
+    url: string,
+    attemptCount: number = 0
+  ) => {
+    const checkStatus = async () => {
+      const state = await getQuickParseState(url);
+      if (state && state.status === "completed") {
+        const quickParseData = await loadQuickParseData(url);
+        if (quickParseData) {
+          setAppState(quickParseData);
+          setAnalyzing(false);
+          startDetailedAnalysis(url);
+        }
+      } else if (state && state.status === "error") {
+        setError(state.message || "An error occurred during quick parse");
+        setAnalyzing(false);
+      } else {
+        if (attemptCount >= MAX_POLL_ATTEMPTS) {
+          console.log(
+            "Max poll attempts reached for quick parse. Restarting analysis."
+          );
+          restartAnalysis(url);
+        } else {
+          setTimeout(
+            () => pollQuickParseStatus(url, attemptCount + 1),
+            POLL_INTERVAL
+          );
+        }
       }
-      const { head, body } = cleanHTML(resp.html);
-      const hostname = new URL(resp.url).hostname;
-
-      // Send message to background script to restart analysis
-      chrome.runtime.sendMessage({
-        action: "restartAnalysis",
-        data: { url: resp.url, hostname, head, body },
-      });
-
-      // Reset attempt count and start polling again
-      pollAnalysisStatus(url, 0);
-    } catch (err) {
-      setError((err as Error).message);
-      logEvent("analysis_restart_error", {
-        error_message: (err as Error).message,
-      });
-      setAnalyzing(false);
-    }
+    };
+    checkStatus();
   };
 
   const onAnalyze = async () => {
@@ -278,24 +390,16 @@ export const MainSection = () => {
         throw new Error("Unsupported page");
       }
 
-      // Check for stored data first
-      const storedData = await loadStoredAnalysisData(resp.url);
-      if (storedData) {
-        setAppState(storedData);
-        setAnalyzing(false);
-        return;
-      }
-
       const { head, body } = cleanHTML(resp.html);
       const hostname = new URL(resp.url).hostname;
 
-      // Send message to background script to start analysis
+      // Start quick parse
       chrome.runtime.sendMessage({
-        action: "startAnalysis",
+        action: "startQuickParse",
         data: { url: resp.url, hostname, head, body },
       });
 
-      pollAnalysisStatus(resp.url);
+      pollQuickParseStatus(resp.url);
     } catch (err) {
       setError((err as Error).message);
       logEvent("analysis_error", { error_message: (err as Error).message });
@@ -316,63 +420,6 @@ export const MainSection = () => {
     });
   };
 
-  const handleQuickParse = async () => {
-    setAnalyzing(true);
-    setUpdateAvailable(false);
-    logEvent("quick_parse_started", { section: "MainSection" });
-    try {
-      const resp = await requestContent();
-      if (!resp || isUnsupportedPage(resp.url)) {
-        throw new Error("Unsupported page");
-      }
-
-      const { head, body } = cleanHTML(resp.html);
-      const hostname = new URL(resp.url).hostname;
-
-      const quickParseResp = await quickParseArticle({
-        url: resp.url,
-        hostname,
-        head,
-        body,
-      });
-
-      if (!quickParseResp) {
-        throw new Error("Error quick parsing article");
-      }
-
-      const journalistsAnalysis = await analyzeJournalists({
-        articleId: quickParseResp.article.id,
-      });
-
-      const publicationAnalysis = await analyzePublication({
-        publicationId: quickParseResp.publication.id,
-      });
-
-      setAppState({
-        currentUrl: resp.url,
-        article: quickParseResp.article,
-        journalists: quickParseResp.journalists,
-        publication: quickParseResp.publication,
-        summary: quickParseResp.summary,
-        politicalBiasScore: quickParseResp.political_bias_score,
-        objectivityBiasScore: quickParseResp.objectivity_score,
-        journalistsAnalysis,
-        publicationAnalysis,
-        error: null,
-      });
-
-      logEvent("quick_parse_completed", {
-        section: "MainSection",
-        success: true,
-      });
-    } catch (err) {
-      setError((err as Error).message);
-      logEvent("quick_parse_error", { error_message: (err as Error).message });
-    } finally {
-      setAnalyzing(false);
-    }
-  };
-
   const handleJournalistClick = (journalistId: string) => {
     setSelectedJournalist(journalistId);
     scrollToTop();
@@ -380,7 +427,7 @@ export const MainSection = () => {
 
   const handlePublicationClick = () => {
     setSelectedJournalist(null);
-    setSelectedPublication(appState?.article?.publication ?? null);
+    setSelectedPublication(appState?.article?.publication?.id ?? null);
     scrollToTop();
   };
 
@@ -389,16 +436,6 @@ export const MainSection = () => {
     setSelectedPublication(null);
     scrollToTop();
   };
-
-  // const handleReAnalyze = async () => {
-  //   setAnalyzing(true);
-  //   setUpdateAvailable(false);
-  //   // Call the quick parse function here
-  //   // You'll need to implement this function or use an existing one
-  //   await handleQuickParse();
-  //   setAnalyzing(false);
-  // };
-  // const handleReAnalyze = handleQuickParse;
 
   console.log("app state", appState);
 
@@ -484,21 +521,10 @@ export const MainSection = () => {
   }
 
   if (selectedJournalist) {
-    console.log("seelcted foo", selectedJournalist);
     return (
       <JournalistPage
         journalistId={selectedJournalist}
         publication={appState.publication}
-        // journalist={{
-        //   id: selectedJournalist.journalist,
-        //   name: selectedJournalist.name,
-        //   numArticlesAnalyzed: selectedJournalist.num_articles_analyzed,
-        //   publication: appState.publication?.name || "",
-        //   biasScore: selectedJournalist.bias_score,
-        //   rhetoricScore: selectedJournalist.rhetoric_score,
-        //   analysis: selectedJournalist.summary,
-        //   // articles: selectedJournalist.articles || [],
-        // }}
         onPublicationClick={handlePublicationClick}
         onBack={handleBackClick}
       />
@@ -513,7 +539,6 @@ export const MainSection = () => {
       />
     );
   }
-  console.log("publication", appState);
 
   return (
     <div className="space-y-6 p-6">
@@ -529,7 +554,8 @@ export const MainSection = () => {
         <Skeleton className="w-full h-24" />
       )}
 
-      {appState.politicalBiasScore && appState.objectivityBiasScore ? (
+      {appState.politicalBiasScore !== null &&
+      appState.objectivityBiasScore !== null ? (
         <ArticleSection
           politicalBiasScore={appState.politicalBiasScore}
           objectivityBiasScore={appState.objectivityBiasScore}

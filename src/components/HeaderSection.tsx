@@ -1,11 +1,16 @@
 import { Badge } from "@/components/ui/badge";
-import { ArticleModel, JournalistsModel, PublicationModel } from "@/types";
+import {
+  ArticleAuthorType,
+  ArticleModel,
+  JournalistBiasWithNameModel,
+  PublicationModel,
+} from "@/types";
 import { formatDate } from "@/utils/date";
 
 type HeaderSectionProps = {
   article: ArticleModel;
   publication: PublicationModel | null;
-  journalists: JournalistsModel[] | null;
+  journalists: ArticleAuthorType[] | null;
   onJournalistClick: (journalistId: string) => void;
   onPublicationClick: () => void;
 };
@@ -18,7 +23,8 @@ export const HeaderSection = ({
   onPublicationClick,
 }: HeaderSectionProps) => {
   const publishedDate = formatDate(article.date_published);
-
+  console.log("pub header fish", publication);
+  console.log("jounralists fish", journalists);
   const updatedDate = article.date_updated
     ? formatDate(article.date_updated)
     : null;
@@ -49,10 +55,10 @@ export const HeaderSection = ({
                 className="cursor-pointer hover:bg-secondary/80"
                 onClick={() => {
                   console.log("just cliucked on", journalist);
-                  onJournalistClick(journalist.id);
+                  onJournalistClick(journalist.journalist.id);
                 }}
               >
-                {journalist.name}
+                {journalist.journalist.name}
               </Badge>
             ))}
           </>

@@ -6,14 +6,12 @@ import {
   signInWithCredential,
 } from "firebase/auth";
 import config from "../../config";
-// import { API_URL } from "@/api/axiosInstance";
-import {
-  analyzeJournalists,
-  analyzePublication,
-  quickParseArticle,
-} from "@/api/api";
-
 import axios from "axios";
+
+// export const API_URL =
+//   process.env.NODE_ENV === "production"
+//     ? process.env.EXPRESS_API_URL
+//     : "http://localhost:3000";
 
 export const API_URL = "http://localhost:3000";
 
@@ -202,29 +200,29 @@ async function fetchAndStoreArticle(url) {
       if (!article) return;
 
       // If not journalists.length, it didn't run, so quickly run it
-      if (
-        (article.article_authors.length && !journalistsAnalysis.length) ||
-        (journalistsAnalysis.length &&
-          article.article_authors.length > journalistsAnalysis.length)
-      ) {
-        console.log("Running journalist analysis on article", article.id);
-        const journalistResponse = await axiosInstance.post(
-          "/analyze-journalists",
-          {
-            articleId: article.id,
-          }
-        );
-        console.log("journalist response", journalistResponse.data);
-        journalistsAnalysis.length = 0;
-        journalistResponse.data.forEach((j) => {
-          journalistsAnalysis.push(j);
-        });
-        console.log("Journalist Analysis now:", journalistsAnalysis);
-      }
+      // if (
+      //   (article.article_authors.length && !journalistsAnalysis.length) ||
+      //   (journalistsAnalysis.length &&
+      //     article.article_authors.length > journalistsAnalysis.length)
+      // ) {
+      //   console.log("Running journalist analysis on article", article.id);
+      //   const journalistResponse = await axiosInstance.post(
+      //     "/analyze-journalists",
+      //     {
+      //       articleId: article.id,
+      //     }
+      //   );
+      //   console.log("journalist response", journalistResponse.data);
+      //   journalistsAnalysis.length = 0;
+      //   journalistResponse.data.forEach((j) => {
+      //     journalistsAnalysis.push(j);
+      //   });
+      //   console.log("Journalist Analysis now:", journalistsAnalysis);
+      // }
 
-      const publicationAnalysisDict = {};
-      publicationAnalysisDict[publicationAnalysis.publication.id] =
-        publicationAnalysis.analysis;
+      // const publicationAnalysisDict = {};
+      // publicationAnalysisDict[publicationAnalysis.publication.id] =
+      //   publicationAnalysis.analysis;
 
       const reducedArticle = {
         id: article.id,
@@ -235,7 +233,7 @@ async function fetchAndStoreArticle(url) {
         date_published: article.date_published,
         date_updated: article.date_updated,
         text: "",
-        publication: article.publication,
+        publication: article.publicationObject,
         article_authors: article.article_authors,
       };
 
@@ -248,23 +246,38 @@ async function fetchAndStoreArticle(url) {
         },
       });
 
-      console.log(
-        "setting publication",
-        article.publication,
-        publicationAnalysis
-      );
-      chrome.storage.local.set({
-        [article.publication]: publicationAnalysis,
-      });
+      console.log("setting publication analysis by-url", publicationAnalysis);
+      console.log("setting journalist analysis by-url", journalistsAnalysis);
 
-      journalistsAnalysis?.forEach((journalist) => {
-        console.log("setting journalist", journalist.journalist, journalist);
+      if (publicationAnalysis || journalistsAnalysis) {
+        // chrome.storage.local.set({
+        //   [article.publication]: publicationAnalysis,
+        // });
 
-        if (!journalist?.journalist) return;
-        chrome.storage.local.set({
-          [journalist.journalist]: journalist,
+        await chrome.storage.local.set({
+          [`${encodeURIComponent(url)}_detailed`]: {
+            publicationAnalysis: publicationAnalysis,
+            journalistsAnalysis: journalistsAnalysis,
+          },
         });
-      });
+      }
+
+      // if (journalistsAnalysis?.length) {
+      //   await chrome.storage.local.set({
+      //     [`${encodeURIComponent(url)}_detailed`]: {
+      //       journalistsAnalysis: journalistsAnalysis.data,
+      //       // publicationAnalysis: publicationAnalysis.data,
+      //     },
+      //   });
+      //   // journalistsAnalysis?.forEach((journalist) => {
+      //   //   console.log("setting journalist", journalist.journalist, journalist);
+
+      //   //   if (!journalist?.journalist) return;
+      //   //   chrome.storage.local.set({
+      //   //     [journalist.journalist]: journalist,
+      //   //   });
+      //   // });
+      // }
     }
   } catch (error) {
     console.error("Error fetching article:", error);
@@ -272,52 +285,34 @@ async function fetchAndStoreArticle(url) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (
-    message.action === "startAnalysis" ||
-    message.action === "restartAnalysis"
-  ) {
-    analyzeArticle(message.data);
-    // sendResponse({ success: true });
-    return false; // We're not using sendResponse
-  } else if (message.action === "getAnalysisState") {
-    getAnalysisState(message.url).then((state) => {
-      if (chrome.runtime.lastError) {
-        console.error("Error sending response:", chrome.runtime.lastError);
-      } else {
-        sendResponse(state);
-      }
-    });
-    return true; // We will send a response asynchronously
+  if (message.action === "startQuickParse") {
+    quickParseArticle(message.data);
+    return true;
+  } else if (message.action === "startDetailedAnalysis") {
+    detailedAnalysis(message.data);
+    return true;
+  } else if (message.action === "getQuickParseState") {
+    getQuickParseState(message.url).then(sendResponse);
+    return true;
+  } else if (message.action === "getDetailedAnalysisState") {
+    getDetailedAnalysisState(message.url).then(sendResponse);
+    return true;
   }
   // ... other message handlers ...
 });
-async function setAnalysisState(url, state) {
-  await chrome.storage.local.set({
-    [`analysis_state_${encodeURIComponent(url)}`]: state,
-  });
-}
 
-async function getAnalysisState(url) {
-  const result = await chrome.storage.local.get(
-    `analysis_state_${encodeURIComponent(url)}`
-  );
-  return result[`analysis_state_${encodeURIComponent(url)}`] || null;
-}
-
-async function analyzeArticle(data) {
-  const { url, hostname, head, body } = data;
+async function quickParseArticle(data) {
+  const { url, hostname, head, body, restart } = data;
   try {
-    console.log("setting analysis state to in_progress");
-    await setAnalysisState(url, { status: "in_progress" });
-
-    console.log("we set, now start parse");
+    await setQuickParseState(url, { status: "in_progress" });
 
     // If it's a restart, we might want to clear any partial results
-    if (data.restart) {
-      await chrome.storage.local.remove(encodeURIComponent(url));
+    if (restart) {
+      await chrome.storage.local.remove([
+        encodeURIComponent(url),
+        `${encodeURIComponent(url)}_detailed`,
+      ]);
     }
-
-    console.log("about to quick parse");
 
     const quickParseResp = await axiosInstance.post("/articles/quick-parse", {
       url,
@@ -329,11 +324,11 @@ async function analyzeArticle(data) {
     const { article, summary, political_bias_score, objectivity_score } =
       quickParseResp.data;
 
-    console.log("quickParseResp", quickParseResp.data);
-
     if (!quickParseResp.data) {
       throw new Error("Error quick parsing article");
     }
+
+    console.log("quicik parse response fish nman", article);
 
     const reducedArticle = {
       id: article.id,
@@ -344,11 +339,11 @@ async function analyzeArticle(data) {
       date_published: article.date_published,
       date_updated: article.date_updated,
       text: "",
-      publication: article.publication,
+      publication: article.publicationObject,
       article_authors: article.article_authors,
     };
 
-    chrome.storage.local.set({
+    await chrome.storage.local.set({
       [encodeURIComponent(url)]: {
         ...reducedArticle,
         summary: summary,
@@ -357,39 +352,196 @@ async function analyzeArticle(data) {
       },
     });
 
-    const [journalistsAnalysis, publicationAnalysis] = await Promise.all([
-      axiosInstance.post("/analyze-journalists", {
-        articleId: quickParseResp.data.article.id,
-      }),
-      axiosInstance.post("/analyze-publication", {
-        publicationId: quickParseResp.data.publication.id,
-      }),
-    ]);
-
-    console.log(
-      "setting publication from quick parse",
-      publicationAnalysis.data
-    );
-
-    await chrome.storage.local.set({
-      [quickParseResp.data.publication.id]: publicationAnalysis.data,
-    });
-
-    console.log("journalists", journalistsAnalysis.data);
-    for (const journalist of journalistsAnalysis.data) {
-      console.log("setting", journalist.journalist, "to", journalist);
-      await chrome.storage.local.set({
-        [journalist.journalist]: journalist,
-      });
-    }
-
-    console.log("setting analysis state to completed");
-    await setAnalysisState(url, { status: "completed" });
+    await setQuickParseState(url, { status: "completed" });
   } catch (error) {
-    console.error("Error analyzing article:", error);
-    await setAnalysisState(url, { status: "error", message: error.message });
+    console.error("Error in quick parse:", error);
+    await setQuickParseState(url, { status: "error", message: error.message });
   }
 }
+
+async function detailedAnalysis(data) {
+  const { url } = data;
+  try {
+    await setDetailedAnalysisState(url, { status: "in_progress" });
+
+    const storedData = await chrome.storage.local.get(encodeURIComponent(url));
+    const article = storedData[encodeURIComponent(url)];
+    console.log("stored data for analysis", storedData);
+    console.log("article", article);
+
+    const [journalistsAnalysis, publicationAnalysis] = await Promise.all([
+      axiosInstance.post("/analyze-journalists", {
+        articleId: article.id,
+      }),
+      axiosInstance.post("/analyze-publication", {
+        publicationId: article.publication.id,
+      }),
+    ]);
+    console.log("journalAnalysis", journalistsAnalysis.data);
+    console.log("pubanalysis", publicationAnalysis.data);
+
+    await chrome.storage.local.set({
+      [`${encodeURIComponent(url)}_detailed`]: {
+        journalistsAnalysis: journalistsAnalysis.data,
+        publicationAnalysis: publicationAnalysis.data,
+      },
+    });
+
+    await setDetailedAnalysisState(url, { status: "completed" });
+  } catch (error) {
+    console.error("Error in detailed analysis:", error);
+    await setDetailedAnalysisState(url, {
+      status: "error",
+      message: error.message,
+    });
+  }
+}
+
+async function setQuickParseState(url, state) {
+  await chrome.storage.local.set({
+    [`quick_parse_state_${encodeURIComponent(url)}`]: state,
+  });
+}
+
+async function getQuickParseState(url) {
+  const result = await chrome.storage.local.get(
+    `quick_parse_state_${encodeURIComponent(url)}`
+  );
+  return result[`quick_parse_state_${encodeURIComponent(url)}`] || null;
+}
+
+async function setDetailedAnalysisState(url, state) {
+  await chrome.storage.local.set({
+    [`detailed_analysis_state_${encodeURIComponent(url)}`]: state,
+  });
+}
+
+async function getDetailedAnalysisState(url) {
+  const result = await chrome.storage.local.get(
+    `detailed_analysis_state_${encodeURIComponent(url)}`
+  );
+  return result[`detailed_analysis_state_${encodeURIComponent(url)}`] || null;
+}
+
+// chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+//   if (
+//     message.action === "startAnalysis" ||
+//     message.action === "restartAnalysis"
+//   ) {
+//     analyzeArticle(message.data);
+//     // sendResponse({ success: true });
+//     return false; // We're not using sendResponse
+//   } else if (message.action === "getAnalysisState") {
+//     getAnalysisState(message.url).then((state) => {
+//       if (chrome.runtime.lastError) {
+//         console.error("Error sending response:", chrome.runtime.lastError);
+//       } else {
+//         sendResponse(state);
+//       }
+//     });
+//     return true; // We will send a response asynchronously
+//   }
+//   // ... other message handlers ...
+// });
+// async function setAnalysisState(url, state) {
+//   await chrome.storage.local.set({
+//     [`analysis_state_${encodeURIComponent(url)}`]: state,
+//   });
+// }
+
+// async function getAnalysisState(url) {
+//   const result = await chrome.storage.local.get(
+//     `analysis_state_${encodeURIComponent(url)}`
+//   );
+//   return result[`analysis_state_${encodeURIComponent(url)}`] || null;
+// }
+
+// async function analyzeArticle(data) {
+//   const { url, hostname, head, body } = data;
+//   try {
+//     console.log("setting analysis state to in_progress");
+//     await setAnalysisState(url, { status: "in_progress" });
+
+//     console.log("we set, now start parse");
+
+//     // If it's a restart, we might want to clear any partial results
+//     if (data.restart) {
+//       await chrome.storage.local.remove(encodeURIComponent(url));
+//     }
+
+//     console.log("about to quick parse");
+
+//     const quickParseResp = await axiosInstance.post("/articles/quick-parse", {
+//       url,
+//       hostname,
+//       head,
+//       body,
+//     });
+
+//     const { article, summary, political_bias_score, objectivity_score } =
+//       quickParseResp.data;
+
+//     console.log("quickParseResp", quickParseResp.data);
+
+//     if (!quickParseResp.data) {
+//       throw new Error("Error quick parsing article");
+//     }
+
+//     const reducedArticle = {
+//       id: article.id,
+//       created_at: article.created_at,
+//       updated_at: article.updated_at,
+//       url: article.url,
+//       title: article.title,
+//       date_published: article.date_published,
+//       date_updated: article.date_updated,
+//       text: "",
+//       publication: article.publication,
+//       article_authors: article.article_authors,
+//     };
+
+//     chrome.storage.local.set({
+//       [encodeURIComponent(url)]: {
+//         ...reducedArticle,
+//         summary: summary,
+//         political_bias_score: political_bias_score,
+//         objectivity_score: objectivity_score,
+//       },
+//     });
+
+//     const [journalistsAnalysis, publicationAnalysis] = await Promise.all([
+//       axiosInstance.post("/analyze-journalists", {
+//         articleId: quickParseResp.data.article.id,
+//       }),
+//       axiosInstance.post("/analyze-publication", {
+//         publicationId: quickParseResp.data.publication.id,
+//       }),
+//     ]);
+
+//     console.log(
+//       "setting publication from quick parse",
+//       publicationAnalysis.data
+//     );
+
+//     await chrome.storage.local.set({
+//       [quickParseResp.data.publication.id]: publicationAnalysis.data,
+//     });
+
+//     console.log("journalists", journalistsAnalysis.data);
+//     for (const journalist of journalistsAnalysis.data) {
+//       console.log("setting", journalist.journalist, "to", journalist);
+//       await chrome.storage.local.set({
+//         [journalist.journalist]: journalist,
+//       });
+//     }
+
+//     console.log("setting analysis state to completed");
+//     await setAnalysisState(url, { status: "completed" });
+//   } catch (error) {
+//     console.error("Error analyzing article:", error);
+//     await setAnalysisState(url, { status: "error", message: error.message });
+//   }
+// }
 
 // Add this function to handle token updates
 function updateIdToken(token) {

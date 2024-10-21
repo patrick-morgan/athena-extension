@@ -1,16 +1,19 @@
 import { PublicationAnalysisResponse } from "./api/api";
 
 export type AppStateType = {
-  currentUrl: string | null;
-  // websiteHTML: string | null;
+  currentUrl: string;
   article: ArticleModel | null;
   publication: PublicationModel | null;
-  journalists: JournalistsModel[] | null;
-  summary: SummaryModel | null;
+  journalists: ArticleAuthorType[] | null;
+  // summary: SummaryModel | null;
+  summary: string | null;
   politicalBiasScore: number | null;
   objectivityBiasScore: number | null;
+  // politicalBias: PoliticalBiasResponseType | null;
+  // objectivityBias: ObjectivityBiasResponseType | null;
   journalistsAnalysis: JournalistBiasWithNameModel[] | null;
   publicationAnalysis: PublicationAnalysisResponse | null;
+  error: string | null;
 };
 
 export type MessageType = {
@@ -35,8 +38,8 @@ export type ArticleModel = {
   date_published: Date;
   date_updated: Date | null;
   text: string;
-  publication: string;
-  publicationObject: PublicationModel;
+  publication: PublicationModel;
+  // publicationObject: PublicationModel;
   article_authors: ArticleAuthorType[];
 };
 
