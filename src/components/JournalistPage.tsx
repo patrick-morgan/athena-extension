@@ -14,6 +14,10 @@ import { Skeleton } from "./ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import ReactMarkdown from "react-markdown";
 import { BiasAnalysisCard } from "./BiasAnalysisCard";
+import { useAuth } from "@/AuthContext";
+import { BlurredSection } from "./BlurredSection";
+import { initiateSubscription } from "../api/stripe";
+import { logEvent } from "../../analytics";
 
 interface JournalistPageProps {
   journalistId: string;
@@ -33,6 +37,9 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
   const [articles, setArticles] = useState<ArticleModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isSubscribed, user } = useAuth();
+  const isPremium = isSubscribed;
+  console.log("Analyzing journalist", journalistId);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -52,6 +59,21 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
 
     fetchData();
   }, [journalistId]);
+
+  const handleSubscribe = async () => {
+    if (user) {
+      try {
+        const checkoutUrl = await initiateSubscription();
+        window.open(checkoutUrl, "_blank");
+        logEvent("subscription_initiated", { userId: user.uid });
+      } catch (error) {
+        console.error("Error initiating subscription:", error);
+        logEvent("subscription_error", {
+          error: (error as Error).message,
+        });
+      }
+    }
+  };
 
   if (error) {
     return (
@@ -88,14 +110,45 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
           publication={publication}
           onPublicationClick={onPublicationClick}
         />
-        <BiasAnalysisCard
-          biasScore={journalist.bias_score * 1}
-          rhetoricScore={journalist.rhetoric_score * 1}
-          summary={journalist.summary}
-        />
+        {isPremium ? (
+          <BiasAnalysisCard
+            biasScore={journalist.bias_score * 1}
+            rhetoricScore={journalist.rhetoric_score * 1}
+            summary={journalist.summary}
+          />
+        ) : (
+          <Card>
+            <CardContent>
+              <motion.div
+                className="filter blur-sm select-none"
+                whileHover={{ scale: 1.05 }}
+              >
+                <BiasAnalysisCard
+                  biasScore={journalist.bias_score * 1}
+                  rhetoricScore={journalist.rhetoric_score * 1}
+                  summary={journalist.summary}
+                />
+              </motion.div>
+            </CardContent>
+          </Card>
+        )}
       </section>
 
       <ArticlesList articles={articles} />
+
+      {!isPremium && (
+        <div className="mt-8 text-center">
+          <h3 className="text-xl font-semibold mb-4">
+            Unlock Premium Features
+          </h3>
+          <p className="mb-4">
+            Get access to in-depth journalist analysis and bias scores.
+          </p>
+          <Button onClick={handleSubscribe}>
+            Upgrade to Premium for $5/month
+          </Button>
+        </div>
+      )}
     </motion.div>
   );
 };

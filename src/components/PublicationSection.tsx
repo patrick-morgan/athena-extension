@@ -2,13 +2,45 @@ import React from "react";
 import { PublicationAnalysisResponse } from "@/api/api";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { PublicationBiasCard } from "./PublicationBiasCard";
+import { motion } from "framer-motion";
+
+interface BlurredPublicationSectionProps {
+  pubResponse: PublicationAnalysisResponse;
+  onPublicationClick: () => void;
+  isPremium: boolean;
+}
+
+export const BlurredPublicationSection: React.FC<
+  BlurredPublicationSectionProps
+> = ({ pubResponse, onPublicationClick, isPremium }) => {
+  if (isPremium) {
+    return (
+      <PublicationSection
+        pubResponse={pubResponse}
+        onPublicationClick={onPublicationClick}
+      />
+    );
+  }
+
+  return (
+    <motion.div
+      className="filter blur-sm select-none"
+      whileHover={{ scale: 1.05 }}
+    >
+      <PublicationSection
+        pubResponse={pubResponse}
+        onPublicationClick={() => {}}
+      />
+    </motion.div>
+  );
+};
 
 type PublicationSectionProps = {
   pubResponse: PublicationAnalysisResponse;
   onPublicationClick: () => void;
 };
 
-export const PublicationSection: React.FC<PublicationSectionProps> = ({
+const PublicationSection: React.FC<PublicationSectionProps> = ({
   pubResponse,
   onPublicationClick,
 }) => {

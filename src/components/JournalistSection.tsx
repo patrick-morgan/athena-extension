@@ -1,15 +1,47 @@
 import React from "react";
-import { JournalistBiasWithNameModel } from "@/types";
 import { pluralize } from "@/utils/helpers";
 import { JournalistBiasCard } from "./JournalistBiasCard";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
+import { JournalistBiasWithNameModel } from "@/types";
+import { motion } from "framer-motion";
+
+interface BlurredJournalistSectionProps {
+  journalistsBias: JournalistBiasWithNameModel[];
+  onJournalistClick: (journalistId: string) => void;
+  isPremium: boolean;
+}
+
+export const BlurredJournalistSection: React.FC<
+  BlurredJournalistSectionProps
+> = ({ journalistsBias, onJournalistClick, isPremium }) => {
+  if (isPremium) {
+    return (
+      <JournalistSection
+        journalistsBias={journalistsBias}
+        onJournalistClick={onJournalistClick}
+      />
+    );
+  }
+
+  return (
+    <motion.div
+      className="filter blur-sm select-none"
+      whileHover={{ scale: 1.05 }}
+    >
+      <JournalistSection
+        journalistsBias={journalistsBias}
+        onJournalistClick={() => {}}
+      />
+    </motion.div>
+  );
+};
 
 type JournalistSectionProps = {
   journalistsBias: JournalistBiasWithNameModel[];
   onJournalistClick: (journalistId: string) => void;
 };
 
-export const JournalistSection: React.FC<JournalistSectionProps> = ({
+const JournalistSection: React.FC<JournalistSectionProps> = ({
   journalistsBias,
   onJournalistClick,
 }) => {

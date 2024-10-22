@@ -6,18 +6,17 @@ import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { logEvent, logPageView } from "../../analytics";
 import { getIdToken } from "../../firebaseConfig";
+import { initiateSubscription } from "../api/stripe";
 import { useAuth } from "../AuthContext";
 import { AnalyzeArticle } from "./AnalyzeArticle";
 import { AnalyzeButton } from "./AnalyzeButton";
 import { ArticleSection } from "./ArticleSection";
+import { BlurredSection } from "./BlurredSection";
 import { HeaderSection } from "./HeaderSection";
 import { JournalistPage } from "./JournalistPage";
-import { JournalistSection } from "./JournalistSection";
 import PublicationPage from "./PublicationPage";
-import { PublicationSection } from "./PublicationSection";
 import { Spinner } from "./spinner";
-import { SubscriptionPage } from "./SubscriptionPage";
-import { SummarySection } from "./SummarySection";
+import { Button } from "./ui/button";
 import {
   Card,
   CardContent,
@@ -26,6 +25,9 @@ import {
   CardTitle,
 } from "./ui/card";
 import { requestContent, scrollToTop } from "./utils";
+import { BlurredJournalistSection } from "./JournalistSection";
+import { BlurredPublicationSection } from "./PublicationSection";
+import { BlurredSummarySection } from "./SummarySection";
 
 const isUnsupportedPage = (url: string): boolean => {
   const unsupportedDomains = [
@@ -33,6 +35,7 @@ const isUnsupportedPage = (url: string): boolean => {
     "chrome-extension://",
     "https://chrome.google.com",
     "https://www.google.com/search",
+    "https://checkout.stripe.com",
     // Add more unsupported domains as needed
   ];
 
@@ -79,6 +82,7 @@ export const MainSection = () => {
   const [error, setError] = useState<string | null>(null);
   const [isExtensionPage, setIsExtensionPage] = useState(false);
   const { user, isSubscribed } = useAuth();
+  const isPremium = isSubscribed; // Assuming isSubscribed indicates premium status
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [selectedJournalist, setSelectedJournalist] = useState<string | null>(
     null
@@ -97,6 +101,21 @@ export const MainSection = () => {
 
     updateBackgroundToken();
   }, [user]); // Add this effect to update the token when the user changes
+
+  const handleSubscribe = async () => {
+    if (user) {
+      try {
+        const checkoutUrl = await initiateSubscription();
+        window.open(checkoutUrl, "_blank");
+        logEvent("subscription_initiated", { userId: user.uid });
+      } catch (error) {
+        console.error("Error initiating subscription:", error);
+        logEvent("subscription_error", {
+          error: (error as Error).message,
+        });
+      }
+    }
+  };
 
   useEffect(() => {
     logPageView("/home");
@@ -447,9 +466,9 @@ export const MainSection = () => {
     );
   }
 
-  if (!isSubscribed) {
-    return <SubscriptionPage />;
-  }
+  // if (!isSubscribed) {
+  //   return <SubscriptionPage />;
+  // }
 
   if (appState?.error) {
     return (
@@ -565,6 +584,50 @@ export const MainSection = () => {
       )}
 
       {appState.summary ? (
+        <BlurredSummarySection
+          summary={appState.summary}
+          isPremium={isPremium}
+        />
+      ) : (
+        <Skeleton className="w-full h-64" />
+      )}
+
+      {appState.journalistsAnalysis ? (
+        <BlurredJournalistSection
+          journalistsBias={appState.journalistsAnalysis}
+          onJournalistClick={handleJournalistClick}
+          isPremium={isPremium}
+        />
+      ) : (
+        <Skeleton className="w-full h-64" />
+      )}
+
+      {appState.publicationAnalysis ? (
+        <BlurredPublicationSection
+          pubResponse={appState.publicationAnalysis}
+          onPublicationClick={handlePublicationClick}
+          isPremium={isPremium}
+        />
+      ) : (
+        <Skeleton className="w-full h-64" />
+      )}
+
+      {!isPremium && (
+        <div className="mt-8 text-center">
+          <h3 className="text-xl font-semibold mb-4">
+            Unlock Premium Features
+          </h3>
+          <p className="mb-4">
+            Get access to in-depth summaries, journalist analysis, and
+            publication insights.
+          </p>
+          <Button onClick={handleSubscribe}>
+            Upgrade to Premium for $5/month
+          </Button>
+        </div>
+      )}
+
+      {/* {appState.summary ? (
         <SummarySection summary={appState.summary} />
       ) : (
         <Skeleton className="w-full h-64" />
@@ -586,7 +649,7 @@ export const MainSection = () => {
         />
       ) : (
         <Skeleton className="w-full h-64" />
-      )}
+      )} */}
 
       {/* {updateAvailable && (
           <ReAnalyzeButton onClick={handleQuickParse} analyzing={analyzing} />
