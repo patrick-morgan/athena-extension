@@ -513,7 +513,7 @@ export const MainSection = () => {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              Please navigate to a web page to analyze content using Athena.
+              Please navigate to a news article to analyze content using Athena.
               Contact support at pmo@peoplespress.news if problems persist.
             </p>
           </CardContent>
@@ -583,6 +583,21 @@ export const MainSection = () => {
         <Skeleton className="w-full h-64" />
       )}
 
+      {!isPremium && (
+        <div className="mt-6 mb-2 text-center">
+          <h3 className="text-xl font-semibold mb-4">
+            Unlock Premium Features
+          </h3>
+          <p className="mb-4">
+            Get access to in-depth summaries, journalist analysis, and
+            publication insights.
+          </p>
+          <Button onClick={handleSubscribe}>
+            Upgrade to Premium for $5/month
+          </Button>
+        </div>
+      )}
+
       {appState.summary ? (
         <BlurredSummarySection
           summary={appState.summary}
@@ -611,49 +626,6 @@ export const MainSection = () => {
       ) : (
         <Skeleton className="w-full h-64" />
       )}
-
-      {!isPremium && (
-        <div className="mt-8 text-center">
-          <h3 className="text-xl font-semibold mb-4">
-            Unlock Premium Features
-          </h3>
-          <p className="mb-4">
-            Get access to in-depth summaries, journalist analysis, and
-            publication insights.
-          </p>
-          <Button onClick={handleSubscribe}>
-            Upgrade to Premium for $5/month
-          </Button>
-        </div>
-      )}
-
-      {/* {appState.summary ? (
-        <SummarySection summary={appState.summary} />
-      ) : (
-        <Skeleton className="w-full h-64" />
-      )}
-
-      {appState.journalistsAnalysis ? (
-        <JournalistSection
-          journalistsBias={appState.journalistsAnalysis}
-          onJournalistClick={handleJournalistClick}
-        />
-      ) : (
-        <Skeleton className="w-full h-64" />
-      )}
-
-      {appState.publicationAnalysis ? (
-        <PublicationSection
-          pubResponse={appState.publicationAnalysis}
-          onPublicationClick={handlePublicationClick}
-        />
-      ) : (
-        <Skeleton className="w-full h-64" />
-      )} */}
-
-      {/* {updateAvailable && (
-          <ReAnalyzeButton onClick={handleQuickParse} analyzing={analyzing} />
-        )} */}
     </div>
   );
 };

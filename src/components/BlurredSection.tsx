@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 interface BlurredSectionProps {
   title: string;
-  content: React.ReactNode;
+  content: string;
   isPremium: boolean;
 }
 

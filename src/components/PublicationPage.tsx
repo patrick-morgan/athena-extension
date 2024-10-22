@@ -102,6 +102,7 @@ export const PublicationPage: React.FC<PublicationPageProps> = ({
 
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PublicationInfoCard publicationResponse={publication} />
+
         {isPremium ? (
           <BiasAnalysisCard
             biasScore={publication.analysis.bias_score * 1}
@@ -116,31 +117,31 @@ export const PublicationPage: React.FC<PublicationPageProps> = ({
                 whileHover={{ scale: 1.05 }}
               >
                 <BiasAnalysisCard
-                  biasScore={publication.analysis.bias_score * 1}
-                  rhetoricScore={publication.analysis.rhetoric_score * 1}
-                  summary={publication.analysis.summary}
+                  biasScore={-500}
+                  rhetoricScore={-500}
+                  summary={"You're not getting the biases that easy, buddy!"}
                 />
               </motion.div>
             </CardContent>
           </Card>
         )}
+
+        {!isPremium && (
+          <div className="mt-6 mb-2 text-center">
+            <h3 className="text-xl font-semibold mb-4">
+              Unlock Premium Features
+            </h3>
+            <p className="mb-4">
+              Get access to in-depth publication analysis and bias scores.
+            </p>
+            <Button onClick={handleSubscribe}>
+              Upgrade to Premium for $5/month
+            </Button>
+          </div>
+        )}
       </section>
 
       <ArticlesList articles={articles} />
-
-      {!isPremium && (
-        <div className="mt-8 text-center">
-          <h3 className="text-xl font-semibold mb-4">
-            Unlock Premium Features
-          </h3>
-          <p className="mb-4">
-            Get access to in-depth publication analysis and bias scores.
-          </p>
-          <Button onClick={handleSubscribe}>
-            Upgrade to Premium for $5/month
-          </Button>
-        </div>
-      )}
     </motion.div>
   );
 };

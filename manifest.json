@@ -7,16 +7,16 @@
   "action": {
     "default_popup": "js/index.html",
     "default_icon": {
-      "16": "node-logo.png",
-      "48": "node-logo.png",
-      "128": "node-logo.png"
+      "16": "goat-logo.png",
+      "48": "goat-logo.png",
+      "128": "goat-logo.png"
     },
     "default_title": "Athena AI"
   },
   "icons": {
-    "16": "node-logo.png",
-    "48": "node-logo.png",
-    "128": "node-logo.png"
+    "16": "goat-logo.png",
+    "48": "goat-logo.png",
+    "128": "goat-logo.png"
   },
   "permissions": [
     "scripting",

@@ -8,12 +8,12 @@ import {
 import config from "../../config";
 import axios from "axios";
 
-// export const API_URL =
-//   process.env.NODE_ENV === "production"
-//     ? process.env.EXPRESS_API_URL
-//     : "http://localhost:3000";
+export const API_URL =
+  process.env.NODE_ENV === "production"
+    ? process.env.EXPRESS_API_URL
+    : "http://localhost:3000";
 
-export const API_URL = "http://localhost:3000";
+// export const API_URL = "http://localhost:3000";
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -154,135 +154,135 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // }
 });
 
-let currentUrl = "";
+// let currentUrl = "";
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === "complete" && tab.url !== currentUrl) {
-    currentUrl = tab.url;
-    if (isValidUrl(currentUrl)) {
-      fetchAndStoreArticle(currentUrl);
-    }
-  }
-});
+// chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+//   if (changeInfo.status === "complete" && tab.url !== currentUrl) {
+//     currentUrl = tab.url;
+//     if (isValidUrl(currentUrl)) {
+//       fetchAndStoreArticle(currentUrl);
+//     }
+//   }
+// });
 
-function isValidUrl(url) {
-  // Implement your URL validation logic here
-  // For example, check if it's not a chrome:// URL, not a search page, etc.
-  return true;
-}
+// function isValidUrl(url) {
+//   // Implement your URL validation logic here
+//   // For example, check if it's not a chrome:// URL, not a search page, etc.
+//   return true;
+// }
 
-async function fetchAndStoreArticle(url) {
-  try {
-    console.log("fetching article by url", url);
-    const response = await fetch(
-      `${API_URL}/articles/by-url?url=${encodeURIComponent(url)}`
-    );
-    console.log("fetch by url", response.ok);
-    if (response.ok) {
-      // let journalistsAnalysis = [];
-      const {
-        article,
-        publicationAnalysis,
-        journalistsAnalysis,
-        summary,
-        political_bias_score,
-        objectivity_score,
-        // journalists,
-      } = await response.json();
-      // journalistsAnalysis =
-      console.log("article", article);
-      console.log("journalistsAnalysis", journalistsAnalysis);
-      console.log("publicationAnalysis", publicationAnalysis);
-      console.log("summary", summary);
-      console.log("political_bias_score", political_bias_score);
-      console.log("objectivity_score", objectivity_score);
+// async function fetchAndStoreArticle(url) {
+//   try {
+//     console.log("fetching article by url", url);
+//     const response = await fetch(
+//       `${API_URL}/articles/by-url?url=${encodeURIComponent(url)}`
+//     );
+//     console.log("fetch by url", response.ok);
+//     if (response.ok) {
+//       // let journalistsAnalysis = [];
+//       const {
+//         article,
+//         publicationAnalysis,
+//         journalistsAnalysis,
+//         summary,
+//         political_bias_score,
+//         objectivity_score,
+//         // journalists,
+//       } = await response.json();
+//       // journalistsAnalysis =
+//       console.log("article", article);
+//       console.log("journalistsAnalysis", journalistsAnalysis);
+//       console.log("publicationAnalysis", publicationAnalysis);
+//       console.log("summary", summary);
+//       console.log("political_bias_score", political_bias_score);
+//       console.log("objectivity_score", objectivity_score);
 
-      if (!article) return;
+//       if (!article) return;
 
-      // If not journalists.length, it didn't run, so quickly run it
-      // if (
-      //   (article.article_authors.length && !journalistsAnalysis.length) ||
-      //   (journalistsAnalysis.length &&
-      //     article.article_authors.length > journalistsAnalysis.length)
-      // ) {
-      //   console.log("Running journalist analysis on article", article.id);
-      //   const journalistResponse = await axiosInstance.post(
-      //     "/analyze-journalists",
-      //     {
-      //       articleId: article.id,
-      //     }
-      //   );
-      //   console.log("journalist response", journalistResponse.data);
-      //   journalistsAnalysis.length = 0;
-      //   journalistResponse.data.forEach((j) => {
-      //     journalistsAnalysis.push(j);
-      //   });
-      //   console.log("Journalist Analysis now:", journalistsAnalysis);
-      // }
+//       // If not journalists.length, it didn't run, so quickly run it
+//       // if (
+//       //   (article.article_authors.length && !journalistsAnalysis.length) ||
+//       //   (journalistsAnalysis.length &&
+//       //     article.article_authors.length > journalistsAnalysis.length)
+//       // ) {
+//       //   console.log("Running journalist analysis on article", article.id);
+//       //   const journalistResponse = await axiosInstance.post(
+//       //     "/analyze-journalists",
+//       //     {
+//       //       articleId: article.id,
+//       //     }
+//       //   );
+//       //   console.log("journalist response", journalistResponse.data);
+//       //   journalistsAnalysis.length = 0;
+//       //   journalistResponse.data.forEach((j) => {
+//       //     journalistsAnalysis.push(j);
+//       //   });
+//       //   console.log("Journalist Analysis now:", journalistsAnalysis);
+//       // }
 
-      // const publicationAnalysisDict = {};
-      // publicationAnalysisDict[publicationAnalysis.publication.id] =
-      //   publicationAnalysis.analysis;
+//       // const publicationAnalysisDict = {};
+//       // publicationAnalysisDict[publicationAnalysis.publication.id] =
+//       //   publicationAnalysis.analysis;
 
-      const reducedArticle = {
-        id: article.id,
-        created_at: article.created_at,
-        updated_at: article.updated_at,
-        url: article.url,
-        title: article.title,
-        date_published: article.date_published,
-        date_updated: article.date_updated,
-        text: "",
-        publication: article.publicationObject,
-        article_authors: article.article_authors,
-      };
+//       const reducedArticle = {
+//         id: article.id,
+//         created_at: article.created_at,
+//         updated_at: article.updated_at,
+//         url: article.url,
+//         title: article.title,
+//         date_published: article.date_published,
+//         date_updated: article.date_updated,
+//         text: "",
+//         publication: article.publicationObject,
+//         article_authors: article.article_authors,
+//       };
 
-      chrome.storage.local.set({
-        [encodeURIComponent(url)]: {
-          ...reducedArticle,
-          summary: summary,
-          political_bias_score: political_bias_score,
-          objectivity_score: objectivity_score,
-        },
-      });
+//       chrome.storage.local.set({
+//         [encodeURIComponent(url)]: {
+//           ...reducedArticle,
+//           summary: summary,
+//           political_bias_score: political_bias_score,
+//           objectivity_score: objectivity_score,
+//         },
+//       });
 
-      console.log("setting publication analysis by-url", publicationAnalysis);
-      console.log("setting journalist analysis by-url", journalistsAnalysis);
+//       console.log("setting publication analysis by-url", publicationAnalysis);
+//       console.log("setting journalist analysis by-url", journalistsAnalysis);
 
-      if (publicationAnalysis || journalistsAnalysis) {
-        // chrome.storage.local.set({
-        //   [article.publication]: publicationAnalysis,
-        // });
+//       if (publicationAnalysis || journalistsAnalysis) {
+//         // chrome.storage.local.set({
+//         //   [article.publication]: publicationAnalysis,
+//         // });
 
-        await chrome.storage.local.set({
-          [`${encodeURIComponent(url)}_detailed`]: {
-            publicationAnalysis: publicationAnalysis,
-            journalistsAnalysis: journalistsAnalysis,
-          },
-        });
-      }
+//         await chrome.storage.local.set({
+//           [`${encodeURIComponent(url)}_detailed`]: {
+//             publicationAnalysis: publicationAnalysis,
+//             journalistsAnalysis: journalistsAnalysis,
+//           },
+//         });
+//       }
 
-      // if (journalistsAnalysis?.length) {
-      //   await chrome.storage.local.set({
-      //     [`${encodeURIComponent(url)}_detailed`]: {
-      //       journalistsAnalysis: journalistsAnalysis.data,
-      //       // publicationAnalysis: publicationAnalysis.data,
-      //     },
-      //   });
-      //   // journalistsAnalysis?.forEach((journalist) => {
-      //   //   console.log("setting journalist", journalist.journalist, journalist);
+//       // if (journalistsAnalysis?.length) {
+//       //   await chrome.storage.local.set({
+//       //     [`${encodeURIComponent(url)}_detailed`]: {
+//       //       journalistsAnalysis: journalistsAnalysis.data,
+//       //       // publicationAnalysis: publicationAnalysis.data,
+//       //     },
+//       //   });
+//       //   // journalistsAnalysis?.forEach((journalist) => {
+//       //   //   console.log("setting journalist", journalist.journalist, journalist);
 
-      //   //   if (!journalist?.journalist) return;
-      //   //   chrome.storage.local.set({
-      //   //     [journalist.journalist]: journalist,
-      //   //   });
-      //   // });
-      // }
-    }
-  } catch (error) {
-    console.error("Error fetching article:", error);
-  }
-}
+//       //   //   if (!journalist?.journalist) return;
+//       //   //   chrome.storage.local.set({
+//       //   //     [journalist.journalist]: journalist,
+//       //   //   });
+//       //   // });
+//       // }
+//     }
+//   } catch (error) {
+//     console.error("Error fetching article:", error);
+//   }
+// }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "startQuickParse") {

@@ -22,13 +22,35 @@ export const BlurredPublicationSection: React.FC<
     );
   }
 
+  const blurredPublication: PublicationAnalysisResponse = {
+    publication: {
+      id: "fish",
+      created_at: new Date(),
+      updated_at: new Date(),
+      name: pubResponse.publication.name,
+      hostname: pubResponse.publication.hostname,
+      date_founded: pubResponse.publication.date_founded,
+      owner: pubResponse.publication.owner,
+    },
+    analysis: {
+      id: "fish",
+      created_at: new Date(),
+      updated_at: new Date(),
+      summary: "You're not getting the biases that easy, buddy!",
+      bias_score: -500,
+      rhetoric_score: -500,
+      num_articles_analyzed: 50,
+      publication: pubResponse.analysis.publication,
+    },
+  };
+
   return (
     <motion.div
       className="filter blur-sm select-none"
       whileHover={{ scale: 1.05 }}
     >
       <PublicationSection
-        pubResponse={pubResponse}
+        pubResponse={blurredPublication}
         onPublicationClick={() => {}}
       />
     </motion.div>

@@ -22,6 +22,17 @@ export const BlurredJournalistSection: React.FC<
       />
     );
   }
+  const blurredJournalists = journalistsBias.map((j) => ({
+    id: "fish",
+    created_at: new Date(),
+    updated_at: new Date(),
+    name: j.name,
+    summary: "You're not getting the biases that easy, buddy!",
+    bias_score: -500,
+    rhetoric_score: -500,
+    num_articles_analyzed: 50,
+    journalist: "",
+  }));
 
   return (
     <motion.div
@@ -29,7 +40,7 @@ export const BlurredJournalistSection: React.FC<
       whileHover={{ scale: 1.05 }}
     >
       <JournalistSection
-        journalistsBias={journalistsBias}
+        journalistsBias={blurredJournalists}
         onJournalistClick={() => {}}
       />
     </motion.div>
