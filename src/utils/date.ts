@@ -57,3 +57,21 @@ export const formatDate = (date: Date | string): string => {
 
   return new Intl.DateTimeFormat(undefined, options).format(dateObject);
 };
+
+export const formatDateFounded = (date: Date | string): string => {
+  // If date is a string, convert it to a Date object
+  const dateObject = typeof date === "string" ? new Date(date) : date;
+
+  // Check if the date is valid
+  if (isNaN(dateObject.getTime())) {
+    throw new Error("Invalid date");
+  }
+
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+
+  return new Intl.DateTimeFormat(undefined, options).format(dateObject);
+};

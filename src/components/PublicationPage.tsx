@@ -1,22 +1,21 @@
-import React, { useEffect, useState } from "react";
 import {
   analyzePublication,
   getPublicationArticles,
   PublicationAnalysisResponse,
 } from "@/api/api";
 import { ArticleModel } from "@/types";
-import { formatDate } from "@/utils/date";
+import { formatDate, formatDateFounded } from "@/utils/date";
 import { motion } from "framer-motion";
-import { ChevronLeft, AlertCircle, ExternalLink } from "lucide-react";
+import { AlertCircle, ChevronLeft, ExternalLink } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { logEvent } from "../../analytics";
+import { initiateSubscription } from "../api/stripe";
+import { useAuth } from "../AuthContext";
+import { BiasAnalysisCard } from "./BiasAnalysisCard";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import { BiasAnalysisCard } from "./BiasAnalysisCard";
-import { useAuth } from "../AuthContext";
-import { BlurredSection } from "./BlurredSection";
-import { initiateSubscription } from "../api/stripe";
-import { logEvent } from "../../analytics";
 
 interface PublicationPageProps {
   publicationId: string;
@@ -170,7 +169,7 @@ const PublicationInfoCard: React.FC<{
           <p>
             <span className="text-muted-foreground">Date Founded:</span>{" "}
             <span className="font-semibold">
-              {formatDate(publicationResponse.publication.date_founded)}
+              {formatDateFounded(publicationResponse.publication.date_founded)}
             </span>
           </p>
         )}
