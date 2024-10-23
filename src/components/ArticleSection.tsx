@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 // import { parseFootnotes } from "@/utils/footnotes";
 // import { NumberLine } from "./NumberLine";
 import { motion } from "framer-motion";
+import { TooltipIcon } from "./TooltipIcon";
 
 type ArticleSectionProps = {
   politicalBiasScore: number;
@@ -107,7 +108,10 @@ const BiasBar: React.FC<{
       />
     </div>
     <div className="flex justify-between text-xs">
-      <span className="text-muted-foreground">{label}</span>
+      <div className="flex items-center">
+        <span className="text-muted-foreground">{label}</span>
+        <TooltipIcon content="This score is calculated based on the language and topics covered in the articles, using advanced natural language processing techniques." />
+      </div>
       <span className="font-semibold">{(value * 1).toFixed(1)}%</span>
     </div>
   </div>
@@ -133,7 +137,10 @@ const WritingStyleBar: React.FC<{
       />
     </div>
     <div className="flex justify-between text-xs">
-      <span className="text-muted-foreground">{label}</span>
+      <div className="flex items-center">
+        <span className="text-muted-foreground">{label}</span>
+        <TooltipIcon content="This score reflects the balance between opinion-based and fact-based writing, determined through analysis of language patterns, word choice, and tone of writing." />
+      </div>
       <span className="font-semibold">{(value * 1).toFixed(1)}%</span>
     </div>
   </div>

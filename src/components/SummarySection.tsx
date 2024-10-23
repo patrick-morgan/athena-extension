@@ -74,7 +74,7 @@ export const BlurredSummarySection: React.FC<BlurredSummarySectionProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Article Summary</CardTitle>
+        <CardTitle>Article Summary & Analysis</CardTitle>
       </CardHeader>
       <CardContent>
         {isPremium ? (

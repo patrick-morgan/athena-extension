@@ -6,6 +6,7 @@ import { BiasBar, renderMarkdown, WritingStyleBar } from "./BiasAnalysisCard";
 import { Button } from "./ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { pluralize } from "@/utils/helpers";
+import { TooltipIcon } from "./TooltipIcon";
 
 interface JournalistBiasCardProps {
   name: string;
@@ -30,12 +31,15 @@ export const JournalistBiasCard: React.FC<JournalistBiasCardProps> = ({
     <Card>
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-4">
-          <h2
-            className="text-xl font-semibold cursor-pointer hover:underline"
-            onClick={onJournalistClick}
-          >
-            {name}
-          </h2>
+          <div className="flex items-center">
+            <h2
+              className="text-xl font-semibold cursor-pointer hover:underline"
+              onClick={onJournalistClick}
+            >
+              {name}
+            </h2>
+            <TooltipIcon content="This analysis is based on all articles Athena has analyzed from this journalist" />
+          </div>
           <Badge variant="outline" className="text-xs">
             {numArticlesAnalyzed} {pluralize("article", numArticlesAnalyzed)}{" "}
             analyzed

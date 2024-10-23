@@ -2,6 +2,7 @@ import React, { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "./ui/card";
 import ReactMarkdown from "react-markdown";
+import { TooltipIcon } from "./TooltipIcon";
 
 export const BiasAnalysisCard: React.FC<{
   biasScore: number;
@@ -54,7 +55,10 @@ export const BiasBar: React.FC<{
       />
     </div>
     <div className="flex justify-between text-xs">
-      <span className="text-muted-foreground">{label}</span>
+      <div className="flex items-center">
+        <span className="text-muted-foreground">{label}</span>
+        <TooltipIcon content="This score is calculated based on the language and topics covered in the articles, using advanced natural language processing techniques." />
+      </div>
       <span className="font-semibold">{(value * 1).toFixed(1)}%</span>
     </div>
   </div>
@@ -80,7 +84,10 @@ export const WritingStyleBar: React.FC<{
       />
     </div>
     <div className="flex justify-between text-xs">
-      <span className="text-muted-foreground">{label}</span>
+      <div className="flex items-center">
+        <span className="text-muted-foreground">{label}</span>
+        <TooltipIcon content="This score reflects the balance between opinion-based and fact-based writing, determined through analysis of language patterns, word choice, and tone of writing." />
+      </div>
       <span className="font-semibold">{(value * 1).toFixed(1)}%</span>
     </div>
   </div>
