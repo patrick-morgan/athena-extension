@@ -1,7 +1,7 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cleanHTML } from "@/parsers/genericParser";
-import { AppStateType, ArticleModel } from "@/types";
+import { AppStateType } from "@/types";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { logEvent, logPageView } from "../../analytics";
@@ -34,6 +34,8 @@ const isUnsupportedPage = (url: string): boolean => {
     "chrome-extension://",
     "https://chrome.google.com",
     "https://www.google.com/search",
+    "https://drive.google.com/",
+    "https://docs.google.com/",
     "https://checkout.stripe.com",
     "https://billing.stripe.com/",
     // Add more unsupported domains as needed
@@ -60,20 +62,6 @@ const isUnsupportedPage = (url: string): boolean => {
   }
 };
 
-const getFromStorage = (key: string): Promise<any> => {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(key, (result) => {
-      resolve(result[key]);
-    });
-  });
-};
-
-type ArticleWithAnalysis = ArticleModel & {
-  summary: string;
-  political_bias_score: number;
-  objectivity_score: number;
-};
-
 export const MainSection = () => {
   const [analyzing, setAnalyzing] = useState(false);
   const [appState, setAppState] = useState<AppStateType | null | undefined>(
@@ -83,7 +71,6 @@ export const MainSection = () => {
   const [isExtensionPage, setIsExtensionPage] = useState(false);
   const { user, isSubscribed } = useAuth();
   const isPremium = isSubscribed; // Assuming isSubscribed indicates premium status
-  const [updateAvailable, setUpdateAvailable] = useState(false);
   const [selectedJournalist, setSelectedJournalist] = useState<string | null>(
     null
   );
@@ -143,20 +130,6 @@ export const MainSection = () => {
             pollDetailedAnalysisStatus(resp.url);
           } else if (detailedState && detailedState.status === "completed") {
             const detailedData = await loadDetailedAnalysisData(resp.url);
-            // if (detailedData) {
-            //   setAppState((prevState) => {
-            //     if (!prevState) return prevState; // Return null or undefined if prevState is null or undefined
-            //     return {
-            //       ...prevState,
-            //       journalistsAnalysis:
-            //         detailedData.journalistsAnalysis ??
-            //         prevState.journalistsAnalysis,
-            //       publicationAnalysis:
-            //         detailedData.publicationAnalysis ??
-            //         prevState.publicationAnalysis,
-            //     };
-            //   });
-            // }
             if (detailedData) {
               setAppState((prevState) => {
                 if (!prevState) {
@@ -426,19 +399,6 @@ export const MainSection = () => {
     }
   };
 
-  const getAnalysisState = async (
-    url: string
-  ): Promise<{ status: string; message?: string } | null> => {
-    return new Promise((resolve) => {
-      chrome.runtime.sendMessage(
-        { action: "getAnalysisState", url },
-        (response) => {
-          resolve(response);
-        }
-      );
-    });
-  };
-
   const handleJournalistClick = (journalistId: string) => {
     setSelectedJournalist(journalistId);
     scrollToTop();
@@ -455,20 +415,6 @@ export const MainSection = () => {
     setSelectedPublication(null);
     scrollToTop();
   };
-
-  console.log("app state", appState);
-
-  if (!user) {
-    return (
-      <div className="flex justify-center items-center">
-        <h2 className="text-2xl font-semibold">Please sign in to use Athena</h2>
-      </div>
-    );
-  }
-
-  // if (!isSubscribed) {
-  //   return <SubscriptionPage />;
-  // }
 
   if (appState?.error) {
     return (
@@ -535,6 +481,24 @@ export const MainSection = () => {
       <div className="flex flex-col gap-6 justify-center items-center h-full">
         <AnalyzeArticle />
         <AnalyzeButton analyzing={analyzing} onClick={onAnalyze} />
+        <div className="mt-4 p-4 mx-4 bg-blue-50 border-l-4 border-blue-400 text-blue-700 rounded-md flex items-center">
+          <svg
+            className="w-5 h-5 mr-2 text-blue-400"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              fillRule="evenodd"
+              d="M18 10c0 4.418-3.582 8-8 8s-8-3.582-8-8 3.582-8 8-8 8 3.582 8 8zm-8-3a1 1 0 00-1 1v2a1 1 0 102 0V8a1 1 0 00-1-1zm0 6a1 1 0 100 2 1 1 0 000-2z"
+              clipRule="evenodd"
+            />
+          </svg>
+          <p className="text-sm">
+            Please ensure the content you analyze is suitable for public review.
+            Avoid analyzing personal or private information.
+          </p>
+        </div>
       </div>
     );
   }
