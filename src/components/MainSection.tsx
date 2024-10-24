@@ -11,7 +11,6 @@ import { useAuth } from "../AuthContext";
 import { AnalyzeArticle } from "./AnalyzeArticle";
 import { AnalyzeButton } from "./AnalyzeButton";
 import { ArticleSection } from "./ArticleSection";
-import { BlurredSection } from "./BlurredSection";
 import { HeaderSection } from "./HeaderSection";
 import { JournalistPage } from "./JournalistPage";
 import PublicationPage from "./PublicationPage";
@@ -36,6 +35,7 @@ const isUnsupportedPage = (url: string): boolean => {
     "https://chrome.google.com",
     "https://www.google.com/search",
     "https://checkout.stripe.com",
+    "https://billing.stripe.com/",
     // Add more unsupported domains as needed
   ];
 
