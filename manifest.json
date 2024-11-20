@@ -2,8 +2,8 @@
   "version": "1.0.0",
   "manifest_version": 3,
   "name": "Athena AI Extension",
-  "description": "Find the truth",
   "key": "-----BEGIN PUBLIC KEY-----MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuKsBAyURSW8kciTjhTsJAeN35ie2G6DDBBa5sNdwbYASqIrReIUGOmYGr7SVSsEzociuUySv5n5X4kKr7NprVc0MRJrBsg6wpTU/mb1f1xR5q5Cd6AL6Q2adEEPJK1GmyBjHY487yKR92I24vSRQst2mCuh7qLwWrr6ZjQ+JdhlAkuOzNlXJIjmTGBsWunco3glKfeq1H9jezdAjMI1RDslM8GTygWAAM1oZhIAaU2Ty3nsKKrFi/1FuGKeSaRlbizlFxPEjAuxxU9HWPH4Xyt/AsVt5epRB7LTG5kjJjj6o4oLpoc0Ppw2tkfmles/UNXzR2ZTlochnkyRE05vOYQIDAQAB-----END PUBLIC KEY-----",
+  "description": "Find the truth with AI-powered news analysis",
   "action": {
     "default_popup": "js/index.html",
     "default_icon": {
@@ -18,41 +18,15 @@
     "48": "search-logo-48.png",
     "128": "search-logo-128.png"
   },
-  "permissions": [
-    "scripting",
-    "activeTab",
-    "storage",
-    "tabs",
-    "identity",
-    "http://localhost:3000/"
-  ],
+  "permissions": ["activeTab", "storage"],
   "background": {
     "service_worker": "js/background.js"
   },
-  "externally_connectable": {
-    "matches": ["https://peoplespress.news/*"]
-  },
   "host_permissions": [
-    "https://*.firebaseapp.com/*",
-    "https://www.googletagmanager.com/",
-    "https://www.google-analytics.com/",
     "https://express-backend-production-7ccd.up.railway.app/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://www.google-analytics.com https://*.googleapis.com https://*.firebaseapp.com https://*.firebase.com https://express-backend-production-7ccd.up.railway.app http://localhost:3000"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["js/analytics.js"],
-      "matches": ["<all_urls>"]
-    }
-  ],
-  "oauth2": {
-    "client_id": "981341455175-uaf4bg5bl7voulhnmsvbp312d2bot18i.apps.googleusercontent.com",
-    "scopes": [
-      "https://www.googleapis.com/auth/userinfo.email",
-      "https://www.googleapis.com/auth/userinfo.profile"
-    ]
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://*.googleapis.com https://*.firebaseapp.com https://*.firebase.com https://express-backend-production-7ccd.up.railway.app"
   },
   "content_scripts": [
     {
