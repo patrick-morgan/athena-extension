@@ -30,9 +30,10 @@ export const Layout = ({ children }: LayoutProps) => {
               {user ? (
                 <UserMenu user={user} isSubscribed={isSubscribed} />
               ) : (
-                <Button onClick={signIn} variant="secondary" size="sm">
-                  Sign In
-                </Button>
+                <></>
+                // <Button onClick={signIn} variant="secondary" size="sm">
+                //   Sign In
+                // </Button>
               )}
             </>
           )}
