@@ -45,13 +45,80 @@ module.exports = {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
         type: "asset/resource",
       },
+      // Updated reCAPTCHA removal rules
+      {
+        test: /\.(js|ts|tsx)$/,
+        enforce: "pre",
+        use: [
+          {
+            loader: "string-replace-loader",
+            options: {
+              multiple: [
+                { search: /recaptcha/gi, replace: "excluded", flags: "g" },
+                {
+                  search: /getRecaptcha/g,
+                  replace: "(() => undefined)",
+                  flags: "g",
+                },
+                {
+                  search: /loadRecaptcha/g,
+                  replace: "(() => undefined)",
+                  flags: "g",
+                },
+                {
+                  search: /initRecaptcha/g,
+                  replace: "(() => undefined)",
+                  flags: "g",
+                },
+                {
+                  search: /require\(['"]\.\/recaptcha['"]\)/g,
+                  replace: "({})",
+                  flags: "g",
+                },
+                {
+                  search: /import.*recaptcha.*from/g,
+                  replace: "import empty from",
+                  flags: "g",
+                },
+              ],
+            },
+          },
+        ],
+      },
     ],
   },
   optimization: {
     usedExports: true,
-    minimizer: [new TerserPlugin()],
+    minimizer: [
+      new TerserPlugin({
+        terserOptions: {
+          compress: {
+            drop_console: true,
+            pure_funcs: [
+              "_loadRecaptcha",
+              "_loadRecaptchaScript",
+              "loadRecaptcha",
+              "initRecaptcha",
+              "getRecaptcha",
+              "_getRecaptcha",
+              "_initRecaptcha",
+            ],
+          },
+          mangle: true,
+          format: {
+            comments: false,
+          },
+        },
+        extractComments: false,
+      }),
+    ],
   },
   plugins: [
+    // Add IgnorePlugin for reCAPTCHA
+    new webpack.IgnorePlugin({
+      resourceRegExp: /recaptcha|\/auth\/index\.js$/,
+      contextRegExp: /firebase|@firebase/,
+    }),
     new Dotenv({
       path: "./.env",
       safe: true,
@@ -71,9 +138,16 @@ module.exports = {
     extensions: [".tsx", ".ts", ".js"],
     alias: {
       "@": path.resolve(__dirname, "src"),
+      // Enhanced reCAPTCHA aliases
+      "./recaptcha": path.resolve(__dirname, "src/empty.js"),
+      "firebase/recaptcha": path.resolve(__dirname, "src/empty.js"),
+      "@firebase/recaptcha": path.resolve(__dirname, "src/empty.js"),
+      recaptcha: path.resolve(__dirname, "src/empty.js"),
+    },
+    fallback: {
+      recaptcha: false,
     },
   },
-
   output: {
     path: path.join(__dirname, "dist/js"),
     filename: "[name].js",

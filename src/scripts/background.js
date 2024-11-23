@@ -40,6 +40,9 @@ const firebaseConfig = config;
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
+// Disable reCAPTCHA verification
+auth.settings.appVerificationDisabledForTesting = true;
+
 // Check if chrome is defined before using it
 if (typeof chrome !== "undefined" && chrome.runtime) {
   chrome.runtime.onMessageExternal.addListener(function (

@@ -14,6 +14,9 @@ const firebaseConfig = config;
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
+// Disable reCAPTCHA verification
+auth.settings.appVerificationDisabledForTesting = true;
+
 export const signUpWithEmail = async (
   email: string,
   password: string
