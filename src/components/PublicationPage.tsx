@@ -8,7 +8,6 @@ import { formatDate, formatDateFounded } from "@/utils/date";
 import { motion } from "framer-motion";
 import { AlertCircle, ChevronLeft, ExternalLink } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { logEvent } from "../../analytics";
 import { initiateSubscription } from "../api/stripe";
 import { useAuth } from "../AuthContext";
 import { BiasAnalysisCard } from "./BiasAnalysisCard";
@@ -60,12 +59,12 @@ export const PublicationPage: React.FC<PublicationPageProps> = ({
       try {
         const checkoutUrl = await initiateSubscription();
         window.open(checkoutUrl, "_blank");
-        logEvent("subscription_initiated", { userId: user.uid });
+        // logEvent("subscription_initiated", { userId: user.uid });
       } catch (error) {
         console.error("Error initiating subscription:", error);
-        logEvent("subscription_error", {
-          error: (error as Error).message,
-        });
+        // logEvent("subscription_error", {
+        //   error: (error as Error).message,
+        // });
       }
     }
   };

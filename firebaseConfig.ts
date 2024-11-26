@@ -7,7 +7,6 @@ import {
   sendPasswordResetEmail,
   User,
 } from "firebase/auth";
-import { logEvent } from "./analytics";
 import config from "./config";
 
 const firebaseConfig = config;
@@ -29,7 +28,7 @@ export const signUpWithEmail = async (
     );
     return userCredential.user;
   } catch (error) {
-    logEvent("sign_up_error", { error: (error as Error).message });
+    // logEvent("sign_up_error", { error: (error as Error).message });
     throw error;
   }
 };
@@ -46,7 +45,7 @@ export const signInWithEmail = async (
     );
     return userCredential.user;
   } catch (error) {
-    logEvent("sign_in_error", { error: (error as Error).message });
+    // logEvent("sign_in_error", { error: (error as Error).message });
     throw error;
   }
 };
@@ -55,7 +54,7 @@ export const signOut = async (): Promise<void> => {
   try {
     await firebaseSignOut(auth);
   } catch (error) {
-    logEvent("sign_out_error", { error: (error as Error).message });
+    // logEvent("sign_out_error", { error: (error as Error).message });
     throw error;
   }
 };
@@ -86,7 +85,7 @@ export const resetPassword = async (email: string): Promise<void> => {
   try {
     await sendPasswordResetEmail(auth, email);
   } catch (error) {
-    logEvent("password_reset_error", { error: (error as Error).message });
+    // logEvent("password_reset_error", { error: (error as Error).message });
     throw error;
   }
 };

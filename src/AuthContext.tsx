@@ -7,7 +7,6 @@ import {
   signOut,
 } from "../firebaseConfig";
 import { checkSubscription } from "./api/stripe";
-import { logEvent } from "../analytics";
 
 interface AuthContextType {
   user: User | null;
@@ -55,10 +54,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const user = await signInWithEmail(email, password);
       setUser(user);
       await checkSubscriptionStatus(user);
-      logEvent("user_sign_in", { user_id: user.uid });
+      // logEvent("user_sign_in", { user_id: user.uid });
     } catch (error) {
       console.error("Error signing in:", error);
-      logEvent("sign_in_error", { error_message: (error as Error).message });
+      // logEvent("sign_in_error", { error_message: (error as Error).message });
       throw error;
     }
   };
@@ -68,10 +67,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const user = await signUpWithEmail(email, password);
       setUser(user);
       await checkSubscriptionStatus(user);
-      logEvent("user_sign_up", { user_id: user.uid });
+      // logEvent("user_sign_up", { user_id: user.uid });
     } catch (error) {
       console.error("Error signing up:", error);
-      logEvent("sign_up_error", { error_message: (error as Error).message });
+      // logEvent("sign_up_error", { error_message: (error as Error).message });
       throw error;
     }
   };
@@ -81,10 +80,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       await signOut();
       setUser(null);
       setIsSubscribed(false);
-      logEvent("user_sign_out");
+      // logEvent("user_sign_out");
     } catch (error) {
       console.error("Error signing out:", error);
-      logEvent("sign_out_error", { error_message: (error as Error).message });
+      // logEvent("sign_out_error", { error_message: (error as Error).message });
     }
   };
 

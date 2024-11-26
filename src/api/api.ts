@@ -9,7 +9,6 @@ import {
   SummaryModel,
 } from "../types";
 import axiosInstance from "./axiosInstance";
-import { logEvent } from "../../analytics";
 
 export const getArticles = async () => {
   const response = await axiosInstance.get(`/articles`);
@@ -82,11 +81,11 @@ export const checkDateUpdated = async (payload: {
       `/articles/date-updated`,
       payload
     );
-    logEvent("date_updated_checked", { response: response.data });
+    // logEvent("date_updated_checked", { response: response.data });
     return response.data;
   } catch (error) {
     console.error("Error checking date updated:", error);
-    logEvent("date_updated_error", { error: error });
+    // logEvent("date_updated_error", { error: error });
     return null;
   }
 };
@@ -109,11 +108,11 @@ export const quickParseArticle = async (payload: {
 }): Promise<QuickParseArticleResponse | null> => {
   try {
     const response = await axiosInstance.post(`/articles/quick-parse`, payload);
-    logEvent("article_quick_parsed", { article: response.data });
+    // logEvent("article_quick_parsed", { article: response.data });
     return response.data;
   } catch (error) {
     console.error("Error quick parsing article:", error);
-    logEvent("quick_parse_error", { error: error });
+    // logEvent("quick_parse_error", { error: error });
     return null;
   }
 };
@@ -124,11 +123,11 @@ export const fullParseArticle = async (payload: {
 }): Promise<CreateArticleResponse | null> => {
   try {
     const response = await axiosInstance.post(`/articles/full-parse`, payload);
-    logEvent("article_full_parsed", { article: response.data });
+    // logEvent("article_full_parsed", { article: response.data });
     return response.data;
   } catch (error) {
     console.error("Error full parsing article:", error);
-    logEvent("full_parse_error", { error: error });
+    // logEvent("full_parse_error", { error: error });
     return null;
   }
 };
@@ -159,11 +158,11 @@ export const analyzeJournalists = async (
       `/analyze-journalists`,
       articleId
     );
-    logEvent("journalists_analyzed", { journalists: response.data });
+    // logEvent("journalists_analyzed", { journalists: response.data });
     return response.data;
   } catch (error) {
     console.error("Error analyzing journalists:", error);
-    logEvent("journalists_error", { error: error });
+    // logEvent("journalists_error", { error: error });
     return [];
   }
 };
@@ -180,11 +179,11 @@ export const analyzeJournalist = async (
       `/analyze-journalist`,
       journalistId
     );
-    logEvent("journalist_analyzed", { journalist: response.data });
+    // logEvent("journalist_analyzed", { journalist: response.data });
     return response.data;
   } catch (error) {
     console.error("Error analyzing journalists:", error);
-    logEvent("journalists_error", { error: error });
+    // logEvent("journalists_error", { error: error });
     return null;
   }
 };
@@ -220,11 +219,11 @@ export const generateSummary = async (
       `/generate-summary`,
       articlePayload
     );
-    logEvent("summary_generated", { summary: response.data });
+    // logEvent("summary_generated", { summary: response.data });
     return response.data;
   } catch (error) {
     console.error("Error generating summary:", error);
-    logEvent("summary_error", { error: error });
+    // logEvent("summary_error", { error: error });
     return null;
   }
 };
@@ -237,13 +236,13 @@ export const analyzePoliticalBias = async (
       `/analyze-political-bias`,
       articlePayload
     );
-    logEvent("political_bias_generated", {
-      political_bias: response.data,
-    });
+    // logEvent("political_bias_generated", {
+    //   political_bias: response.data,
+    // });
     return response.data;
   } catch (error) {
     console.error("Error generating political bias:", error);
-    logEvent("political_bias_error", { error: error });
+    // logEvent("political_bias_error", { error: error });
     return null;
   }
 };
@@ -256,11 +255,11 @@ export const analyzeObjectivity = async (
       `/analyze-objectivity`,
       articlePayload
     );
-    logEvent("objectivity_generated", { objectivity: response.data });
+    // logEvent("objectivity_generated", { objectivity: response.data });
     return response.data;
   } catch (error) {
     console.error("Error generating objectivity:", error);
-    logEvent("objectivity_error", { error: error });
+    // logEvent("objectivity_error", { error: error });
     return null;
   }
 };
@@ -276,11 +275,11 @@ export const getJournalistArticles = async (
     const response = await axiosInstance.get(
       `/journalists/${journalistId}/articles`
     );
-    logEvent("journalists_articles", { journalistId, articles: response.data });
+    // logEvent("journalists_articles", { journalistId, articles: response.data });
     return response.data;
   } catch (error) {
     console.error("Error getting journalists articles:", error);
-    logEvent("get_journalists_articles_error", { error: error });
+    // logEvent("get_journalists_articles_error", { error: error });
     return null;
   }
 };
@@ -296,14 +295,14 @@ export const getPublicationArticles = async (
     const response = await axiosInstance.get(
       `/publications/${publicationId}/articles`
     );
-    logEvent("publication_articles_fetched", {
-      publicationId,
-      articles: response.data,
-    });
+    // logEvent("publication_articles_fetched", {
+    //   publicationId,
+    //   articles: response.data,
+    // });
     return response.data;
   } catch (error) {
     console.error("Error getting publication articles:", error);
-    logEvent("get_publication_articles_error", { error: error, publicationId });
+    // logEvent("get_publication_articles_error", { error: error, publicationId });
     return null;
   }
 };

@@ -4,7 +4,6 @@ import { cleanHTML } from "@/parsers/genericParser";
 import { AppStateType } from "@/types";
 import { AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
-import { logEvent, logPageView } from "../../analytics";
 import { getIdToken } from "../../firebaseConfig";
 import { initiateSubscription } from "../api/stripe";
 import { useAuth } from "../AuthContext";
@@ -94,18 +93,18 @@ export const MainSection = () => {
       try {
         const checkoutUrl = await initiateSubscription();
         window.open(checkoutUrl, "_blank");
-        logEvent("subscription_initiated", { userId: user.uid });
+        // logEvent("subscription_initiated", { userId: user.uid });
       } catch (error) {
         console.error("Error initiating subscription:", error);
-        logEvent("subscription_error", {
-          error: (error as Error).message,
-        });
+        // logEvent("subscription_error", {
+        //   error: (error as Error).message,
+        // });
       }
     }
   };
 
   useEffect(() => {
-    logPageView("/home");
+    // logPageView("/home");
     const initializeState = async () => {
       try {
         const resp = await requestContent();
@@ -194,7 +193,7 @@ export const MainSection = () => {
     setAnalyzing(true);
     setAppState(null);
     setError(null);
-    logEvent("analysis_restarted", { section: "MainSection" });
+    // logEvent("analysis_restarted", { section: "MainSection" });
 
     try {
       const resp = await requestContent();
@@ -222,9 +221,9 @@ export const MainSection = () => {
       pollQuickParseStatus(resp.url);
     } catch (err) {
       setError((err as Error).message);
-      logEvent("analysis_restart_error", {
-        error_message: (err as Error).message,
-      });
+      // logEvent("analysis_restart_error", {
+      //   error_message: (err as Error).message,
+      // });
       setAnalyzing(false);
     }
   };
@@ -375,7 +374,7 @@ export const MainSection = () => {
   const onAnalyze = async () => {
     setAnalyzing(true);
     setAppState(null);
-    logEvent("analysis_started", { section: "MainSection" });
+    // logEvent("analysis_started", { section: "MainSection" });
     try {
       const resp = await requestContent();
       if (!resp || isUnsupportedPage(resp.url)) {
@@ -394,7 +393,7 @@ export const MainSection = () => {
       pollQuickParseStatus(resp.url);
     } catch (err) {
       setError((err as Error).message);
-      logEvent("analysis_error", { error_message: (err as Error).message });
+      // logEvent("analysis_error", { error_message: (err as Error).message });
       setAnalyzing(false);
     }
   };

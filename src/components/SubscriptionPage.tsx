@@ -1,7 +1,6 @@
 import React from "react";
 import { useAuth } from "../AuthContext";
 import { initiateSubscription } from "../api/stripe";
-import { logEvent } from "../../analytics";
 
 export const SubscriptionPage: React.FC = () => {
   const { user } = useAuth();
@@ -11,12 +10,12 @@ export const SubscriptionPage: React.FC = () => {
       try {
         const checkoutUrl = await initiateSubscription();
         window.open(checkoutUrl, "_blank");
-        logEvent("subscription_initiated", { userId: user.uid });
+        // logEvent("subscription_initiated", { userId: user.uid });
       } catch (error) {
         console.error("Error initiating subscription:", error);
-        logEvent("subscription_error", {
-          error: (error as Error).message,
-        });
+        // logEvent("subscription_error", {
+        //   error: (error as Error).message,
+        // });
       }
     }
   };

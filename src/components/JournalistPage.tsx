@@ -12,12 +12,9 @@ import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Skeleton } from "./ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-import ReactMarkdown from "react-markdown";
 import { BiasAnalysisCard } from "./BiasAnalysisCard";
 import { useAuth } from "@/AuthContext";
-import { BlurredSection } from "./BlurredSection";
 import { initiateSubscription } from "../api/stripe";
-import { logEvent } from "../../analytics";
 
 interface JournalistPageProps {
   journalistId: string;
@@ -65,12 +62,12 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
       try {
         const checkoutUrl = await initiateSubscription();
         window.open(checkoutUrl, "_blank");
-        logEvent("subscription_initiated", { userId: user.uid });
+        // logEvent("subscription_initiated", { userId: user.uid });
       } catch (error) {
         console.error("Error initiating subscription:", error);
-        logEvent("subscription_error", {
-          error: (error as Error).message,
-        });
+        // logEvent("subscription_error", {
+        //   error: (error as Error).message,
+        // });
       }
     }
   };
