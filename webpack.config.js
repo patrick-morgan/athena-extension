@@ -45,7 +45,7 @@ module.exports = {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
         type: "asset/resource",
       },
-      // Combined reCAPTCHA and Google APIs removal rules
+      // Combined remote code removal rules
       {
         test: /\.(js|ts|tsx)$/,
         enforce: "pre",
@@ -54,7 +54,33 @@ module.exports = {
             loader: "string-replace-loader",
             options: {
               multiple: [
-                // reCAPTCHA replacements
+                // Remove Google API URLs and calls
+                {
+                  search: /https:\/\/apis\.google\.com\/js\/api\.js/g,
+                  replace: "",
+                  flags: "g",
+                },
+                {
+                  search: /gapi\.load/g,
+                  replace: "(() => undefined)",
+                  flags: "g",
+                },
+                {
+                  search: /gapi\.client\.init/g,
+                  replace: "(() => Promise.resolve())",
+                  flags: "g",
+                },
+                {
+                  search: /gapi\.auth/g,
+                  replace: "(() => undefined)",
+                  flags: "g",
+                },
+                {
+                  search: /gapi\.client/g,
+                  replace: "{}",
+                  flags: "g",
+                },
+                // Existing reCAPTCHA replacements
                 { search: /recaptcha/gi, replace: "excluded", flags: "g" },
                 {
                   search: /getRecaptcha/g,
@@ -81,37 +107,16 @@ module.exports = {
                   replace: "import empty from",
                   flags: "g",
                 },
-
-                // Google APIs replacements
+                // Remove problematic URLs that were created by recaptcha replacement
                 {
-                  search: /https:\/\/apis\.google\.com\/js\/api\.js/g,
+                  search: /https:\/\/www\.google\.com\/excluded\/api\.js/g,
                   replace: "",
                   flags: "g",
                 },
                 {
-                  search: /gapi\.load/g,
-                  replace: "(() => undefined)",
-                  flags: "g",
-                },
-                {
-                  search: /gapi\.client\.init/g,
-                  replace: "(() => Promise.resolve())",
-                  flags: "g",
-                },
-                {
-                  search: /gapi\.auth/g,
-                  replace: "(() => undefined)",
-                  flags: "g",
-                },
-                { search: /gapi\.client/g, replace: "{}", flags: "g" },
-                {
-                  search: /require\(['"]googleapis['"]\)/g,
-                  replace: "({})",
-                  flags: "g",
-                },
-                {
-                  search: /import.*googleapis.*from/g,
-                  replace: "import empty from",
+                  search:
+                    /https:\/\/www\.google\.com\/excluded\/enterprise\.js\?render=/g,
+                  replace: "",
                   flags: "g",
                 },
               ],
@@ -154,7 +159,7 @@ module.exports = {
     ],
   },
   plugins: [
-    // Combined IgnorePlugin for reCAPTCHA and Google APIs
+    // Updated IgnorePlugin
     new webpack.IgnorePlugin({
       resourceRegExp: /recaptcha|\/auth\/index\.js$|googleapis|gapi/,
       contextRegExp: /firebase|@firebase|google-api/,
@@ -178,11 +183,12 @@ module.exports = {
     extensions: [".tsx", ".ts", ".js"],
     alias: {
       "@": path.resolve(__dirname, "src"),
-      // Combined aliases
+      // Existing reCAPTCHA aliases
       "./recaptcha": path.resolve(__dirname, "src/empty.js"),
       "firebase/recaptcha": path.resolve(__dirname, "src/empty.js"),
       "@firebase/recaptcha": path.resolve(__dirname, "src/empty.js"),
       recaptcha: path.resolve(__dirname, "src/empty.js"),
+      // Google API aliases
       googleapis: path.resolve(__dirname, "src/empty.js"),
       "google-api": path.resolve(__dirname, "src/empty.js"),
     },
