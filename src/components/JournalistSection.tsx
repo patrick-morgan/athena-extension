@@ -4,17 +4,19 @@ import { JournalistBiasCard } from "./JournalistBiasCard";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { JournalistBiasWithNameModel } from "@/types";
 import { motion } from "framer-motion";
+import { UserUsageResponse } from "@/api/api";
 
 interface BlurredJournalistSectionProps {
   journalistsBias: JournalistBiasWithNameModel[];
   onJournalistClick: (journalistId: string) => void;
   isPremium: boolean;
+  usage: UserUsageResponse | null;
 }
 
 export const BlurredJournalistSection: React.FC<
   BlurredJournalistSectionProps
-> = ({ journalistsBias, onJournalistClick, isPremium }) => {
-  if (isPremium) {
+> = ({ journalistsBias, onJournalistClick, isPremium, usage }) => {
+  if (isPremium || (usage?.articlesRemaining ?? -1) >= 0) {
     return (
       <JournalistSection
         journalistsBias={journalistsBias}

@@ -99,6 +99,31 @@ type QuickParseArticleResponse = {
   objectivity_score: number;
 };
 
+export type UserUsageResponse = {
+  articlesRemaining: number;
+  totalAllowed: number;
+};
+
+export const getUserUsage = async (): Promise<UserUsageResponse> => {
+  try {
+    const response = await axiosInstance.get("/user/usage");
+    return response.data;
+  } catch (error) {
+    console.error("Error getting user usage:", error);
+    throw error;
+  }
+};
+
+export const trackArticleAnalysis = async (): Promise<UserUsageResponse> => {
+  try {
+    const response = await axiosInstance.post("/user/usage/track-analysis");
+    return response.data;
+  } catch (error) {
+    console.error("Error tracking article analysis:", error);
+    throw error;
+  }
+};
+
 export const quickParseArticle = async (payload: {
   url: string;
   hostname: string;

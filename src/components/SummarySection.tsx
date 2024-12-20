@@ -59,15 +59,18 @@ import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { motion } from "framer-motion";
 import { renderMarkdown } from "./BiasAnalysisCard";
+import { UserUsageResponse } from "@/api/api";
 
 interface BlurredSummarySectionProps {
   summary: string | null;
   isPremium: boolean;
+  usage: UserUsageResponse | null;
 }
 
 export const BlurredSummarySection: React.FC<BlurredSummarySectionProps> = ({
   summary,
   isPremium,
+  usage,
 }) => {
   if (!summary) return null;
 
@@ -77,7 +80,7 @@ export const BlurredSummarySection: React.FC<BlurredSummarySectionProps> = ({
         <CardTitle>Article Summary & Analysis</CardTitle>
       </CardHeader>
       <CardContent>
-        {isPremium ? (
+        {isPremium || (usage?.articlesRemaining ?? -1) >= 0 ? (
           <p>{renderMarkdown(summary)}</p>
         ) : (
           <motion.div

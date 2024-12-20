@@ -1,5 +1,5 @@
 import React from "react";
-import { PublicationAnalysisResponse } from "@/api/api";
+import { PublicationAnalysisResponse, UserUsageResponse } from "@/api/api";
 import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
 import { PublicationBiasCard } from "./PublicationBiasCard";
 import { motion } from "framer-motion";
@@ -8,12 +8,13 @@ interface BlurredPublicationSectionProps {
   pubResponse: PublicationAnalysisResponse;
   onPublicationClick: () => void;
   isPremium: boolean;
+  usage: UserUsageResponse | null;
 }
 
 export const BlurredPublicationSection: React.FC<
   BlurredPublicationSectionProps
-> = ({ pubResponse, onPublicationClick, isPremium }) => {
-  if (isPremium) {
+> = ({ pubResponse, onPublicationClick, isPremium, usage }) => {
+  if (isPremium || (usage?.articlesRemaining ?? -1) >= 0) {
     return (
       <PublicationSection
         pubResponse={pubResponse}

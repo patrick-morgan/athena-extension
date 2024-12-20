@@ -26,6 +26,7 @@ import { requestContent, scrollToTop } from "./utils";
 import { BlurredJournalistSection } from "./JournalistSection";
 import { BlurredPublicationSection } from "./PublicationSection";
 import { BlurredSummarySection } from "./SummarySection";
+import { UsageDisplay } from "./UsageDisplay";
 
 const isUnsupportedPage = (url: string): boolean => {
   const unsupportedDomains = [
@@ -68,7 +69,7 @@ export const MainSection = () => {
   );
   const [error, setError] = useState<string | null>(null);
   const [isExtensionPage, setIsExtensionPage] = useState(false);
-  const { user, isSubscribed } = useAuth();
+  const { user, isSubscribed, usage, trackAnalysis } = useAuth();
   const isPremium = isSubscribed; // Assuming isSubscribed indicates premium status
   const [selectedJournalist, setSelectedJournalist] = useState<string | null>(
     null
@@ -372,6 +373,21 @@ export const MainSection = () => {
   };
 
   const onAnalyze = async () => {
+    // if (!isSubscribed) {
+    //   const usage = await getUserUsage();
+    //   console.log("usage", usage);
+    //   if (usage.articlesRemaining <= 0) {
+    //     setError(
+    //       `You've reached your monthly limit of ${
+    //         usage.totalAllowed
+    //       } free articles. Your limit will reset on ${new Date(
+    //         usage.nextResetDate
+    //       ).toLocaleDateString()}. Please upgrade to continue analyzing articles.`
+    //     );
+    //     return;
+    //   }
+    // }
+
     setAnalyzing(true);
     setAppState(null);
     // logEvent("analysis_started", { section: "MainSection" });
@@ -383,6 +399,11 @@ export const MainSection = () => {
 
       const { head, body } = cleanHTML(resp.html);
       const hostname = new URL(resp.url).hostname;
+
+      // Track the analysis if user is not subscribed
+      if (!isSubscribed) {
+        await trackAnalysis();
+      }
 
       // Start quick parse
       chrome.runtime.sendMessage({
@@ -509,6 +530,7 @@ export const MainSection = () => {
         publication={appState.publication}
         onPublicationClick={handlePublicationClick}
         onBack={handleBackClick}
+        usage={usage}
       />
     );
   }
@@ -518,12 +540,14 @@ export const MainSection = () => {
       <PublicationPage
         publicationId={selectedPublication}
         onBack={handleBackClick}
+        usage={usage}
       />
     );
   }
 
   return (
     <div className="space-y-6 p-6">
+      {!isSubscribed && <UsageDisplay usage={usage} user={user} />}
       {appState.article ? (
         <HeaderSection
           article={appState.article}
@@ -552,7 +576,7 @@ export const MainSection = () => {
             Unlock Premium Features
           </h3>
           <p className="mb-4">
-            Get access to in-depth summaries, journalist analysis, and
+            Get access to unlimited in-depth summaries, journalist analyses, and
             publication insights.
           </p>
           <Button onClick={handleSubscribe}>
@@ -565,6 +589,7 @@ export const MainSection = () => {
         <BlurredSummarySection
           summary={appState.summary}
           isPremium={isPremium}
+          usage={usage}
         />
       ) : (
         <Skeleton className="w-full h-64" />
@@ -575,6 +600,7 @@ export const MainSection = () => {
           journalistsBias={appState.journalistsAnalysis}
           onJournalistClick={handleJournalistClick}
           isPremium={isPremium}
+          usage={usage}
         />
       ) : (
         <Skeleton className="w-full h-64" />
@@ -585,6 +611,7 @@ export const MainSection = () => {
           pubResponse={appState.publicationAnalysis}
           onPublicationClick={handlePublicationClick}
           isPremium={isPremium}
+          usage={usage}
         />
       ) : (
         <Skeleton className="w-full h-64" />

@@ -7,11 +7,18 @@ import {
   signOut,
 } from "../firebaseConfig";
 import { checkSubscription } from "./api/stripe";
+import {
+  getUserUsage,
+  trackArticleAnalysis,
+  UserUsageResponse,
+} from "./api/api";
 
 interface AuthContextType {
   user: User | null;
   isSubscribed: boolean;
   isLoading: boolean;
+  usage: UserUsageResponse | null;
+  trackAnalysis: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -26,6 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [usage, setUsage] = useState<UserUsageResponse | null>(null);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -39,6 +47,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
     initAuth();
   }, []);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const usageData = await getUserUsage();
+        setUsage(usageData);
+      } catch (error) {
+        console.error("Error fetching usage data:", error);
+      }
+    };
+
+    if (user && !isSubscribed) {
+      fetchUserData();
+    }
+  }, [user, isSubscribed]);
+
+  const trackAnalysis = async () => {
+    if (user) {
+      const resp = await trackArticleAnalysis();
+      setUsage(resp);
+    }
+  };
 
   const checkSubscriptionStatus = async (user: User | null) => {
     if (user) {
@@ -93,6 +123,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         user,
         isSubscribed,
         isLoading,
+        usage,
+        trackAnalysis,
         signIn,
         signUp,
         signOut: handleSignOut,

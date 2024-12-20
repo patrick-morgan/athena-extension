@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { analyzeJournalist, getJournalistArticles } from "@/api/api";
+import {
+  analyzeJournalist,
+  getJournalistArticles,
+  UserUsageResponse,
+} from "@/api/api";
 import {
   ArticleModel,
   JournalistBiasWithNameModel,
@@ -21,6 +25,7 @@ interface JournalistPageProps {
   publication: PublicationModel | null;
   onPublicationClick: () => void;
   onBack: () => void;
+  usage: UserUsageResponse | null;
 }
 
 export const JournalistPage: React.FC<JournalistPageProps> = ({
@@ -28,6 +33,7 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
   publication,
   onPublicationClick,
   onBack,
+  usage,
 }) => {
   const [journalist, setJournalist] =
     useState<JournalistBiasWithNameModel | null>(null);
@@ -108,7 +114,7 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
           onPublicationClick={onPublicationClick}
         />
 
-        {isPremium ? (
+        {isPremium || (usage?.articlesRemaining ?? -1) >= 0 ? (
           <BiasAnalysisCard
             biasScore={journalist.bias_score * 1}
             rhetoricScore={journalist.rhetoric_score * 1}
@@ -137,7 +143,8 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
               Unlock Premium Features
             </h3>
             <p className="mb-4">
-              Get access to in-depth journalist analysis and bias scores.
+              Get access to unlimited in-depth journalist analyses and bias
+              scores.
             </p>
             <Button onClick={handleSubscribe}>
               Upgrade to Premium for $5/month

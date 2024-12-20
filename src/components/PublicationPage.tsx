@@ -2,6 +2,7 @@ import {
   analyzePublication,
   getPublicationArticles,
   PublicationAnalysisResponse,
+  UserUsageResponse,
 } from "@/api/api";
 import { ArticleModel } from "@/types";
 import { formatDate, formatDateFounded } from "@/utils/date";
@@ -19,11 +20,13 @@ import { Skeleton } from "./ui/skeleton";
 interface PublicationPageProps {
   publicationId: string;
   onBack: () => void;
+  usage: UserUsageResponse | null;
 }
 
 export const PublicationPage: React.FC<PublicationPageProps> = ({
   publicationId,
   onBack,
+  usage,
 }) => {
   const [publication, setPublication] =
     useState<PublicationAnalysisResponse | null>(null);
@@ -101,7 +104,7 @@ export const PublicationPage: React.FC<PublicationPageProps> = ({
       <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <PublicationInfoCard publicationResponse={publication} />
 
-        {isPremium ? (
+        {isPremium || (usage?.articlesRemaining ?? -1) >= 0 ? (
           <BiasAnalysisCard
             biasScore={publication.analysis.bias_score * 1}
             rhetoricScore={publication.analysis.rhetoric_score * 1}
@@ -130,7 +133,8 @@ export const PublicationPage: React.FC<PublicationPageProps> = ({
               Unlock Premium Features
             </h3>
             <p className="mb-4">
-              Get access to in-depth publication analysis and bias scores.
+              Get access to unlimited in-depth publication analyses and bias
+              scores.
             </p>
             <Button onClick={handleSubscribe}>
               Upgrade to Premium for $5/month
