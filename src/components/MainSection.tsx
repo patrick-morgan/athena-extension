@@ -27,6 +27,7 @@ import { BlurredJournalistSection } from "./JournalistSection";
 import { BlurredPublicationSection } from "./PublicationSection";
 import { BlurredSummarySection } from "./SummarySection";
 import { UsageDisplay } from "./UsageDisplay";
+import { ArticleChat } from "./ArticleChat";
 
 const isUnsupportedPage = (url: string): boolean => {
   const unsupportedDomains = [
@@ -586,11 +587,19 @@ export const MainSection = () => {
       )}
 
       {appState.summary ? (
-        <BlurredSummarySection
-          summary={appState.summary}
-          isPremium={isPremium}
-          usage={usage}
-        />
+        <>
+          <BlurredSummarySection
+            summary={appState.summary}
+            isPremium={isPremium}
+            usage={usage}
+          />
+          {appState.article && (
+            <ArticleChat
+              articleId={appState.article.id}
+              isPremium={isPremium}
+            />
+          )}
+        </>
       ) : (
         <Skeleton className="w-full h-64" />
       )}

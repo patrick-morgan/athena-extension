@@ -18,15 +18,16 @@
     "48": "search-logo-48.png",
     "128": "search-logo-128.png"
   },
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "storage", "http://localhost:3000/"],
   "background": {
     "service_worker": "js/background.js"
   },
   "host_permissions": [
-    "https://express-backend-production-7ccd.up.railway.app/*"
+    "https://express-backend-production-7ccd.up.railway.app/*",
+    "http://localhost:3000/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://*.googleapis.com https://*.firebaseapp.com https://*.firebase.com https://express-backend-production-7ccd.up.railway.app"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src https://*.googleapis.com https://*.firebaseapp.com https://*.firebase.com https://express-backend-production-7ccd.up.railway.app http://localhost:3000"
   },
   "content_scripts": [
     {

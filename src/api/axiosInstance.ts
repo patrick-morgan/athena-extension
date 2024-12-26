@@ -1,12 +1,12 @@
 import axios, { AxiosInstance } from "axios";
 import { getIdToken } from "../../firebaseConfig";
 
-export const API_URL =
-  process.env.NODE_ENV === "production"
-    ? process.env.EXPRESS_API_URL
-    : "http://localhost:3000";
+// export const API_URL =
+//   process.env.NODE_ENV === "production"
+//     ? process.env.EXPRESS_API_URL
+//     : "http://localhost:3000";
 
-// export const API_URL = "http://localhost:3000";
+export const API_URL = "http://localhost:3000";
 
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: API_URL,

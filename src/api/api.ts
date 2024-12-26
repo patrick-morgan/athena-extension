@@ -331,3 +331,32 @@ export const getPublicationArticles = async (
     return null;
   }
 };
+
+export type ChatResponse = {
+  response: string;
+  sources: Record<string, string>;
+};
+
+type ChatPayload = {
+  message: string;
+  chatHistory: Array<{
+    role: "user" | "assistant";
+    content: string;
+  }>;
+};
+
+export const chatWithArticle = async (
+  articleId: string,
+  payload: ChatPayload
+): Promise<ChatResponse | null> => {
+  try {
+    const response = await axiosInstance.post(
+      `/articles/${articleId}/chat`,
+      payload
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error chatting with article:", error);
+    return null;
+  }
+};

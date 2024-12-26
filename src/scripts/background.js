@@ -4,12 +4,12 @@ import { getAuth } from "firebase/auth";
 import config from "../../config";
 import axios from "axios";
 
-export const API_URL =
-  process.env.NODE_ENV === "production"
-    ? process.env.EXPRESS_API_URL
-    : "http://localhost:3000";
+// export const API_URL =
+//   process.env.NODE_ENV === "production"
+//     ? process.env.EXPRESS_API_URL
+//     : "http://localhost:3000";
 
-// export const API_URL = "http://localhost:3000";
+export const API_URL = "http://localhost:3000";
 
 const axiosInstance = axios.create({
   baseURL: API_URL,

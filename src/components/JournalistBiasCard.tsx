@@ -31,16 +31,16 @@ export const JournalistBiasCard: React.FC<JournalistBiasCardProps> = ({
     <Card>
       <CardContent className="p-6">
         <div className="flex justify-between items-start mb-4">
-          <div className="flex items-center">
+          <div className="flex items-center flex-wrap max-w-[calc(100%-8rem)]">
             <h2
-              className="text-xl font-semibold cursor-pointer hover:underline"
+              className="text-xl font-semibold cursor-pointer hover:underline mr-1"
               onClick={onJournalistClick}
             >
               {name}
             </h2>
             <TooltipIcon content="This analysis is based on all articles Athena has analyzed from this journalist" />
           </div>
-          <Badge variant="outline" className="text-xs">
+          <Badge variant="outline" className="text-xs shrink-0">
             {numArticlesAnalyzed} {pluralize("article", numArticlesAnalyzed)}{" "}
             analyzed
           </Badge>
