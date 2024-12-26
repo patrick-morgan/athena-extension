@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/utils/helpers";
 import { useLocalStorage } from "@/utils/hooks";
-import { MessageCircle, Trash } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Maximize2, MessageCircle, Minimize2, Trash } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { chatWithArticle } from "../api/api";
 
@@ -71,6 +71,7 @@ const chatStyles = {
 
 export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false); // Add this state
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -153,17 +154,86 @@ export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
     updateMessages([WELCOME_MESSAGE]);
   };
 
-  const handleOptionClick = (message: string) => {
-    if (!canSendMessage) return;
-    setInputMessage(message);
-    handleSend();
+  // Add ref for scroll container
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Add scroll to bottom helper
+  const scrollToBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  // Modify handleOptionClick to directly send the message
+  const handleOptionClick = async (message: string) => {
+    if (!canSendMessage || isLoading) return;
+
+    setIsLoading(true);
+    const newMessages = [
+      ...messages,
+      { role: "user", content: message } as Message,
+    ];
+    updateMessages(newMessages);
+
+    try {
+      const chatHistory = newMessages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      }));
+
+      const response = await chatWithArticle(articleId, {
+        message: message,
+        chatHistory,
+      });
+
+      if (response) {
+        updateMessages([
+          ...newMessages,
+          {
+            role: "assistant",
+            content: response.response,
+            sources: response.sources,
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      updateMessages([
+        ...newMessages,
+        {
+          role: "assistant",
+          content: "Sorry, I encountered an error processing your request.",
+        },
+      ]);
+    } finally {
+      setIsLoading(false);
+      // Scroll to bottom after message is sent
+      setTimeout(scrollToBottom, 100);
+    }
+  };
+
+  // Add useEffect to scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleExpand = () => {
+    if (isExpanded) {
+      document.documentElement.style.removeProperty("overflow");
+    } else {
+      document.documentElement.style.overflow = "hidden";
+    }
+    setIsExpanded(!isExpanded);
   };
 
   return (
     <Collapsible
       open={isOpen}
       onOpenChange={setIsOpen}
-      className="w-full rounded-md border bg-card text-card-foreground shadow-sm"
+      className={cn(
+        "w-full rounded-md border bg-card text-card-foreground shadow-sm",
+        isExpanded && "fixed inset-0 z-50 m-0 rounded-none border-none" // Add these classes when expanded
+      )}
     >
       <CollapsibleTrigger asChild>
         <Button
@@ -188,16 +258,37 @@ export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
 
       <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
         <div className="border-t">
-          <div className="h-[550px] flex flex-col relative">
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={clearChat}
-              title="Clear chat history"
-              className="absolute top-1 right-1 h-6 w-6 rounded-full bg-background shadow-sm hover:bg-muted/50 z-10"
-            >
-              <Trash className="h-3 w-3" />
-            </Button>
+          <div
+            className={cn(
+              "flex flex-col relative",
+              isExpanded ? "h-[calc(100vh-64px)]" : "h-[550px]"
+            )}
+          >
+            {/* Add expand/minimize button next to trash */}
+            <div className="absolute top-1 right-1 flex gap-1 z-10">
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={handleExpand}
+                title={isExpanded ? "Minimize chat" : "Expand chat"}
+                className="h-6 w-6 rounded-full bg-background shadow-sm hover:bg-muted/50"
+              >
+                {isExpanded ? (
+                  <Minimize2 className="h-3 w-3" />
+                ) : (
+                  <Maximize2 className="h-3 w-3" />
+                )}
+              </Button>
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={clearChat}
+                title="Clear chat history"
+                className="h-6 w-6 rounded-full bg-background shadow-sm hover:bg-muted/50"
+              >
+                <Trash className="h-3 w-3" />
+              </Button>
+            </div>
 
             <ScrollArea className="flex-1 p-4">
               <div className="space-y-4 mb-4">
