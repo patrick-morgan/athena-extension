@@ -1,20 +1,17 @@
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/utils/helpers";
+import { useLocalStorage } from "@/utils/hooks";
 import { MessageCircle, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
-import { chatWithArticle } from "../api/api";
-import { Alert, AlertDescription } from "./ui/alert";
-import { useLocalStorage } from "@/utils/hooks";
 import ReactMarkdown from "react-markdown";
-import { cn } from "@/utils/helpers";
-import { type Components } from "react-markdown";
+import { chatWithArticle } from "../api/api";
 
 const FREE_MESSAGE_LIMIT = 5;
 const STORAGE_KEY = "articleChats";
@@ -30,10 +27,36 @@ interface ArticleChatProps {
   isPremium: boolean;
 }
 
+const WELCOME_OPTIONS = [
+  {
+    label: "Ask about article content",
+    message: "Can you summarize the main points of this article?",
+  },
+  {
+    label: "Understand bias scores",
+    message:
+      "Can you explain the political bias and objectivity scores for this article?",
+  },
+  {
+    label: "Learn about the journalists",
+    message:
+      "What can you tell me about the journalists who wrote this article?",
+  },
+  {
+    label: "Fact check & context",
+    message: "Can you fact-check the main claims in this article?",
+  },
+  {
+    label: "Compare perspectives",
+    message:
+      "How does this article's perspective compare to other coverage of this topic?",
+  },
+];
+
 const WELCOME_MESSAGE: Message = {
   role: "assistant",
   content:
-    "Hi! I'm here to help you understand this article better. Feel free to ask me any questions about the content, bias analysis, or the sources.",
+    "Welcome! I can help you understand this article and its potential biases. Select an option below or ask your own question:",
 };
 
 const chatStyles = {
@@ -47,7 +70,7 @@ const chatStyles = {
 };
 
 export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
-  const [open, setOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -130,173 +153,221 @@ export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
     updateMessages([WELCOME_MESSAGE]);
   };
 
+  const handleOptionClick = (message: string) => {
+    if (!canSendMessage) return;
+    setInputMessage(message);
+    handleSend();
+  };
+
   return (
-    <div className="w-full">
-      <Button
-        variant="outline"
-        className="w-full hover:bg-muted/50 transition-colors"
-        onClick={() => setOpen(true)}
-      >
-        <MessageCircle className="mr-2 h-4 w-4" />
-        Chat with AI about this article
-      </Button>
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-0 gap-0">
-          <DialogHeader className="px-4 py-2 border-b">
-            <div className="flex items-center justify-between">
-              <DialogTitle>Article Chat</DialogTitle>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={clearChat}
-                title="Clear chat history"
-                className="hover:bg-muted/50"
-              >
-                <Trash className="h-4 w-4" />
-              </Button>
-            </div>
-            {!isPremium && (
-              <div className="text-xs text-muted-foreground mt-1">
-                {Math.max(0, FREE_MESSAGE_LIMIT - userMessageCount)} of{" "}
-                {FREE_MESSAGE_LIMIT} free messages remaining
-                {" · "}
-                <a href="/pricing" className="text-primary hover:underline">
-                  Upgrade to Premium
-                </a>
-              </div>
-            )}
-          </DialogHeader>
-
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4 mb-4">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex ${
-                    message.role === "user" ? "justify-end" : "justify-start"
-                  }`}
-                >
-                  <div
-                    className={cn(
-                      chatStyles.message.base,
-                      message.role === "user"
-                        ? chatStyles.message.user
-                        : chatStyles.message.assistant
-                    )}
-                  >
-                    <div className={chatStyles.prose}>
-                      <ReactMarkdown
-                        components={{
-                          a: ({ node, children, ...props }) => (
-                            <a
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              aria-label={
-                                typeof children === "string"
-                                  ? children
-                                  : "External link"
-                              }
-                              {...props}
-                            >
-                              {children}
-                            </a>
-                          ),
-                          code: ({ children, ...props }) => (
-                            <code
-                              className="font-mono text-sm bg-muted/50 rounded px-1 py-0.5"
-                              {...props}
-                            >
-                              {children}
-                            </code>
-                          ),
-                          blockquote: ({ node, ...props }) => (
-                            <blockquote
-                              className="border-l-2 border-primary/20 pl-4 italic"
-                              {...props}
-                            />
-                          ),
-                        }}
-                      >
-                        {message.content}
-                      </ReactMarkdown>
-                    </div>
-                    {message.sources &&
-                      Object.keys(message.sources).length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-border/50">
-                          <div className="text-xs font-medium text-muted-foreground">
-                            Sources:
-                          </div>
-                          {Object.entries(message.sources).map(
-                            ([key, value]) => (
-                              <div
-                                key={key}
-                                className="text-xs mt-1 text-muted-foreground"
-                              >
-                                <span className="font-medium">{key}:</span>{" "}
-                                {value}
-                              </div>
-                            )
-                          )}
-                        </div>
-                      )}
-                  </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div
-                    className={cn(
-                      chatStyles.message.base,
-                      chatStyles.message.assistant
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" />
-                      <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce [animation-delay:-.3s]" />
-                      <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce [animation-delay:-.5s]" />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </ScrollArea>
-
-          <div className="p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSend();
-              }}
-              className="flex items-center gap-2"
-            >
-              <Input
-                placeholder={
-                  canSendMessage
-                    ? "Ask a question about the article..."
-                    : "Message limit reached - Upgrade to Premium"
-                }
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                disabled={!canSendMessage}
-                maxLength={500}
-                className="flex-1"
-              />
-              <Button
-                type="submit"
-                disabled={isLoading || !canSendMessage}
-                size="icon"
-              >
-                {isLoading ? (
-                  <div className="h-4 w-4 border-2 border-current border-t-transparent animate-spin rounded-full" />
-                ) : (
-                  <MessageCircle className="h-4 w-4" />
-                )}
-              </Button>
-            </form>
+    <Collapsible
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      className="w-full rounded-md border bg-card text-card-foreground shadow-sm"
+    >
+      <CollapsibleTrigger asChild>
+        <Button
+          variant="ghost"
+          className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+        >
+          <div className="flex items-center">
+            <MessageCircle className="mr-2 h-4 w-4" />
+            Chat with AI about this article
           </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {!isPremium && (
+              <span>
+                {Math.max(0, FREE_MESSAGE_LIMIT - userMessageCount)}/
+                {FREE_MESSAGE_LIMIT} messages
+              </span>
+            )}
+            <span>{isOpen ? "Click to minimize" : "Click to expand"}</span>
+          </div>
+        </Button>
+      </CollapsibleTrigger>
+
+      <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+        <div className="border-t">
+          <div className="h-[550px] flex flex-col relative">
+            <Button
+              variant="secondary"
+              size="icon"
+              onClick={clearChat}
+              title="Clear chat history"
+              className="absolute top-1 right-1 h-6 w-6 rounded-full bg-background shadow-sm hover:bg-muted/50 z-10"
+            >
+              <Trash className="h-3 w-3" />
+            </Button>
+
+            <ScrollArea className="flex-1 p-4">
+              <div className="space-y-4 mb-4">
+                {messages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${
+                      message.role === "user" ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    {index === 0 && messages.length === 1 ? (
+                      // Render welcome message with options
+                      <div
+                        className={cn(
+                          chatStyles.message.base,
+                          chatStyles.message.assistant
+                        )}
+                      >
+                        <div className={chatStyles.prose}>
+                          <p className="mb-3">{message.content}</p>
+                          <div className="grid gap-2 max-w-[280px]">
+                            {WELCOME_OPTIONS.map((option, idx) => (
+                              <Button
+                                key={idx}
+                                variant="outline"
+                                className="max-w-[280px] w-full justify-start text-left h-auto py-2 px-3 hover:bg-accent hover:text-accent-foreground transition-colors"
+                                onClick={() =>
+                                  handleOptionClick(option.message)
+                                }
+                                disabled={!canSendMessage}
+                              >
+                                <div className="w-full space-y-1">
+                                  {" "}
+                                  {/* Added space between label and message */}
+                                  <div className="font-medium">
+                                    {option.label}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground break-words whitespace-normal leading-relaxed">
+                                    {option.message}
+                                  </div>
+                                </div>
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      // Render regular messages
+                      <div
+                        className={cn(
+                          chatStyles.message.base,
+                          message.role === "user"
+                            ? chatStyles.message.user
+                            : chatStyles.message.assistant
+                        )}
+                      >
+                        <div className={chatStyles.prose}>
+                          <ReactMarkdown
+                            components={{
+                              a: ({ node, children, ...props }) => (
+                                <a
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label={
+                                    typeof children === "string"
+                                      ? children
+                                      : "External link"
+                                  }
+                                  {...props}
+                                >
+                                  {children}
+                                </a>
+                              ),
+                              code: ({ children, ...props }) => (
+                                <code
+                                  className="font-mono text-sm bg-muted/50 rounded px-1 py-0.5"
+                                  {...props}
+                                >
+                                  {children}
+                                </code>
+                              ),
+                              blockquote: ({ node, ...props }) => (
+                                <blockquote
+                                  className="border-l-2 border-primary/20 pl-4 italic"
+                                  {...props}
+                                />
+                              ),
+                            }}
+                          >
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
+                        {message.sources &&
+                          Object.keys(message.sources).length > 0 && (
+                            <div className="mt-2 pt-2 border-t border-border/50">
+                              <div className="text-xs font-medium text-muted-foreground">
+                                Sources:
+                              </div>
+                              {Object.entries(message.sources).map(
+                                ([key, value]) => (
+                                  <div
+                                    key={key}
+                                    className="text-xs mt-1 text-muted-foreground"
+                                  >
+                                    <span className="font-medium">{key}:</span>{" "}
+                                    {value}
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div
+                      className={cn(
+                        chatStyles.message.base,
+                        chatStyles.message.assistant
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" />
+                        <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce [animation-delay:-.3s]" />
+                        <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce [animation-delay:-.5s]" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+
+            <div className="p-4 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSend();
+                }}
+                className="flex items-center gap-2"
+              >
+                <Input
+                  placeholder={
+                    canSendMessage
+                      ? "Ask a question about the article..."
+                      : "Message limit reached - Upgrade to Premium"
+                  }
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  disabled={!canSendMessage}
+                  maxLength={500}
+                  className="flex-1"
+                />
+                <Button
+                  type="submit"
+                  disabled={isLoading || !canSendMessage}
+                  size="icon"
+                >
+                  {isLoading ? (
+                    <div className="h-4 w-4 border-2 border-current border-t-transparent animate-spin rounded-full" />
+                  ) : (
+                    <MessageCircle className="h-4 w-4" />
+                  )}
+                </Button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   );
 }

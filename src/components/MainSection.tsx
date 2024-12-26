@@ -499,7 +499,7 @@ export const MainSection = () => {
 
   if (appState === null) {
     return (
-      <div className="flex flex-col gap-6 justify-center items-center h-full">
+      <div className="flex flex-col gap-6 justify-center items-center h-full overflow-y-auto">
         <AnalyzeArticle />
         <AnalyzeButton analyzing={analyzing} onClick={onAnalyze} />
         <div className="mt-4 p-4 mx-4 bg-blue-50 border-l-4 border-blue-400 text-blue-700 rounded-md flex items-center">
@@ -547,84 +547,84 @@ export const MainSection = () => {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      {!isSubscribed && <UsageDisplay usage={usage} user={user} />}
-      {appState.article ? (
-        <HeaderSection
-          article={appState.article}
-          publication={appState.publication}
-          journalists={appState.journalists}
-          onJournalistClick={handleJournalistClick}
-          onPublicationClick={handlePublicationClick}
-        />
-      ) : (
-        <Skeleton className="w-full h-24" />
-      )}
+    <div className="h-full overflow-y-auto">
+      <div className="space-y-6 p-6">
+        {!isSubscribed && <UsageDisplay usage={usage} user={user} />}
+        {appState.article ? (
+          <HeaderSection
+            article={appState.article}
+            publication={appState.publication}
+            journalists={appState.journalists}
+            onJournalistClick={handleJournalistClick}
+            onPublicationClick={handlePublicationClick}
+          />
+        ) : (
+          <Skeleton className="w-full h-24" />
+        )}
 
-      {appState.politicalBiasScore !== null &&
-      appState.objectivityBiasScore !== null ? (
-        <ArticleSection
-          politicalBiasScore={appState.politicalBiasScore}
-          objectivityBiasScore={appState.objectivityBiasScore}
-        />
-      ) : (
-        <Skeleton className="w-full h-64" />
-      )}
+        {appState.politicalBiasScore !== null &&
+        appState.objectivityBiasScore !== null ? (
+          <ArticleSection
+            politicalBiasScore={appState.politicalBiasScore}
+            objectivityBiasScore={appState.objectivityBiasScore}
+          />
+        ) : (
+          <Skeleton className="w-full h-64" />
+        )}
 
-      {!isPremium && (
-        <div className="mt-6 mb-2 text-center">
-          <h3 className="text-xl font-semibold mb-4">
-            Unlock Premium Features
-          </h3>
-          <p className="mb-4">
-            Get access to unlimited in-depth summaries, journalist analyses, and
-            publication insights.
-          </p>
-          <Button onClick={handleSubscribe}>
-            Upgrade to Premium for $5/month
-          </Button>
-        </div>
-      )}
+        {appState.article && (
+          <ArticleChat articleId={appState.article.id} isPremium={isPremium} />
+        )}
 
-      {appState.summary ? (
-        <>
-          <BlurredSummarySection
-            summary={appState.summary}
+        {!isPremium && (
+          <div className="mt-6 mb-2 text-center">
+            <h3 className="text-xl font-semibold mb-4">
+              Unlock Premium Features
+            </h3>
+            <p className="mb-4">
+              Get access to unlimited in-depth AI chat, summaries, journalist
+              analyses, and publication insights.
+            </p>
+            <Button onClick={handleSubscribe}>
+              Upgrade to Premium for $5/month
+            </Button>
+          </div>
+        )}
+
+        {appState.summary ? (
+          <>
+            <BlurredSummarySection
+              summary={appState.summary}
+              isPremium={isPremium}
+              usage={usage}
+            />
+          </>
+        ) : (
+          <Skeleton className="w-full h-64" />
+        )}
+
+        {appState.journalistsAnalysis ? (
+          <BlurredJournalistSection
+            journalistsBias={appState.journalistsAnalysis}
+            onJournalistClick={handleJournalistClick}
             isPremium={isPremium}
             usage={usage}
           />
-          {appState.article && (
-            <ArticleChat
-              articleId={appState.article.id}
-              isPremium={isPremium}
-            />
-          )}
-        </>
-      ) : (
-        <Skeleton className="w-full h-64" />
-      )}
+        ) : (
+          <Skeleton className="w-full h-64" />
+        )}
 
-      {appState.journalistsAnalysis ? (
-        <BlurredJournalistSection
-          journalistsBias={appState.journalistsAnalysis}
-          onJournalistClick={handleJournalistClick}
-          isPremium={isPremium}
-          usage={usage}
-        />
-      ) : (
-        <Skeleton className="w-full h-64" />
-      )}
-
-      {appState.publicationAnalysis ? (
-        <BlurredPublicationSection
-          pubResponse={appState.publicationAnalysis}
-          onPublicationClick={handlePublicationClick}
-          isPremium={isPremium}
-          usage={usage}
-        />
-      ) : (
-        <Skeleton className="w-full h-64" />
-      )}
+        {appState.publicationAnalysis ? (
+          <BlurredPublicationSection
+            pubResponse={appState.publicationAnalysis}
+            onPublicationClick={handlePublicationClick}
+            isPremium={isPremium}
+            usage={usage}
+          />
+        ) : (
+          <Skeleton className="w-full h-64" />
+        )}
+      </div>
     </div>
   );
 };
