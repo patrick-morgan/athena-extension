@@ -20,8 +20,8 @@ type UsageDisplayProps = {
 
 export const UsageDisplay = ({ usage, user }: UsageDisplayProps) => {
   const isLoading = usage === null;
-  const remainingArticles = usage?.articlesRemaining ?? 0;
-  const totalAllowed = usage?.totalAllowed ?? 10;
+  const remainingArticles = Math.max(0, usage?.articlesRemaining ?? 0);
+  const totalAllowed = usage?.totalAllowed ?? 5;
 
   const handleSubscribe = async () => {
     if (user) {

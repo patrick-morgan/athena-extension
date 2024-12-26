@@ -334,7 +334,7 @@ export const getPublicationArticles = async (
 
 export type ChatResponse = {
   response: string;
-  sources: Record<string, string>;
+  // sources: Record<string, string>;
 };
 
 type ChatPayload = {

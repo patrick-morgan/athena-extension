@@ -12,19 +12,21 @@ import { Maximize2, MessageCircle, Minimize2, Trash } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { chatWithArticle } from "../api/api";
+import { initiateSubscription } from "@/api/stripe";
+import { User } from "firebase/auth";
 
-const FREE_MESSAGE_LIMIT = 5;
 const STORAGE_KEY = "articleChats";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
-  sources?: Record<string, string>;
+  //   sources?: Record<string, string>;
 }
 
 interface ArticleChatProps {
   articleId: string;
   isPremium: boolean;
+  user: User | null;
 }
 
 const WELCOME_OPTIONS = [
@@ -43,21 +45,20 @@ const WELCOME_OPTIONS = [
       "What can you tell me about the journalists who wrote this article?",
   },
   {
-    label: "Fact check & context",
-    message: "Can you fact-check the main claims in this article?",
-  },
-  {
-    label: "Compare perspectives",
+    label: "Background context",
     message:
-      "How does this article's perspective compare to other coverage of this topic?",
+      "What is the background context of this article? What should I understand about this topic?",
   },
+  //   {
+  //     label: "Fact check & context",
+  //     message: "Can you fact-check the main claims in this article?",
+  //   },
+  //   {
+  //     label: "Compare perspectives",
+  //     message:
+  //       "How does this article's perspective compare to other coverage of this topic?",
+  //   },
 ];
-
-const WELCOME_MESSAGE: Message = {
-  role: "assistant",
-  content:
-    "Welcome! I can help you understand this article and its potential biases. Select an option below or ask your own question:",
-};
 
 const chatStyles = {
   message: {
@@ -69,9 +70,18 @@ const chatStyles = {
     "prose-sm dark:prose-invert prose-p:leading-relaxed prose-pre:bg-muted/50 prose-pre:border prose-pre:border-border/50 prose-pre:rounded-md prose-headings:text-foreground prose-a:text-primary hover:prose-a:opacity-80",
 };
 
-export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
+export function ArticleChat({ articleId, isPremium, user }: ArticleChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false); // Add this state
+
+  const canSendMessage = isPremium;
+  const WELCOME_MESSAGE: Message = {
+    role: "assistant",
+    content: isPremium
+      ? "Welcome! I can help you understand this article and its potential biases. Select an option below or ask your own question:"
+      : "Welcome! This AI chat feature is available exclusively to premium users. Upgrade to ask questions about this article's content, biases, and context.",
+  };
+
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -97,9 +107,6 @@ export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
       [articleId]: newMessages,
     }));
   };
-
-  const userMessageCount = messages.filter((m) => m.role === "user").length;
-  const canSendMessage = isPremium || userMessageCount < FREE_MESSAGE_LIMIT;
 
   const handleSend = async () => {
     if (!inputMessage.trim() || isLoading || !canSendMessage) return;
@@ -132,7 +139,7 @@ export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
           {
             role: "assistant",
             content: response.response,
-            sources: response.sources,
+            // sources: response.sources,
           },
         ]);
       }
@@ -192,7 +199,7 @@ export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
           {
             role: "assistant",
             content: response.response,
-            sources: response.sources,
+            // sources: response.sources,
           },
         ]);
       }
@@ -220,16 +227,35 @@ export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
   const handleExpand = () => {
     if (isExpanded) {
       document.documentElement.style.removeProperty("overflow");
+      setIsOpen(false);
     } else {
       document.documentElement.style.overflow = "hidden";
     }
     setIsExpanded(!isExpanded);
   };
 
+  const handleSubscribe = async () => {
+    if (user) {
+      try {
+        const checkoutUrl = await initiateSubscription();
+        window.open(checkoutUrl, "_blank");
+        // logEvent("subscription_initiated", { userId: user.uid });
+      } catch (error) {
+        console.error("Error initiating subscription:", error);
+        // logEvent("subscription_error", {
+        //   error: (error as Error).message,
+        // });
+      }
+    }
+  };
+
   return (
     <Collapsible
       open={isOpen}
-      onOpenChange={setIsOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        setIsExpanded(false);
+      }}
       className={cn(
         "w-full rounded-md border bg-card text-card-foreground shadow-sm",
         isExpanded && "fixed inset-0 z-50 m-0 rounded-none border-none" // Add these classes when expanded
@@ -245,12 +271,9 @@ export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
             Chat with AI about this article
           </div>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {!isPremium && (
-              <span>
-                {Math.max(0, FREE_MESSAGE_LIMIT - userMessageCount)}/
-                {FREE_MESSAGE_LIMIT} messages
-              </span>
-            )}
+            {/* {!isPremium && (
+              <span className="text-primary">Premium Feature</span>
+            )} */}
             <span>{isOpen ? "Click to minimize" : "Click to expand"}</span>
           </div>
         </Button>
@@ -265,7 +288,7 @@ export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
             )}
           >
             {/* Add expand/minimize button next to trash */}
-            <div className="absolute top-1 right-1 flex gap-1 z-10">
+            <div className="absolute top-1 right-2 flex gap-1 z-10">
               <Button
                 variant="secondary"
                 size="icon"
@@ -310,28 +333,57 @@ export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
                         <div className={chatStyles.prose}>
                           <p className="mb-3">{message.content}</p>
                           <div className="grid gap-2 max-w-[280px]">
-                            {WELCOME_OPTIONS.map((option, idx) => (
-                              <Button
-                                key={idx}
-                                variant="outline"
-                                className="max-w-[280px] w-full justify-start text-left h-auto py-2 px-3 hover:bg-accent hover:text-accent-foreground transition-colors"
-                                onClick={() =>
-                                  handleOptionClick(option.message)
-                                }
-                                disabled={!canSendMessage}
-                              >
-                                <div className="w-full space-y-1">
-                                  {" "}
-                                  {/* Added space between label and message */}
-                                  <div className="font-medium">
-                                    {option.label}
-                                  </div>
-                                  <div className="text-xs text-muted-foreground break-words whitespace-normal leading-relaxed">
-                                    {option.message}
-                                  </div>
-                                </div>
-                              </Button>
-                            ))}
+                            {isPremium ? (
+                              <div className="grid gap-2">
+                                {WELCOME_OPTIONS.map((option, idx) => (
+                                  <Button
+                                    key={idx}
+                                    variant="outline"
+                                    className="max-w-[280px] w-full justify-start text-left h-auto py-2 px-3 hover:bg-accent hover:text-accent-foreground transition-colors"
+                                    onClick={() =>
+                                      handleOptionClick(option.message)
+                                    }
+                                    disabled={!canSendMessage}
+                                  >
+                                    <div className="w-full space-y-1">
+                                      {" "}
+                                      {/* Added space between label and message */}
+                                      <div className="font-medium">
+                                        {option.label}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground break-words whitespace-normal leading-relaxed">
+                                        {option.message}
+                                      </div>
+                                    </div>
+                                  </Button>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="grid gap-2">
+                                {WELCOME_OPTIONS.map((option, idx) => (
+                                  <Button
+                                    key={idx}
+                                    variant="outline"
+                                    className="max-w-[280px] w-full justify-start text-left h-auto py-2 px-3 hover:bg-accent hover:text-accent-foreground transition-colors"
+                                    onClick={() =>
+                                      handleOptionClick(option.message)
+                                    }
+                                    disabled={true}
+                                  >
+                                    <div className="w-full space-y-1">
+                                      {" "}
+                                      {/* Added space between label and message */}
+                                      <div className="font-medium">
+                                        {option.label}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground break-words whitespace-normal leading-relaxed">
+                                        {option.message}
+                                      </div>
+                                    </div>
+                                  </Button>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -381,7 +433,7 @@ export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
                             {message.content}
                           </ReactMarkdown>
                         </div>
-                        {message.sources &&
+                        {/* {message.sources &&
                           Object.keys(message.sources).length > 0 && (
                             <div className="mt-2 pt-2 border-t border-border/50">
                               <div className="text-xs font-medium text-muted-foreground">
@@ -399,7 +451,7 @@ export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
                                 )
                               )}
                             </div>
-                          )}
+                          )} */}
                       </div>
                     )}
                   </div>
@@ -435,7 +487,7 @@ export function ArticleChat({ articleId, isPremium }: ArticleChatProps) {
                   placeholder={
                     canSendMessage
                       ? "Ask a question about the article..."
-                      : "Message limit reached - Upgrade to Premium"
+                      : "Upgrade to Premium to chat with AI"
                   }
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}

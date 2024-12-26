@@ -573,7 +573,11 @@ export const MainSection = () => {
         )}
 
         {appState.article && (
-          <ArticleChat articleId={appState.article.id} isPremium={isPremium} />
+          <ArticleChat
+            articleId={appState.article.id}
+            isPremium={isPremium}
+            user={user}
+          />
         )}
 
         {!isPremium && (
