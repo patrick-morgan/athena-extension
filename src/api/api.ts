@@ -142,35 +142,6 @@ export const quickParseArticle = async (payload: {
   }
 };
 
-export const fullParseArticle = async (payload: {
-  url: string;
-  html: string;
-}): Promise<CreateArticleResponse | null> => {
-  try {
-    const response = await axiosInstance.post(`/articles/full-parse`, payload);
-    // logEvent("article_full_parsed", { article: response.data });
-    return response.data;
-  } catch (error) {
-    console.error("Error full parsing article:", error);
-    // logEvent("full_parse_error", { error: error });
-    return null;
-  }
-};
-
-// export const fetchPublicationMetadata = async (payload: {
-//   hostname: string;
-// }): Promise<PublicationModel | null> => {
-//   try {
-//     const response = await axiosInstance.post(`/publication-metadata`, payload);
-//     logEvent("publication_metadata_fetched", { metadata: response.data });
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error fetching publication metadata:", error);
-//     logEvent("publication_metadata_error", { error: error });
-//     return null;
-//   }
-// };
-
 type AnalyzeJournalistsPayload = {
   articleId: string;
 };
