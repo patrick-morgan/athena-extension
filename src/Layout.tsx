@@ -13,7 +13,7 @@ export const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="flex flex-col h-[600px] w-[500px] bg-background">
-      <header className="h-16 w-full px-6 bg-primary text-primary-foreground border-b border-accent/10 flex items-center justify-between shrink-0">
+      <header className="h-16 w-full px-6 bg-primary text-primary-foreground border-b border-accent/10 flex items-center justify-between">
         <div
           className="flex items-center gap-2 cursor-pointer"
           onClick={() => navigate("/")}
@@ -35,7 +35,7 @@ export const Layout = ({ children }: LayoutProps) => {
           )}
         </div>
       </header>
-      <main className="flex-1 overflow-hidden">{children}</main>
+      <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );
 };
