@@ -19,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { BiasAnalysisCard } from "./BiasAnalysisCard";
 import { useAuth } from "@/AuthContext";
 import { initiateSubscription } from "../api/stripe";
+import { logger } from "@/logger";
 
 interface JournalistPageProps {
   journalistId: string;
@@ -42,7 +43,7 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
   const [error, setError] = useState<string | null>(null);
   const { isSubscribed, user } = useAuth();
   const isPremium = isSubscribed;
-  console.log("Analyzing journalist", journalistId);
+  logger.log("Analyzing journalist", journalistId);
 
   useEffect(() => {
     const fetchData = async () => {

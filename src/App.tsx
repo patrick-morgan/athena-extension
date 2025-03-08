@@ -14,9 +14,11 @@ import { Spinner } from "./components/spinner";
 import { AboutPage } from "./components/AboutPage";
 import { SupportPage } from "./components/SupportPage";
 import { useScrollToTop } from "./utils/hooks/useScrollToTop";
+import { EmailVerificationPrompt } from "./components/EmailVerificationPrompt";
+import { DebugPanel } from "./components/DebugPanel";
 
 const AppContent = () => {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isEmailVerified } = useAuth();
   useScrollToTop();
 
   if (isLoading) {
@@ -31,14 +33,25 @@ const AppContent = () => {
     return <SignInPrompt />;
   }
 
+  console.log("isEmailVerified", isEmailVerified);
+
+  // If user is logged in but email is not verified, show verification prompt
+  if (user && !isEmailVerified) {
+    return <EmailVerificationPrompt />;
+  }
+
   return (
-    <Routes>
-      <Route path="/" element={<MainSection />} />
-      <Route path="/settings" element={<SettingsPage />} />
-      <Route path="/support" element={<SupportPage />} />
-      <Route path="/about" element={<AboutPage />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<MainSection />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/support" element={<SupportPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+
+      {/* <DebugPanel /> */}
+    </>
   );
 };
 

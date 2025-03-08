@@ -87,8 +87,67 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.action === "getDetailedAnalysisState") {
     getDetailedAnalysisState(message.url).then(sendResponse);
     return true;
+  } else if (message.type === "LOG") {
+    switch (message.level) {
+      case "log":
+        console.log(...message.args);
+        break;
+      case "error":
+        console.error(...message.args);
+        break;
+      case "warn":
+        console.warn(...message.args);
+        break;
+      default:
+        console.log(...message.args);
+        break;
+    }
+    sendResponse({ received: true });
   }
   // ... other message handlers ...
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "DEBUG_LOG") {
+    // Log to background console
+    const { level, message: logMessage, timestamp } = message;
+
+    // Use Function constructor to force output
+    const consoleScript = `console.${level}("[ATHENA BACKGROUND ${timestamp}]", "${logMessage.replace(
+      /"/g,
+      '\\"'
+    )}");`;
+    new Function(consoleScript)();
+
+    // Also try normal console
+    console[level](`[ATHENA BACKGROUND ${timestamp}]`, logMessage);
+
+    // Store in chrome.storage for persistence
+    chrome.storage.local.get(["athenaLogs"], (result) => {
+      const logs = result.athenaLogs || [];
+      logs.unshift({ level, message: logMessage, timestamp });
+
+      // Keep only the last 100 logs
+      if (logs.length > 100) {
+        logs.length = 100;
+      }
+
+      chrome.storage.local.set({ athenaLogs: logs });
+    });
+
+    sendResponse({ received: true });
+    return true; // Keep the message channel open for the async response
+  }
+});
+
+// Expose a function to get logs from the background
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "GET_DEBUG_LOGS") {
+    chrome.storage.local.get(["athenaLogs"], (result) => {
+      sendResponse({ logs: result.athenaLogs || [] });
+    });
+    return true; // Keep the message channel open for the async response
+  }
 });
 
 async function quickParseArticle(data) {

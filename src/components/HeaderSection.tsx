@@ -1,4 +1,6 @@
+import { useAuth } from "@/AuthContext";
 import { Badge } from "@/components/ui/badge";
+import { logger } from "@/logger";
 import { ArticleAuthorType, ArticleModel, PublicationModel } from "@/types";
 import { formatDate } from "@/utils/date";
 
@@ -17,10 +19,14 @@ export const HeaderSection = ({
   onJournalistClick,
   onPublicationClick,
 }: HeaderSectionProps) => {
+  const user = useAuth();
   const publishedDate = formatDate(article.date_published);
   const updatedDate = article.date_updated
     ? formatDate(article.date_updated)
     : null;
+
+  logger.log("user", user);
+  logger.log("verified", user?.isEmailVerified);
 
   return (
     <div className="space-y-2 w-full">

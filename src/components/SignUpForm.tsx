@@ -3,7 +3,8 @@ import { useAuth } from "../AuthContext";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Alert, AlertDescription } from "./ui/alert";
-import { AlertCircle, Check, X } from "lucide-react";
+import { AlertCircle, Check, X, Mail } from "lucide-react";
+import { logger } from "@/logger";
 
 interface PasswordRequirement {
   label: string;
@@ -33,12 +34,17 @@ const getReadableError = (error: Error): string => {
 };
 
 export const SignUpForm: React.FC = () => {
-  const { signUp } = useAuth();
+  const { signUp, user, isEmailVerified, resendVerificationEmail } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [resendDisabled, setResendDisabled] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
+
+  logger.log("isEmailVerified", isEmailVerified);
 
   const [requirements, setRequirements] = useState<PasswordRequirement[]>([
     {
@@ -93,13 +99,73 @@ export const SignUpForm: React.FC = () => {
 
     try {
       await signUp(email, password);
+      setIsSuccess(true);
     } catch (err) {
       console.error("Sign up error:", err);
       setError(getReadableError(err as Error));
+      setIsSuccess(false);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleResendVerification = async () => {
+    try {
+      await resendVerificationEmail();
+      setResendDisabled(true);
+      setResendCountdown(60);
+    } catch (err) {
+      setError("Failed to resend verification email. Please try again later.");
+    }
+  };
+
+  // Countdown timer for resend button
+  useEffect(() => {
+    if (resendCountdown > 0) {
+      const timer = setTimeout(() => {
+        setResendCountdown(resendCountdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (resendCountdown === 0 && resendDisabled) {
+      setResendDisabled(false);
+    }
+  }, [resendCountdown, resendDisabled]);
+
+  // If user has successfully signed up, show verification message
+  if (isSuccess && user && !isEmailVerified) {
+    return (
+      <div className="space-y-4">
+        <Alert className="bg-green-50 border-green-200">
+          <Mail className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-700">
+            <p className="font-medium">Account created successfully!</p>
+            <p className="mt-2">
+              A verification email has been sent to {user.email}. Please check
+              your inbox and click the verification link to activate your
+              account.
+            </p>
+          </AlertDescription>
+        </Alert>
+
+        <div className="text-center space-y-4">
+          <p className="text-sm text-gray-600">
+            Didn't receive the email? Check your spam folder or click below to
+            resend.
+          </p>
+          <Button
+            onClick={handleResendVerification}
+            disabled={resendDisabled}
+            variant="outline"
+            className="w-full"
+          >
+            {resendDisabled
+              ? `Resend available in ${resendCountdown}s`
+              : "Resend Verification Email"}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

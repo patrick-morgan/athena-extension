@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
+  sendEmailVerification,
   User,
 } from "firebase/auth";
 import config from "./config";
@@ -26,6 +27,8 @@ export const signUpWithEmail = async (
       email,
       password
     );
+    // Send verification email immediately after sign up
+    await sendEmailVerification(userCredential.user);
     return userCredential.user;
   } catch (error) {
     // logEvent("sign_up_error", { error: (error as Error).message });
@@ -86,6 +89,16 @@ export const resetPassword = async (email: string): Promise<void> => {
     await sendPasswordResetEmail(auth, email);
   } catch (error) {
     // logEvent("password_reset_error", { error: (error as Error).message });
+    throw error;
+  }
+};
+
+// Add a new function to resend verification email
+export const resendVerificationEmail = async (user: User): Promise<void> => {
+  try {
+    await sendEmailVerification(user);
+  } catch (error) {
+    console.error("Error sending verification email:", error);
     throw error;
   }
 };
