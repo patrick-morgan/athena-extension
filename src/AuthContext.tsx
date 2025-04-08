@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isSubscribed, setIsSubscribed] = useState<boolean>(false);
+  const [isSubscribed, setIsSubscribed] = useState<boolean>(true);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [usage, setUsage] = useState<UserUsageResponse | null>(null);
   const [isEmailVerified, setIsEmailVerified] = useState<boolean>(false);
@@ -94,13 +94,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const checkSubscriptionStatus = async (user: User | null) => {
-    if (user) {
-      setIsLoading(true);
-      const subscribed = await checkSubscription();
-      setIsSubscribed(subscribed);
-      setIsLoading(false);
-    }
+    setIsSubscribed(true);
+    // if (user) {
+    //   setIsLoading(true);
+    //   const subscribed = await checkSubscription();
+    //   setIsSubscribed(subscribed);
+    //   setIsLoading(false);
+    // }
   };
+
+  // const checkSubscriptionStatus = async (user: User | null) => {
+  //   if (user) {
+  //     setIsLoading(true);
+  //     const subscribed = await checkSubscription();
+  //     setIsSubscribed(subscribed);
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleResendVerificationEmail = async () => {
     if (user) {

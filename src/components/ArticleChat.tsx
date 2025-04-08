@@ -74,7 +74,7 @@ export function ArticleChat({ articleId, isPremium, user }: ArticleChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false); // Add this state
 
-  const canSendMessage = isPremium;
+  const canSendMessage = true; //isPremium;
   const WELCOME_MESSAGE: Message = {
     role: "assistant",
     content: isPremium
@@ -232,21 +232,6 @@ export function ArticleChat({ articleId, isPremium, user }: ArticleChatProps) {
       document.documentElement.style.overflow = "hidden";
     }
     setIsExpanded(!isExpanded);
-  };
-
-  const handleSubscribe = async () => {
-    if (user) {
-      try {
-        const checkoutUrl = await initiateSubscription();
-        window.open(checkoutUrl, "_blank");
-        // logEvent("subscription_initiated", { userId: user.uid });
-      } catch (error) {
-        console.error("Error initiating subscription:", error);
-        // logEvent("subscription_error", {
-        //   error: (error as Error).message,
-        // });
-      }
-    }
   };
 
   return (

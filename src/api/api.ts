@@ -124,6 +124,7 @@ export const trackArticleAnalysis = async (): Promise<UserUsageResponse> => {
   }
 };
 
+// USED CURRENTLY to quick parse article
 export const quickParseArticle = async (payload: {
   url: string;
   hostname: string;
@@ -146,6 +147,7 @@ type AnalyzeJournalistsPayload = {
   articleId: string;
 };
 
+// USED CURRENTLY to analyze journalists
 export const analyzeJournalists = async (
   articleId: AnalyzeJournalistsPayload
 ): Promise<JournalistBiasWithNameModel[]> => {
@@ -193,6 +195,7 @@ export type PublicationAnalysisResponse = {
   analysis: PublicationBiasModel;
 };
 
+// USED CURRENTLY to analyze publication
 export const analyzePublication = async (
   payload: PublicationBiasPayload
 ): Promise<PublicationAnalysisResponse> => {

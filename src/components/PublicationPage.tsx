@@ -34,7 +34,7 @@ export const PublicationPage: React.FC<PublicationPageProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isSubscribed, user } = useAuth();
-  const isPremium = isSubscribed;
+  const isPremium = true; //isSubscribed;
   console.log("Publication Page publicationId:", publicationId);
 
   useEffect(() => {

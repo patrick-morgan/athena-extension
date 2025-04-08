@@ -42,7 +42,7 @@ export const JournalistPage: React.FC<JournalistPageProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isSubscribed, user } = useAuth();
-  const isPremium = isSubscribed;
+  const isPremium = true; //isSubscribed;
   logger.log("Analyzing journalist", journalistId);
 
   useEffect(() => {

@@ -71,7 +71,7 @@ export const MainSection = () => {
   const [error, setError] = useState<string | null>(null);
   const [isExtensionPage, setIsExtensionPage] = useState(false);
   const { user, isSubscribed, usage, trackAnalysis } = useAuth();
-  const isPremium = isSubscribed; // Assuming isSubscribed indicates premium status
+  const isPremium = true; //isSubscribed; // Assuming isSubscribed indicates premium status
   const [selectedJournalist, setSelectedJournalist] = useState<string | null>(
     null
   );
